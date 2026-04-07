@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank of Zambia - Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        dark: {
+                            900: '#070B14',
+                            800: '#0D1322',
+                            700: '#151E32',
+                            card: 'rgba(13, 19, 34, 0.6)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0;
+            background-color: #070B14;
+        }
+        
+        .interactive-press:active { transform: scale(0.98); }
+        
+        /* Slow, Elegant Animations */
+        .animate-fade-in { animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-slide-up { animation: slideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-slide-left { animation: slideLeft 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-slide-right { animation: slideRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideLeft { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideRight { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Ambient Floating Orbs */
+        .animate-float-slow { animation: float 14s ease-in-out infinite; }
+        .animate-float-slower { animation: float 18s ease-in-out 3s infinite; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
+            33% { transform: translateY(-30px) scale(1.05) rotate(2deg); }
+            66% { transform: translateY(15px) scale(0.95) rotate(-2deg); }
+        }
+
+        .delay-150 { animation-delay: 150ms; }
+        .delay-300 { animation-delay: 300ms; }
+
+        /* Subtle Grid Pattern */
+        .bg-grid-dark {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
+        /* Deep Glassmorphism */
+        .glass-dark {
+            background: rgba(13, 19, 34, 0.5);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Elegant Inputs */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #0D1322 inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* Elegant Dark Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 10px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Step Transitions */
+        .step-container { display: none; }
+        .step-container.active { display: block; }
+
+        .spinner { animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .shake { animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+
+        /* Custom Drag & Drop Zone */
+        .drop-zone {
+            transition: all 0.3s ease;
+        }
+        .drop-zone.dragover {
+            background: rgba(8, 145, 178, 0.1);
+            border-color: #06b6d4; /* cyan-500 */
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full bg-dark-900 text-slate-200 overflow-hidden font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+    <div class="flex w-[32%] sm:w-[35%] md:w-[38%] lg:w-[40%] relative overflow-hidden flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-14 2xl:p-20 shadow-2xl z-10 border-r border-white/5">
+        <div class="absolute inset-0 bg-dark-900 z-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-dark-900 to-blue-900/20 z-0"></div>
+        <div class="absolute inset-0 bg-grid-dark z-0 mask-image:linear-gradient(to_bottom,transparent,black,transparent)"></div>
+        
+        <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-cyan-600/20 blur-[120px] animate-float-slow z-0"></div>
+
+<div class="relative z-10 flex items-center space-x-2 sm:space-x-4 animate-fade-in">
+            <div class="bg-gradient-to-tr from-cyan-500 to-blue-600 w-8 sm:w-12 h-8 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(8,145,178,0.3)] border border-white/20">
+                <i class="ph ph-bank text-lg sm:text-2xl text-white"></i>
+            </div>
+            <div>
+                <span class="block text-sm sm:text-lg md:text-2xl font-extrabold tracking-tight text-white leading-none">Bank of Zambia</span>
+            </div>
+        </div>
+
+        <div class="relative z-10 flex-1 flex flex-col justify-center mt-12 animate-slide-up delay-150">
+            <h1 class="text-xl sm:text-2xl md:text-3xl lg:text-4xl 2xl:text-5xl font-extrabold text-white leading-[1.1] tracking-tight mb-8 sm:mb-12">
+                Join the <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-sm">Digital Reserve.</span>
+            </h1>
+            
+            <div class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-cyan-500/20 before:via-slate-700 before:to-transparent">
+                
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active" id="indicator-step-1">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-cyan-500 bg-dark-800 text-cyan-400 shadow-[0_0_15px_rgba(8,145,178,0.3)] shrink-0 z-10 transition-all duration-500 indicator-icon">
+                        <i class="ph-fill ph-user text-lg"></i>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] ml-6 md:ml-0 md:mr-6 md:text-right transition-all duration-500 indicator-text">
+                        <h4 class="text-base font-bold text-white">Credentials</h4>
+                        <p class="text-sm text-slate-400">Setup your login details</p>
+                    </div>
+                </div>
+
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group" id="indicator-step-2">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-700 bg-dark-900 text-slate-500 shrink-0 z-10 transition-all duration-500 indicator-icon">
+                        <i class="ph-fill ph-identification-card text-lg"></i>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] ml-6 md:ml-0 md:mr-6 md:text-right transition-all duration-500 indicator-text opacity-50">
+                        <h4 class="text-base font-bold text-slate-300">Personal Info</h4>
+                        <p class="text-sm text-slate-500">Your basic details</p>
+                    </div>
+                </div>
+
+                <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group" id="indicator-step-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-700 bg-dark-900 text-slate-500 shrink-0 z-10 transition-all duration-500 indicator-icon">
+                        <i class="ph-fill ph-shield-check text-lg"></i>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] ml-6 md:ml-0 md:mr-6 md:text-right transition-all duration-500 indicator-text opacity-50">
+                        <h4 class="text-base font-bold text-slate-300">KYC Verification</h4>
+                        <p class="text-sm text-slate-500">Secure identity check</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="relative z-10 flex justify-between items-center text-sm font-semibold text-slate-500 animate-fade-in delay-300 mt-8">
+            <p>&copy; 2026 BOZ Network</p>
+            <a href="login.html" class="hover:text-cyan-400 transition-colors duration-300">Back to Login</a>
+        </div>
+    </div>
+
+    <div class="w-[68%] sm:w-[65%] md:w-[62%] lg:w-[60%] relative bg-dark-900 flex flex-col h-full">
+        
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-900/10 rounded-full blur-[100px] animate-float-slower"></div>
+        </div>
+
+        <div class="w-full h-full overflow-y-auto flex flex-col relative z-10">
+            
+            <div class="hidden px-4 sm:px-6 pt-6 pb-3 flex justify-between items-center shrink-0 animate-fade-in">
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <div class="bg-gradient-to-tr from-cyan-500 to-blue-600 w-9 sm:w-10 h-9 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 border border-white/20">
+                        <i class="ph ph-bank text-lg sm:text-2xl"></i>
+                    </div>
+                    <span class="text-lg sm:text-2xl font-extrabold tracking-tight text-white">BOZ</span>
+                </div>
+                <div class="text-xs sm:text-sm font-bold text-cyan-400" id="mobile-step-counter">Step 1 of 4</div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-center px-3 py-6 sm:px-8 lg:px-12 shrink-0">
+                <div class="w-full max-w-[540px] mx-auto animate-slide-up delay-150">
+                    
+                    <div class="glass-dark p-6 sm:p-8 lg:p-12 rounded-2xl sm:rounded-3xl relative overflow-hidden" id="main-form-card">
+                        <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"></div>
+
+                        <div class="w-full h-1.5 bg-dark-800 rounded-full mb-6 sm:mb-8 overflow-hidden lg:hidden">
+                            <div id="mobile-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 to-blue-500 w-1/4 transition-all duration-500"></div>
+                        </div>
+
+                        <div id="step-demo" class="step-container active animate-slide-left">
+                            <div class="mb-8 sm:mb-10">
+                                <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">Welcome to Bank of Zambia</h2>
+                                <p class="text-sm text-slate-400 font-medium mt-2">Modern banking at your fingertips</p>
+                            </div>
+
+                            <div class="space-y-6 bg-dark-800/40 rounded-2xl p-6 sm:p-8 border border-slate-700/50 mb-8">
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 flex-shrink-0 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                                        <i class="ph-bold ph-credit-card text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white mb-1">Instant Transfers</h4>
+                                        <p class="text-xs text-slate-400">Send money to anyone instantly to any bank</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 flex-shrink-0 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
+                                        <i class="ph-bold ph-eye-slash text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white mb-1">Secure & Private</h4>
+                                        <p class="text-xs text-slate-400">Bank-grade encryption protects your data</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 flex-shrink-0 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400">
+                                        <i class="ph-bold ph-mobile text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-white mb-1">Mobile-First</h4>
+                                        <p class="text-xs text-slate-400">Banking anywhere, anytime on your phone</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="login.html" class="flex-1 py-3 sm:py-4 bg-dark-700 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition-all interactive-press border border-slate-600/50 text-sm sm:text-base text-center flex items-center justify-center">
+                                    Sign In
+                                </a>
+                                <a href="register.html" class="relative flex-1 py-3 sm:py-4 overflow-hidden rounded-xl group interactive-press text-decoration-none">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600"></div>
+                                    <div class="relative flex justify-center items-center gap-2 text-white font-bold text-sm sm:text-base">
+                                        <span>Create Account</span>
+                                        <i class="ph-bold ph-arrow-right text-lg"></i>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize on page load - show welcome screen
+        document.addEventListener('DOMContentLoaded', function() {
+            const stepContainer = document.getElementById('step-demo');
+            if (stepContainer) {
+                stepContainer.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>

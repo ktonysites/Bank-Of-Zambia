@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ CORE | Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Modern Toggle Switch */
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e2e8f0; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 34px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input:checked + .toggle-slider { background-color: #4f46e5; }
+        input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+        /* Tab Transitions */
+        .tab-content { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        .tab-content.active { display: block; opacity: 1; animation: fadeInUp 0.4s ease forwards; }
+        
+        .tab-btn { transition: all 0.2s ease; }
+        .tab-btn.active { background-color: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
+        .tab-btn:not(.active) { background-color: white; color: #64748b; border: 1px solid #e2e8f0; }
+        .tab-btn:not(.active):hover { background-color: #f8fafc; color: #0f172a; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">Z</div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button class="relative p-2 text-slate-600 hover:text-indigo-600 transition">
+                <i class="ph-bold ph-bell text-xl"></i>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button onclick="toggleMobileMenu()" class="p-2 transition-transform duration-300 text-slate-600">
+                <i class="ph-bold ph-list text-2xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0">
+            <div>
+                <h2 class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Platform Settings</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Manage global configurations, security protocols, and operational limits.</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-10 max-w-[1200px] mx-auto w-full">
+            
+            <div class="flex overflow-x-auto hide-scrollbar space-x-3 mb-8 pb-2">
+                <button onclick="switchTab('general')" id="tabBtn-general" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap interactive-press shrink-0">
+                    <i class="ph-bold ph-sliders-horizontal text-lg"></i> General
+                </button>
+                <button onclick="switchTab('security')" id="tabBtn-security" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap interactive-press shrink-0">
+                    <i class="ph-bold ph-shield-check text-lg"></i> Security
+                </button>
+                <button onclick="switchTab('limits')" id="tabBtn-limits" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap interactive-press shrink-0">
+                    <i class="ph-bold ph-chart-bar text-lg"></i> Transaction Limits
+                </button>
+                <button onclick="switchTab('currency')" id="tabBtn-currency" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 whitespace-nowrap interactive-press shrink-0">
+                    <i class="ph-bold ph-currency-circle-dollar text-lg"></i> FX & Currency
+                </button>
+            </div>
+
+            <div id="tab-general" class="tab-content active space-y-6">
+                <div class="glass-card rounded-2xl p-6 lg:p-8">
+                    <h3 class="text-lg font-extrabold text-slate-900 mb-6 flex items-center gap-2"><i class="ph-fill ph-bell-ringing text-indigo-500 text-xl"></i> Global Alert Preferences</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-md transition duration-300">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-envelope-simple text-xl"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Email Deliveries</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">System reports & statement digests</p>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" onchange="showToast('Settings Updated', 'Email delivery preferences saved.')" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-md transition duration-300">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-device-mobile text-xl"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">SMS Gateway</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">Critical OTPs and direct alerts</p>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" onchange="showToast('Settings Updated', 'SMS Gateway preferences saved.')" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-md transition duration-300">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-warning-circle text-xl"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">Fraud Anomalies</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">Real-time suspicious activity pings</p>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" onchange="showToast('Settings Updated', 'Fraud anomaly alerts configured.')" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-md transition duration-300">
+                            <div class="flex gap-4 items-center">
+                                <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-cloud-arrow-down text-xl"></i></div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">System Updates</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">Core banking patch notifications</p>
+                                </div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" onchange="showToast('Settings Updated', 'Update notifications modified.')">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-security" class="tab-content space-y-6">
+                <div class="glass-card rounded-2xl p-6 lg:p-8">
+                    <h3 class="text-lg font-extrabold text-slate-900 mb-6 flex items-center gap-2"><i class="ph-fill ph-shield-check text-emerald-500 text-xl"></i> Authentication & Security</h3>
+                    
+                    <div class="space-y-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white border border-slate-200 rounded-2xl shadow-sm gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100"><i class="ph-bold ph-fingerprint text-2xl text-indigo-600"></i></div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900">Biometric Enforcement (Staff)</h3>
+                                    <p class="text-xs text-slate-500 mt-1">Require TouchID/FaceID for admin actions</p>
+                                </div>
+                            </div>
+                            <label class="toggle-switch shrink-0">
+                                <input type="checkbox" onchange="showToast('Security Level Changed', 'Biometric policy updated.', 'ph-shield-check', 'text-emerald-400')" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white border border-slate-200 rounded-2xl shadow-sm gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-slate-100 p-3 rounded-xl border border-slate-200"><i class="ph-bold ph-hourglass-medium text-2xl text-slate-600"></i></div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900">Admin Session Timeout</h3>
+                                    <p class="text-xs text-slate-500 mt-1">Force logout after idle duration</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2 shrink-0">
+                                <button onclick="setSession(15, this)" class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-indigo-500 transition">15m</button>
+                                <button onclick="setSession(30, this)" class="px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-lg text-xs font-bold text-indigo-700 transition active-session">30m</button>
+                                <button onclick="setSession(60, this)" class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:border-indigo-500 transition">1h</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-limits" class="tab-content space-y-6">
+                <div class="glass-card rounded-2xl p-6 lg:p-8">
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-chart-line-up text-blue-500 text-xl"></i> Base Transaction Limits</h3>
+                        <button onclick="showToast('Limits Saved', 'Global transaction limits updated securely.', 'ph-check-circle', 'text-emerald-400')" class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-500/20 transition interactive-press">Save Thresholds</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Retail Daily Transfer (ZMW)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">ZMW</span>
+                                <input type="text" value="50,000" class="w-full pl-14 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-slate-800 transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Corporate Daily Transfer (ZMW)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">ZMW</span>
+                                <input type="text" value="5,000,000" class="w-full pl-14 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-slate-800 transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Max Single ATM Withdrawal</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">ZMW</span>
+                                <input type="text" value="10,000" class="w-full pl-14 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-slate-800 transition">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">SWIFT International Limit</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">USD</span>
+                                <input type="text" value="25,000" class="w-full pl-14 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-slate-800 transition">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-currency" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card rounded-2xl p-6 lg:p-8">
+                        <h3 class="text-lg font-extrabold text-slate-900 mb-2 flex items-center gap-2"><i class="ph-fill ph-globe text-indigo-500 text-xl"></i> Platform Base Currency</h3>
+                        <p class="text-xs text-slate-500 mb-6 font-medium">Set the primary settlement and reporting currency.</p>
+                        
+                        <div class="relative">
+                            <select class="w-full px-4 py-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none bg-slate-50 font-bold text-slate-800 appearance-none cursor-pointer">
+                                <option value="ZMW" selected>ZMW - Zambian Kwacha</option>
+                                <option value="USD">USD - US Dollar</option>
+                            </select>
+                            <i class="ph-bold ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        </div>
+                        
+                        <div class="mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100 flex gap-3">
+                            <i class="ph-fill ph-info text-indigo-600 text-xl shrink-0 mt-0.5"></i>
+                            <p class="text-xs font-medium text-indigo-800 leading-relaxed">Changing the base currency will require a core system reboot and affects all dashboard metrics. Please proceed with caution.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6 lg:p-8">
+                        <h3 class="text-lg font-extrabold text-slate-900 mb-2 flex items-center gap-2"><i class="ph-fill ph-arrows-left-right text-emerald-500 text-xl"></i> FX Rate Simulator</h3>
+                        <p class="text-xs text-slate-500 mb-6 font-medium">Test current exchange rates pulled from BOZ live feeds.</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Amount</label>
+                                <input type="number" id="convertAmt" placeholder="Enter amount" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-slate-800">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="relative">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">From</label>
+                                    <select id="convertFrom" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-700 text-sm appearance-none">
+                                        <option value="USD">USD</option>
+                                        <option value="ZMW" selected>ZMW</option>
+                                        <option value="GBP">GBP</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                    <i class="ph-bold ph-caret-down absolute right-3 top-10 text-slate-400 pointer-events-none text-xs"></i>
+                                </div>
+                                <div class="relative">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">To</label>
+                                    <select id="convertTo" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-700 text-sm appearance-none">
+                                        <option value="USD" selected>USD</option>
+                                        <option value="ZMW">ZMW</option>
+                                        <option value="GBP">GBP</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                    <i class="ph-bold ph-caret-down absolute right-3 top-10 text-slate-400 pointer-events-none text-xs"></i>
+                                </div>
+                            </div>
+                            <button onclick="runMockConversion()" class="w-full py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg mt-2 interactive-press">Simulate Conversion</button>
+                            
+                            <div id="conversionResult" class="hidden mt-4 p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                                <p class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Result</p>
+                                <p class="text-lg font-black text-emerald-800" id="conversionText"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[70] pointer-events-none w-max max-w-[90vw]">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- TAB LOGIC ---
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            // Unstyle all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            document.getElementById(`tabBtn-${tabId}`).classList.add('active');
+        }
+
+        // --- INTERACTIVE LOGIC ---
+        function setSession(time, btnEl) {
+            document.querySelectorAll('.active-session').forEach(el => {
+                el.classList.remove('bg-indigo-50', 'border-indigo-200', 'text-indigo-700', 'active-session');
+                el.classList.add('border-slate-200', 'text-slate-600');
+            });
+            btnEl.classList.remove('border-slate-200', 'text-slate-600');
+            btnEl.classList.add('bg-indigo-50', 'border-indigo-200', 'text-indigo-700', 'active-session');
+            showToast('Session Updated', `Idle timeout set to ${time} minutes.`, 'ph-hourglass', 'text-indigo-400');
+        }
+
+        // Mock FX Converter
+        const rates = { ZMW: 1, USD: 0.038, GBP: 0.030, EUR: 0.035 };
+        function runMockConversion() {
+            const amt = parseFloat(document.getElementById('convertAmt').value);
+            if(!amt || isNaN(amt)) {
+                showToast('Error', 'Please enter a valid amount', 'ph-x-circle', 'text-rose-400');
+                return;
+            }
+            const from = document.getElementById('convertFrom').value;
+            const to = document.getElementById('convertTo').value;
+            
+            // Simple conversion logic base on ZMW
+            const inZMW = amt / rates[from];
+            const finalVal = inZMW * rates[to];
+
+            document.getElementById('conversionResult').classList.remove('hidden');
+            document.getElementById('conversionText').innerText = `${amt} ${from} = ${finalVal.toFixed(2)} ${to}`;
+        }
+
+        // --- UTILS ---
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            if (sidebar.style.transform === "translateX(0px)" || sidebar.style.transform === "translateX(0)") {
+                closeMobileMenu();
+            } else {
+                sidebar.style.transform = "translateX(0)";
+                backdrop.classList.remove("hidden", "opacity-0");
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            sidebar.style.transform = "translateX(-100%)";
+            backdrop.classList.add("opacity-0");
+            setTimeout(() => backdrop.classList.add("hidden"), 300);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Setup navigation using config
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'settings.html');
+            }
+        });
+    </script>
+</body>
+</html>

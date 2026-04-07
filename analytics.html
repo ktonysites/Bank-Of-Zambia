@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ | Analytics & Reports</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Scrollbar Styling */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Hamburger Animation */
+        .hamburger .line { transform-origin: center; transition: all 0.3s ease; }
+        .hamburger.active .line:nth-child(1) { transform: rotate(45deg) translate(8px, 8px); }
+        .hamburger.active .line:nth-child(2) { opacity: 0; }
+        .hamburger.active .line:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+
+        /* Mobile Sidebar Animation */
+        #mobileSidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #mobileSidebar.open { transform: translateX(0) !important; }
+        #mobileBackdrop { transition: opacity 0.3s; }
+        #mobileBackdrop.show { display: block !important; opacity: 1; }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .chart-container { position: relative; height: 280px; width: 100%; }
+        
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-30 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-indigo-600 to-indigo-500 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+                Z
+            </div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="touch-button p-2">
+            <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                <span class="line h-[2px] w-6 bg-slate-800 rounded transition"></span>
+                <span class="line h-[2px] w-6 bg-slate-800 rounded transition"></span>
+                <span class="line h-[2px] w-6 bg-slate-800 rounded transition"></span>
+            </div>
+        </button>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden relative lg:pt-0 pt-16">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-10 flex items-center justify-between z-10 sticky top-0">
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Analytics Command Center</h2>
+                <div class="flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Data Warehouse Status:</span>
+                    <span class="flex items-center gap-1 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Syncing</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative group hidden sm:block">
+                    <select id="timeFilter" onchange="updateAnalyticsPeriod(this.value)" class="appearance-none pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-sm text-slate-700 hover:border-indigo-300 transition cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500/20 w-40">
+                        <option value="7d">Last 7 Days</option>
+                        <option value="30d" selected>Last 30 Days</option>
+                        <option value="90d">Last 90 Days</option>
+                        <option value="ytd">Year to Date</option>
+                    </select>
+                    <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                </div>
+                <button onclick="openExportModal()" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-download-simple text-lg"></i> <span class="hidden sm:inline">Export Data</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 sm:p-10 space-y-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between items-center">
+                        Total Transactions <i class="ph-fill ph-swap text-indigo-400 text-lg"></i>
+                    </div>
+                    <div class="text-2xl font-extrabold text-slate-900 mb-1" id="kpiTx">45,230</div>
+                    <div class="text-[11px] text-emerald-600 font-bold flex items-center gap-1"><i class="ph-bold ph-trend-up"></i> <span id="kpiTxTrend">12.4</span>% vs last period</div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-5"><i class="ph-fill ph-coins text-8xl"></i></div>
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Volume</div>
+                    <div class="text-2xl font-extrabold text-slate-900 mb-1" id="kpiVol">ZMW 2.4T</div>
+                    <div class="text-[11px] text-emerald-600 font-bold flex items-center gap-1"><i class="ph-bold ph-trend-up"></i> <span id="kpiVolTrend">8.5</span>% vs last period</div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex justify-between items-center">
+                        Active Users <i class="ph-fill ph-users text-indigo-400 text-lg"></i>
+                    </div>
+                    <div class="text-2xl font-extrabold text-slate-900 mb-1" id="kpiUsers">8.2M</div>
+                    <div class="text-[11px] text-emerald-600 font-bold flex items-center gap-1"><i class="ph-bold ph-trend-up"></i> <span id="kpiUsersTrend">5.2</span>% vs last period</div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default">
+                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Fee Revenue</div>
+                    <div class="text-2xl font-extrabold text-slate-900 mb-1" id="kpiRev">ZMW 15.2B</div>
+                    <div class="text-[11px] text-emerald-600 font-bold flex items-center gap-1"><i class="ph-bold ph-trend-up"></i> <span id="kpiRevTrend">3.8</span>% vs last period</div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default border-emerald-200 bg-emerald-50/30">
+                    <div class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 flex justify-between items-center">
+                        System Uptime <i class="ph-fill ph-check-circle text-emerald-500 text-lg"></i>
+                    </div>
+                    <div class="text-2xl font-extrabold text-emerald-800 mb-1">99.99%</div>
+                    <div class="text-[11px] text-emerald-600/70 font-bold">All nodes operational</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <div class="glass-card rounded-3xl p-6 relative group animate-row" style="animation-delay: 100ms">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="font-extrabold text-lg text-slate-900">Transaction Flow</h3>
+                            <p class="text-xs text-slate-500 font-medium">Daily volume over selected period</p>
+                        </div>
+                        <button onclick="downloadChartCSV('transaction')" class="text-xs font-bold bg-slate-100 hover:bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg transition opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                            CSV <i class="ph-bold ph-download-simple"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="transactionChart"></canvas></div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 relative group animate-row" style="animation-delay: 200ms">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="font-extrabold text-lg text-slate-900">Volume by Operation</h3>
+                            <p class="text-xs text-slate-500 font-medium">Distribution of transaction types</p>
+                        </div>
+                        <button onclick="downloadChartCSV('volume')" class="text-xs font-bold bg-slate-100 hover:bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg transition opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                            CSV <i class="ph-bold ph-download-simple"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="volumeChart"></canvas></div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 relative group animate-row" style="animation-delay: 300ms">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="font-extrabold text-lg text-slate-900">Revenue Streams</h3>
+                            <p class="text-xs text-slate-500 font-medium">Income categorized by source (Billions)</p>
+                        </div>
+                        <button onclick="downloadChartCSV('revenue')" class="text-xs font-bold bg-slate-100 hover:bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg transition opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                            CSV <i class="ph-bold ph-download-simple"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+                </div>
+
+                <div class="glass-card rounded-3xl p-6 relative group animate-row" style="animation-delay: 400ms">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="font-extrabold text-lg text-slate-900">Account Acquisition</h3>
+                            <p class="text-xs text-slate-500 font-medium">New KYC verifications & onboards</p>
+                        </div>
+                        <button onclick="downloadChartCSV('account')" class="text-xs font-bold bg-slate-100 hover:bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg transition opacity-0 group-hover:opacity-100 flex items-center gap-1">
+                            CSV <i class="ph-bold ph-download-simple"></i>
+                        </button>
+                    </div>
+                    <div class="chart-container"><canvas id="accountChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[2rem] overflow-hidden animate-row" style="animation-delay: 500ms">
+                <div class="p-6 sm:p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                    <div>
+                        <h3 class="font-extrabold text-xl text-slate-900">Channel Performance Matrix</h3>
+                        <p class="text-sm text-slate-500 font-medium mt-1">Detailed diagnostic metrics by channel origin.</p>
+                    </div>
+                    <button onclick="downloadChartCSV('channels')" class="text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl transition flex items-center gap-2 self-start sm:self-auto">
+                        <i class="ph-bold ph-file-csv text-lg"></i> Export Table
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[800px]">
+                        <thead>
+                            <tr class="bg-slate-50/50">
+                                <th class="px-8 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Channel Origin</th>
+                                <th class="px-8 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Tx Count</th>
+                                <th class="px-8 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Volume (ZMW)</th>
+                                <th class="px-8 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Value</th>
+                                <th class="px-8 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Success Rate</th>
+                                <th class="px-8 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Growth Δ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="channelsTableBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="exportModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay" onclick="closeExportModal()"></div>
+        <div class="bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl max-w-lg w-full border border-slate-200/50 relative z-10 modal-animate overflow-hidden">
+            <div class="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h3 class="text-xl font-black text-slate-900">Export Report</h3>
+                    <p class="text-xs text-slate-500 font-medium mt-1">Select data sets to include in the master compilation.</p>
+                </div>
+                <button onclick="closeExportModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200/50 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <form id="exportForm" onsubmit="generateMasterReport(event)" class="p-6 sm:p-8 space-y-4">
+                
+                <label class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" name="reportDataset" value="Transactions" checked class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">Transaction Flow Data</p>
+                        <p class="text-xs text-slate-500">Includes daily volumes and trend analysis.</p>
+                    </div>
+                </label>
+                
+                <label class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" name="reportDataset" value="Revenue" checked class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">Revenue Streams</p>
+                        <p class="text-xs text-slate-500">Income breakdown by operational sector.</p>
+                    </div>
+                </label>
+
+                <label class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" name="reportDataset" value="Acquisition" checked class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">User Acquisition</p>
+                        <p class="text-xs text-slate-500">Account growth and KYC onboarding rates.</p>
+                    </div>
+                </label>
+
+                <label class="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+                    <input type="checkbox" name="reportDataset" value="Channels" checked class="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">Channel Matrix</p>
+                        <p class="text-xs text-slate-500">Performance stats by interface (Web, App, ATM).</p>
+                    </div>
+                </label>
+
+                <div class="pt-4 mt-2 border-t border-slate-100 flex gap-3">
+                    <div class="flex-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Format</label>
+                        <select id="exportFormat" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-sm text-slate-700 cursor-pointer">
+                            <option value="PDF">PDF Compilation</option>
+                            <option value="CSV">Zip Archive (.csv)</option>
+                            <option value="XLSX">Excel Workbook</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnCompileReport" class="w-full mt-4 py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex justify-center items-center gap-2 interactive-press">
+                    <span id="txtCompile">Compile & Download</span>
+                    <i id="spinCompile" class="ph ph-spinner-gap animate-spin hidden text-xl"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[60] pointer-events-none">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <script>
+        // Set global Chart.js defaults for premium look
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.scale.grid.color = 'rgba(226, 232, 240, 0.5)';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.titleFont = { size: 14, weight: 'bold' };
+
+        // Data Stores for Charts (used for rendering AND exporting)
+        const db = {
+            transaction: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                data: [21000, 32000, 28000, 41000, 52000, 48000, 61000]
+            },
+            volume: {
+                labels: ['Transfers', 'Payments', 'Withdrawals', 'Deposits'],
+                data: [42, 31, 16, 11]
+            },
+            revenue: {
+                labels: ['Fees', 'Interest', 'Services', 'FX', 'Other'],
+                data: [8.2, 4.1, 2.5, 1.8, 0.4]
+            },
+            account: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                data: [120, 150, 180, 220, 260, 320]
+            },
+            channels: [
+                { channel: 'Mobile App', tx: 15230, vol: 850000000000, avg: 55800, rate: 99.2, growth: 18.4 },
+                { channel: 'Web Portal', tx: 12450, vol: 680000000000, avg: 54600, rate: 98.8, growth: 14.1 },
+                { channel: 'ATM Network', tx: 9850, vol: 520000000000, avg: 52800, rate: 99.5, growth: 5.2 },
+                { channel: 'Branch POS', tx: 5680, vol: 310000000000, avg: 54600, rate: 99.9, growth: 2.1 },
+                { channel: 'B2B API', tx: 2020, vol: 40000000000, avg: 19800, rate: 99.7, growth: 45.8 }
+            ]
+        };
+
+        let activeCharts = {};
+
+        function formatZM(value) {
+            return new Intl.NumberFormat('en-ZM', { style: 'currency', currency: 'ZMW', notation: 'compact' }).format(value);
+        }
+
+        // --- 1. RENDER CHARTS ---
+        function initCharts() {
+            // Destroy existing if updating
+            Object.values(activeCharts).forEach(c => c.destroy());
+
+            // 1. Transaction Trend (Line area)
+            const txCtx = document.getElementById('transactionChart').getContext('2d');
+            let gradientTx = txCtx.createLinearGradient(0, 0, 0, 300);
+            gradientTx.addColorStop(0, 'rgba(79, 70, 229, 0.2)');
+            gradientTx.addColorStop(1, 'rgba(79, 70, 229, 0)');
+            
+            activeCharts.transaction = new Chart(txCtx, {
+                type: 'line',
+                data: {
+                    labels: db.transaction.labels,
+                    datasets: [{
+                        label: 'Transactions',
+                        data: db.transaction.data,
+                        borderColor: '#4f46e5',
+                        backgroundColor: gradientTx,
+                        tension: 0.4,
+                        fill: true,
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#4f46e5',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { border: {display: false}, beginAtZero: true },
+                        x: { border: {display: false}, grid: { display: false } }
+                    }
+                }
+            });
+
+            // 2. Volume by Type (Doughnut)
+            const volCtx = document.getElementById('volumeChart').getContext('2d');
+            activeCharts.volume = new Chart(volCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: db.volume.labels,
+                    datasets: [{
+                        data: db.volume.data,
+                        backgroundColor: ['#4f46e5', '#38bdf8', '#10b981', '#f43f5e'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '75%',
+                    plugins: { 
+                        legend: { position: 'right', labels: { usePointStyle: true, padding: 20, font: {weight: 'bold'} } } 
+                    }
+                }
+            });
+
+            // 3. Revenue Breakdown (Bar)
+            const revCtx = document.getElementById('revenueChart').getContext('2d');
+            activeCharts.revenue = new Chart(revCtx, {
+                type: 'bar',
+                data: {
+                    labels: db.revenue.labels,
+                    datasets: [{
+                        label: 'Revenue (ZMW B)',
+                        data: db.revenue.data,
+                        backgroundColor: '#10b981',
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { border: {display: false}, beginAtZero: true },
+                        x: { border: {display: false}, grid: { display: false } }
+                    }
+                }
+            });
+
+            // 4. Account Growth (Line)
+            const accCtx = document.getElementById('accountChart').getContext('2d');
+            activeCharts.account = new Chart(accCtx, {
+                type: 'line',
+                data: {
+                    labels: db.account.labels,
+                    datasets: [{
+                        label: 'New Users',
+                        data: db.account.data,
+                        borderColor: '#8b5cf6',
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#8b5cf6',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { border: {display: false}, beginAtZero: true },
+                        x: { border: {display: false}, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- 2. RENDER TABLE ---
+        function renderChannelsTable() {
+            const tbody = document.getElementById('channelsTableBody');
+            tbody.innerHTML = db.channels.map((d, i) => `
+                <tr class="border-b border-slate-100 hover:bg-indigo-50/50 transition-colors animate-row" style="animation-delay: ${500 + (i*50)}ms">
+                    <td class="px-8 py-5">
+                        <span class="font-bold text-slate-900 block">${d.channel}</span>
+                    </td>
+                    <td class="px-8 py-5 text-right font-mono text-sm text-slate-700">${d.tx.toLocaleString()}</td>
+                    <td class="px-8 py-5 text-right font-bold text-slate-900">${formatZM(d.vol)}</td>
+                    <td class="px-8 py-5 text-right font-medium text-slate-600">${formatZM(d.avg)}</td>
+                    <td class="px-8 py-5 text-center">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${d.rate}%
+                        </span>
+                    </td>
+                    <td class="px-8 py-5 text-right font-bold text-indigo-600 flex items-center justify-end gap-1">
+                        <i class="ph-bold ph-trend-up"></i> ${d.growth}%
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // --- 3. EXPORT LOGIC ---
+        function triggerDownload(filename, content, type = 'text/csv;charset=utf-8;') {
+            const blob = new Blob([content], { type });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Generate CSV for a single chart/dataset
+        function downloadChartCSV(datasetName) {
+            showToast('Generating CSV', `Compiling data for ${datasetName}...`, 'ph-spinner-gap', 'text-indigo-400');
+            
+            setTimeout(() => {
+                let csvContent = "";
+                let filename = `BOZ_${datasetName}_Report_${new Date().toISOString().split('T')[0]}.csv`;
+
+                if (datasetName === 'channels') {
+                    // Export Table
+                    csvContent += "Channel,Tx Count,Volume (ZMW),Avg Value (ZMW),Success Rate (%),Growth (%)\n";
+                    db.channels.forEach(r => {
+                        csvContent += `"${r.channel}",${r.tx},${r.vol},${r.avg},${r.rate},${r.growth}\n`;
+                    });
+                } else {
+                    // Export Chart Data
+                    const data = db[datasetName];
+                    csvContent += "Category,Value\n";
+                    for (let i = 0; i < data.labels.length; i++) {
+                        csvContent += `"${data.labels[i]}",${data.data[i]}\n`;
+                    }
+                }
+
+                triggerDownload(filename, csvContent);
+                showToast('Download Complete', `${filename} saved successfully.`, 'ph-check-circle', 'text-emerald-400');
+            }, 600);
+        }
+
+        // Open Master Export Modal
+        function openExportModal() {
+            document.getElementById('exportModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // prevent background scroll
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Handle Master Report Generation
+        function generateMasterReport(e) {
+            e.preventDefault();
+            
+            // Get selected datasets
+            const checkboxes = document.querySelectorAll('input[name="reportDataset"]:checked');
+            if(checkboxes.length === 0) {
+                showToast('Validation Error', 'Please select at least one dataset.', 'ph-warning', 'text-amber-500');
+                return;
+            }
+
+            const format = document.getElementById('exportFormat').value;
+            const btnText = document.getElementById('txtCompile');
+            const spinner = document.getElementById('spinCompile');
+            const btn = document.getElementById('btnCompileReport');
+
+            btnText.innerText = "Compiling Data...";
+            spinner.classList.remove('hidden');
+            btn.classList.add('opacity-90', 'cursor-not-allowed');
+            btn.disabled = true;
+
+            // Simulate heavy backend processing for a master report
+            setTimeout(() => {
+                closeExportModal();
+                
+                // Reset Button
+                setTimeout(() => {
+                    btnText.innerText = "Compile & Download";
+                    spinner.classList.add('hidden');
+                    btn.classList.remove('opacity-90', 'cursor-not-allowed');
+                    btn.disabled = false;
+                }, 300);
+
+                // Simulate downloading the master file
+                showToast("Download Complete", `Master_Analytics_${format}.${format.toLowerCase()} saved to device.`, "ph-check-circle", "text-emerald-400");
+                
+                // Demo logic for full CSV export
+                if(format === 'CSV') {
+                     let masterCsv = "--- BOZ CORE MASTER REPORT ---\n\n";
+                     
+                     checkboxes.forEach(cb => {
+                         const ds = cb.value.toLowerCase();
+                         masterCsv += `\n=== ${ds.toUpperCase()} DATA ===\n`;
+                         if(ds === 'channels') {
+                             masterCsv += "Channel,Tx Count,Volume (ZMW),Avg Value (ZMW),Success Rate (%),Growth (%)\n";
+                             db.channels.forEach(r => masterCsv += `"${r.channel}",${r.tx},${r.vol},${r.avg},${r.rate},${r.growth}\n`);
+                         } else {
+                             const dataKey = ds === 'transactions' ? 'transaction' : (ds === 'acquisition' ? 'account' : ds);
+                             const data = db[dataKey];
+                             if(data) {
+                                masterCsv += "Category,Value\n";
+                                for (let i = 0; i < data.labels.length; i++) {
+                                    masterCsv += `"${data.labels[i]}",${data.data[i]}\n`;
+                                }
+                             }
+                         }
+                     });
+                     triggerDownload(`BOZ_Master_Report_${new Date().getTime()}.csv`, masterCsv);
+                }
+
+            }, 2000);
+        }
+
+        // --- 4. UTILS & UI CONTROLS ---
+
+        function updateAnalyticsPeriod(period) {
+            // Simulate fetching new data by scrambling the KPI values slightly
+            const kpiIds = ['kpiTx', 'kpiVol', 'kpiUsers', 'kpiRev'];
+            const trendIds = ['kpiTxTrend', 'kpiVolTrend', 'kpiUsersTrend', 'kpiRevTrend'];
+            
+            showToast('Querying Database', `Compiling data for ${period}...`, 'ph-spinner-gap', 'text-indigo-400');
+            
+            setTimeout(() => {
+                // Scramble trends visually
+                trendIds.forEach(id => {
+                    document.getElementById(id).innerText = (Math.random() * 20).toFixed(1);
+                });
+                
+                // Re-render charts
+                initCharts(); 
+                showToast('Dashboard Updated', 'Real-time metrics synced.', 'ph-check-circle', 'text-emerald-400');
+            }, 800);
+        }
+
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('translate-y-20', 'opacity-0'), 10);
+            
+            // clear timeout if exists
+            if (window.toastTimer) clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 3000);
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.getElementById('mobileMenuBtn').querySelector('.hamburger');
+            
+            if (sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = 'translateX(-100%)';
+                backdrop.classList.add('opacity-0');
+                hamburger.classList.remove('active');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            } else {
+                sidebar.style.transform = 'translateX(0)';
+                backdrop.classList.remove('hidden');
+                hamburger.classList.add('active');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.getElementById('mobileMenuBtn').querySelector('.hamburger');
+            
+            sidebar.style.transform = 'translateX(-100%)';
+            backdrop.classList.add('opacity-0');
+            hamburger.classList.remove('active');
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavigation('admin', 'analytics.html');
+            initCharts();
+            renderChannelsTable();
+        });
+
+    </script>
+</body>
+</html>

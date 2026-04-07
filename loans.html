@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ CORE | Loan Book Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); transition: opacity 0.3s; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Hamburger Animation */
+        .hamburger .line { transition: all 0.3s ease-in-out; transform-origin: center; }
+        .hamburger.active .line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active .line:nth-child(2) { opacity: 0; }
+        .hamburger.active .line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900" onclick="closeAllDropdowns(event)">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-30 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-500 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+                <i class="ph-bold ph-bank text-sm"></i>
+            </div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="notifBtnMobile" onclick="toggleDropdown('notifDropdownMobile', event)" class="text-slate-400 hover:text-indigo-600 transition relative p-2 bg-slate-50 rounded-full interactive-press">
+                <i class="ph-bold ph-bell text-lg"></i>
+            </button>
+            <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="p-2 interactive-press">
+                <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0 bg-[#f8fafc]">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0 shadow-sm">
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Loan Book Management</h2>
+                <p class="hidden sm:block text-[11px] text-slate-500 font-medium mt-0.5">Originate, review, and track platform lending facilities.</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative hidden sm:block">
+                    <button id="notifBtn" onclick="toggleDropdown('notifDropdown', event)" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-indigo-600 transition interactive-press relative">
+                        <i class="ph-fill ph-bell text-lg"></i>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 class="font-bold text-slate-800 text-sm">System Alerts</h3>
+                            <button class="text-xs text-indigo-600 font-bold hover:text-indigo-800">Dismiss all</button>
+                        </div>
+                        <div class="max-h-72 overflow-y-auto p-4 text-center text-sm text-slate-500">
+                            No new alerts.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-10 max-w-[1600px] mx-auto w-full pb-24 lg:pb-10">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0"><i class="ph-fill ph-coins text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Active Portfolio</p>
+                        <h3 id="statTotalPortfolio" class="text-3xl font-extrabold text-slate-900">ZMW 42.8M</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0"><i class="ph-fill ph-check-circle text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Active Accounts</p>
+                        <h3 id="statActiveLoans" class="text-3xl font-extrabold text-slate-900">1,842</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform border-amber-200 bg-amber-50/30">
+                    <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-hourglass-high text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-amber-600 font-black uppercase tracking-widest mb-1">Pending Approvals</p>
+                        <h3 id="statPendingLoans" class="text-3xl font-extrabold text-amber-700">24</h3>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform border-rose-200 bg-rose-50/30">
+                    <div class="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0"><i class="ph-fill ph-warning-octagon text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-rose-600 font-black uppercase tracking-widest mb-1">NPL / Default Rate</p>
+                        <h3 id="statDefaultRate" class="text-3xl font-extrabold text-rose-700">3.2%</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[2rem] shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+                <div class="px-8 py-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white/50">
+                    <div class="flex bg-slate-100/80 p-1 rounded-xl overflow-x-auto hide-scrollbar w-full sm:w-auto border border-slate-200/50 shadow-sm">
+                        <button onclick="filterLoans('All')" id="tab-All" class="filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap bg-white text-indigo-600 shadow-sm transition">All Loans</button>
+                        <button onclick="filterLoans('Pending')" id="tab-Pending" class="filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Pending Auth</button>
+                        <button onclick="filterLoans('Active')" id="tab-Active" class="filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Active</button>
+                        <button onclick="filterLoans('Defaulted')" id="tab-Defaulted" class="filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Defaulted</button>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                        <div class="relative w-full sm:w-64 shrink-0">
+                            <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search borrower, ID, or ref..." class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm">
+                        </div>
+                        <button onclick="openOriginateModal()" class="px-5 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition interactive-press shrink-0">
+                            <i class="ph-bold ph-plus text-lg"></i> Originate Loan
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto flex-1 w-full">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                        <thead class="bg-slate-50/50 text-slate-400 border-b border-slate-100">
+                            <tr>
+                                <th class="px-8 py-5 font-black tracking-widest uppercase text-[10px]">Loan Ref</th>
+                                <th class="px-8 py-5 font-black tracking-widest uppercase text-[10px]">Borrower</th>
+                                <th class="px-8 py-5 font-black tracking-widest uppercase text-[10px]">Product Type</th>
+                                <th class="px-8 py-5 font-black tracking-widest uppercase text-[10px]">Date Applied</th>
+                                <th class="px-8 py-5 font-black tracking-widest uppercase text-[10px] text-right">Total Payable</th>
+                                <th class="px-8 py-5 font-black tracking-widest uppercase text-[10px] text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loanTableBody" class="divide-y divide-slate-50 bg-white">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto">
+                    <span class="text-xs text-slate-500 font-bold tracking-wide" id="paginationText">Showing entries</span>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1.5 border border-slate-200 bg-white text-slate-400 rounded-lg cursor-not-allowed text-xs font-bold">Prev</button>
+                        <button class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold text-xs shadow-sm shadow-indigo-200">1</button>
+                        <button class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 rounded-lg font-bold text-xs cursor-not-allowed opacity-50">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="loanDetailsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" id="loanDetailsOverlay" onclick="closeLoanDetails()"></div>
+        <div class="bg-slate-50 rounded-[2rem] p-0 max-w-2xl w-full shadow-2xl relative z-10 modal-animate overflow-hidden border border-slate-200 scale-95 opacity-0 transition-all" id="loanDetailsContent">
+            
+            <div class="bg-white p-8 pb-6 border-b border-slate-100 relative flex justify-between items-start rounded-t-3xl">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <span id="modalLoanStatusBadge"></span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Facility ID:</span>
+                    </div>
+                    <h3 id="modalLoanId" class="text-3xl font-black text-slate-900 tracking-tight font-mono"></h3>
+                    <p id="modalBorrowerName" class="text-sm font-bold text-indigo-600 mt-1"></p>
+                </div>
+                <button onclick="closeLoanDetails()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition interactive-press">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="p-8 bg-slate-50">
+                <div class="grid grid-cols-2 gap-5 mb-8">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Principal Amount</p>
+                        <h4 id="modalPrincipal" class="text-xl font-extrabold text-slate-900"></h4>
+                        <p id="modalProductType" class="text-xs font-bold text-indigo-600 mt-1"></p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Payable & Term</p>
+                        <h4 id="modalTotalPayable" class="text-xl font-extrabold text-slate-900"></h4>
+                        <p id="modalTerm" class="text-xs font-bold text-slate-500 mt-1"></p>
+                    </div>
+                    <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
+                        <p class="text-[10px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Amount Repaid</p>
+                        <h4 id="modalPaid" class="text-xl font-extrabold text-emerald-700"></h4>
+                        <p id="modalNextEmi" class="text-xs font-bold text-emerald-600 mt-1"></p>
+                    </div>
+                    <div class="bg-rose-50 p-5 rounded-2xl border border-rose-100">
+                        <p class="text-[10px] font-black text-rose-600/70 uppercase tracking-widest mb-1">Outstanding Balance</p>
+                        <h4 id="modalOutstanding" class="text-xl font-extrabold text-rose-700"></h4>
+                    </div>
+                </div>
+
+                <div id="modalProgressContainer" class="mb-8 hidden">
+                    <div class="flex justify-between text-xs font-bold mb-2">
+                        <span class="text-slate-500 uppercase tracking-widest text-[10px]">Repayment Progress</span>
+                        <span class="text-emerald-600" id="modalProgressText">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div id="modalProgressBar" class="bg-emerald-500 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div id="modalActionButtons" class="flex gap-3">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="originateLoanModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" id="originateOverlay" onclick="closeOriginateModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full p-8 relative z-10 modal-animate border border-slate-100 overflow-y-auto max-h-[90vh] scale-95 opacity-0 transition-all" id="originateLoanContent">
+            
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900">Originate Facility</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-1">Manually create and disburse a loan to a verified user.</p>
+                </div>
+                <button onclick="closeOriginateModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+
+            <form id="originateForm" onsubmit="submitOriginateForm(event)" class="space-y-6">
+                <div class="grid grid-cols-2 gap-5">
+                    
+                    <div class="col-span-2 relative" id="borrowerSelectContainer">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Select Borrower</label>
+                        <input type="hidden" id="newLoanUser" required>
+                        
+                        <button type="button" id="borrowerSelectTrigger" onclick="toggleDropdown('borrowerDropdown', event)" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-400 hover:border-indigo-300 focus:ring-2 focus:ring-indigo-500/20 outline-none transition flex justify-between items-center text-left shadow-sm">
+                            <span id="borrowerSelectLabel">Search user registry...</span>
+                            <i class="ph-bold ph-caret-down text-slate-400 text-lg"></i>
+                        </button>
+
+                        <div id="borrowerDropdown" class="hidden absolute z-[60] w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden transform transition-all opacity-0 scale-95 origin-top">
+                            <div class="p-3 border-b border-slate-50 bg-slate-50/80 sticky top-0 backdrop-blur-sm">
+                                <div class="relative">
+                                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                                    <input type="text" id="borrowerSearchInput" oninput="filterBorrowerOptions()" placeholder="Search by name or ID..." class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none transition shadow-sm">
+                                </div>
+                            </div>
+                            <ul id="borrowerOptionsList" class="max-h-56 overflow-y-auto py-2 divide-y divide-slate-50"></ul>
+                        </div>
+                    </div>
+                    
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Loan Product</label>
+                        <select id="newLoanProduct" required class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition cursor-pointer text-slate-700 shadow-sm">
+                            <option value="Personal Salary Advance">Personal Salary Advance</option>
+                            <option value="Business Overdraft">Business Overdraft</option>
+                            <option value="Asset Finance">Asset Finance</option>
+                            <option value="Emergency Loan">Emergency Loan</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Principal Amount (ZMW)</label>
+                        <input type="number" id="newLoanPrincipal" required min="1000" oninput="updateLoanPreview()" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition shadow-sm" placeholder="e.g. 50000">
+                    </div>
+                    
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Flat Interest Rate (%)</label>
+                        <input type="number" id="newLoanInterest" required min="1" max="50" step="0.1" oninput="updateLoanPreview()" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition shadow-sm" placeholder="e.g. 5">
+                    </div>
+                    
+                    <div class="col-span-2 md:col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Term (Months)</label>
+                        <input type="number" id="newLoanTerm" required min="1" max="60" oninput="updateLoanPreview()" class="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 outline-none transition shadow-sm" placeholder="e.g. 12">
+                    </div>
+                    
+                    <div class="col-span-2 bg-indigo-50 border border-indigo-100 rounded-xl p-5 flex justify-between items-center mt-2">
+                        <div>
+                            <p class="text-[10px] uppercase font-black text-indigo-400 tracking-widest mb-1">Monthly EMI</p>
+                            <p class="text-xl font-extrabold text-indigo-700" id="previewEMI">ZMW 0.00</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] uppercase font-black text-indigo-400 tracking-widest mb-1">Total Payable</p>
+                            <p class="text-xl font-extrabold text-indigo-700" id="previewTotal">ZMW 0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 mt-2 border-t border-slate-100">
+                    <button type="button" onclick="closeOriginateModal()" class="flex-1 py-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition interactive-press text-sm">Cancel</button>
+                    <button type="submit" class="flex-[2] py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 interactive-press flex justify-center items-center gap-2 text-sm">
+                        <i class="ph-bold ph-check-circle text-lg"></i> Confirm & Disburse Funds
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[100] pointer-events-none">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. MOCK DATABASE (BOZ Context) ---
+        let loanDb = [
+            { id: "L-2201", user: "Alice Phiri", type: "Personal Salary Advance", principal: 50000, interestRate: 5, term: 3, paid: 0, status: "Pending", date: "24 Mar 2026" },
+            { id: "L-2202", user: "Daniel Banda", type: "Asset Finance", principal: 450000, interestRate: 12, term: 24, paid: 125000, status: "Active", date: "10 Jan 2026" },
+            { id: "L-2203", user: "Copperbelt Mining", type: "Business Overdraft", principal: 2500000, interestRate: 8, term: 12, paid: 0, status: "Pending", date: "24 Mar 2026" },
+            { id: "L-2204", user: "Mercy Tembo", type: "Emergency Loan", principal: 10000, interestRate: 10, term: 1, paid: 11000, status: "Closed", date: "05 Dec 2025" },
+            { id: "L-2205", user: "Kevin Mwewa", type: "Personal Salary Advance", principal: 150000, interestRate: 5, term: 6, paid: 45000, status: "Defaulted", date: "15 Aug 2025" },
+            { id: "L-2206", user: "Brian Mulenga", type: "Business Overdraft", principal: 300000, interestRate: 8, term: 12, paid: 150000, status: "Active", date: "20 Feb 2026" }
+        ];
+
+        const availableBorrowers = [
+            { id: "USR-88201", name: "Daniel Banda", color: "indigo" },
+            { id: "USR-88190", name: "Alice Phiri", color: "emerald" },
+            { id: "USR-88102", name: "Copperbelt Mining", color: "slate" },
+            { id: "USR-88055", name: "Kevin Mwewa", color: "amber" },
+            { id: "USR-87999", name: "Mercy Tembo", color: "purple" },
+            { id: "USR-87950", name: "Brian Mulenga", color: "blue" }
+        ];
+
+        let currentFilter = 'All';
+
+        // --- 2. FORMATTING & MATH ---
+        function formatZMW(amount) {
+            return new Intl.NumberFormat('en-ZM', { style: 'currency', currency: 'ZMW' }).format(amount).replace('ZMW', '').trim();
+        }
+
+        function calculateTotals(loan) {
+            const interestAmount = loan.principal * (loan.interestRate / 100);
+            const total = loan.principal + interestAmount;
+            const outstanding = total - loan.paid;
+            const emi = loan.term > 0 ? total / loan.term : total;
+            return { interestAmount, total, outstanding, emi };
+        }
+
+        // --- 3. RENDER TABLE & METRICS ---
+        function updateSummaryMetrics() {
+            const activeLoans = loanDb.filter(l => l.status === 'Active');
+            const pendingLoans = loanDb.filter(l => l.status === 'Pending');
+            const defaultLoans = loanDb.filter(l => l.status === 'Defaulted');
+            
+            document.getElementById('statActiveLoans').innerText = (1842 + activeLoans.length).toLocaleString();
+            document.getElementById('statPendingLoans').innerText = pendingLoans.length.toLocaleString();
+            
+            const defaultRate = loanDb.length > 0 ? ((defaultLoans.length / loanDb.length) * 100).toFixed(1) : 0;
+            document.getElementById('statDefaultRate').innerText = `${defaultRate}%`;
+        }
+
+        function renderLoans(dataToRender = loanDb) {
+            const tbody = document.getElementById('loanTableBody');
+            tbody.innerHTML = '';
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-8 py-12 text-center text-slate-500 font-bold"><i class="ph-bold ph-file-dashed text-3xl mb-2 text-slate-300 block"></i> No loans found matching criteria.</td></tr>`;
+                document.getElementById('paginationText').innerText = "Showing 0 entries";
+                return;
+            }
+
+            dataToRender.forEach((loan, i) => {
+                const { total } = calculateTotals(loan);
+                
+                let statusBadge = '';
+                if(loan.status === 'Active') statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[10px] uppercase font-black tracking-widest w-max mx-auto"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Active</span>`;
+                else if(loan.status === 'Pending') statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-md text-[10px] uppercase font-black tracking-widest w-max mx-auto"><i class="ph-bold ph-clock"></i> Pending</span>`;
+                else if(loan.status === 'Defaulted') statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-600 rounded-md text-[10px] uppercase font-black tracking-widest w-max mx-auto"><i class="ph-bold ph-warning-circle"></i> Defaulted</span>`;
+                else statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-500 rounded-md text-[10px] uppercase font-black tracking-widest w-max mx-auto">Closed</span>`;
+
+                const row = `
+                    <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer animate-row border-b border-slate-50" style="animation-delay: ${i*50}ms" onclick="openLoanDetails('${loan.id}')">
+                        <td class="px-8 py-5 font-mono text-xs font-black text-indigo-600">${loan.id}</td>
+                        <td class="px-8 py-5 font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">${loan.user}</td>
+                        <td class="px-8 py-5"><span class="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-200">${loan.type}</span></td>
+                        <td class="px-8 py-5 text-slate-500 text-xs font-bold">${loan.date}</td>
+                        <td class="px-8 py-5 text-right">
+                            <div class="font-black text-slate-900">${formatZMW(total)}</div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">ZMW</div>
+                        </td>
+                        <td class="px-8 py-5 text-center">${statusBadge}</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+            document.getElementById('paginationText').innerText = `Showing 1 to ${dataToRender.length} of ${dataToRender.length} entries`;
+        }
+
+        // --- 4. FILTERING & SEARCH ---
+        function filterLoans(filterType) {
+            currentFilter = filterType;
+            const tabs = ['All', 'Pending', 'Active', 'Defaulted'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if(t === filterType) el.className = "filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap bg-white text-indigo-600 shadow-sm transition";
+                else el.className = "filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition";
+            });
+            executeSearchAndFilter();
+        }
+
+        function handleSearch() { executeSearchAndFilter(); }
+
+        function executeSearchAndFilter() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = loanDb;
+
+            if (currentFilter !== 'All') filtered = filtered.filter(l => l.status === currentFilter);
+            if (query) filtered = filtered.filter(l => l.user.toLowerCase().includes(query) || l.id.toLowerCase().includes(query) || l.type.toLowerCase().includes(query));
+            
+            renderLoans(filtered);
+        }
+
+        // --- 5. LOAN DETAILS MODAL ---
+        function openLoanDetails(loanId) {
+            const loan = loanDb.find(l => l.id === loanId);
+            if (!loan) return;
+
+            const { total, outstanding, emi } = calculateTotals(loan);
+
+            document.getElementById('modalLoanId').innerText = loan.id;
+            document.getElementById('modalBorrowerName').innerText = loan.user;
+            document.getElementById('modalProductType').innerText = loan.type;
+            
+            document.getElementById('modalPrincipal').innerText = "ZMW " + formatZMW(loan.principal);
+            document.getElementById('modalTotalPayable').innerText = "ZMW " + formatZMW(total);
+            document.getElementById('modalTerm').innerText = `${loan.term} Months @ ${loan.interestRate}% Flat`;
+            
+            document.getElementById('modalPaid').innerText = "ZMW " + formatZMW(loan.paid);
+            document.getElementById('modalNextEmi').innerText = loan.status === 'Active' ? `Next EMI: ZMW ${formatZMW(emi)}` : `EMI: ZMW ${formatZMW(emi)}`;
+            document.getElementById('modalOutstanding').innerText = "ZMW " + formatZMW(outstanding);
+
+            // Progress Bar
+            const pContainer = document.getElementById('modalProgressContainer');
+            if(loan.status === 'Active' || loan.status === 'Defaulted') {
+                pContainer.classList.remove('hidden');
+                const pct = total > 0 ? (loan.paid / total) * 100 : 0;
+                document.getElementById('modalProgressText').innerText = `${pct.toFixed(1)}%`;
+                setTimeout(() => { document.getElementById('modalProgressBar').style.width = `${pct}%`; }, 100);
+            } else {
+                pContainer.classList.add('hidden');
+                document.getElementById('modalProgressBar').style.width = `0%`;
+            }
+
+            // Status Badge
+            const badge = document.getElementById('modalLoanStatusBadge');
+            if(loan.status === 'Active') badge.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-md text-[10px] uppercase font-black tracking-widest inline-flex items-center gap-1.5 border border-emerald-200"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Active Facility</span>`;
+            else if(loan.status === 'Pending') badge.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-md text-[10px] uppercase font-black tracking-widest inline-flex items-center gap-1.5 border border-amber-200"><i class="ph-bold ph-clock"></i> Awaiting Approval</span>`;
+            else if(loan.status === 'Defaulted') badge.innerHTML = `<span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded-md text-[10px] uppercase font-black tracking-widest inline-flex items-center gap-1.5 border border-rose-200"><i class="ph-bold ph-warning-octagon"></i> Defaulted</span>`;
+            else badge.innerHTML = `<span class="px-2.5 py-1 bg-slate-200 text-slate-600 rounded-md text-[10px] uppercase font-black tracking-widest inline-flex items-center gap-1.5">Closed</span>`;
+
+            // Action Buttons
+            const actions = document.getElementById('modalActionButtons');
+            if(loan.status === 'Pending') {
+                actions.innerHTML = `
+                    <button onclick="changeLoanStatus('${loan.id}', 'Active')" class="flex-[2] py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 interactive-press"><i class="ph-bold ph-check-circle text-lg"></i> Approve & Disburse</button>
+                    <button onclick="changeLoanStatus('${loan.id}', 'Rejected')" class="flex-1 py-4 bg-white text-rose-600 border border-slate-200 font-bold rounded-xl hover:bg-rose-50 transition flex items-center justify-center gap-2 interactive-press">Reject</button>
+                `;
+            } else if (loan.status === 'Active') {
+                actions.innerHTML = `
+                    <button onclick="showToast('Schedule', 'Opening amortization schedule...')" class="flex-[2] py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition flex items-center justify-center gap-2 shadow-sm interactive-press"><i class="ph-bold ph-calendar text-lg"></i> View Schedule</button>
+                    <button onclick="changeLoanStatus('${loan.id}', 'Defaulted')" class="flex-1 py-4 px-6 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-warning-octagon text-lg"></i> Mark Default</button>
+                `;
+            } else {
+                actions.innerHTML = `<button onclick="showToast('Statement', 'Opening loan statement...')" class="w-full py-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition flex items-center justify-center gap-2 shadow-lg interactive-press"><i class="ph-bold ph-file-text text-lg"></i> View Full Statement</button>`;
+            }
+
+            const modal = document.getElementById('loanDetailsModal');
+            const overlay = document.getElementById('loanDetailsOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeLoanDetails() {
+            const modal = document.getElementById('loanDetailsModal');
+            const overlay = document.getElementById('loanDetailsOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function changeLoanStatus(id, newStatus) {
+            const loan = loanDb.find(l => l.id === id);
+            if(loan) {
+                loan.status = newStatus;
+                
+                if(newStatus === 'Active') showToast('Loan Approved', `${id} funds disbursed.`, 'ph-check-circle', 'text-emerald-400');
+                else if(newStatus === 'Rejected') { showToast('Loan Rejected', `${id} closed.`, 'ph-x-circle', 'text-rose-400'); loan.status = 'Closed'; }
+                else if(newStatus === 'Defaulted') showToast('Marked Default', `${id} moved to NPL.`, 'ph-warning-octagon', 'text-rose-400');
+
+                closeLoanDetails();
+                executeSearchAndFilter();
+                updateSummaryMetrics();
+            }
+        }
+
+        // --- 6. ORIGINATE LOAN MODAL ---
+        function populateBorrowerOptions(data = availableBorrowers) {
+            const list = document.getElementById('borrowerOptionsList');
+            list.innerHTML = '';
+            if(data.length === 0) {
+                list.innerHTML = '<li class="px-4 py-6 text-sm text-slate-500 text-center font-bold">No users found</li>';
+                return;
+            }
+            data.forEach(user => {
+                const initials = user.name.split(' ').map(n=>n[0]).join('');
+                list.insertAdjacentHTML('beforeend', `
+                    <li class="px-4 py-3 hover:bg-slate-50 cursor-pointer transition flex items-center gap-3 group" onclick="selectBorrower('${user.id}', '${user.name}')">
+                        <div class="w-10 h-10 rounded-xl bg-${user.color}-100 text-${user.color}-600 flex items-center justify-center text-xs font-bold shrink-0 border border-${user.color}-200/50">${initials}</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition">${user.name}</div>
+                            <div class="text-[10px] text-slate-400 font-mono mt-0.5">${user.id}</div>
+                        </div>
+                    </li>
+                `);
+            });
+        }
+
+        function toggleDropdown(id, e) {
+            if(e) e.stopPropagation();
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden')) {
+                closeAllDropdowns(e); // Close others
+                el.classList.remove('hidden');
+                populateBorrowerOptions(); // specifically for borrower dropdown
+                setTimeout(() => el.classList.remove('opacity-0', 'scale-95'), 10);
+                if (id === 'borrowerDropdown') document.getElementById('borrowerSearchInput')?.focus();
+            } else {
+                el.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => el.classList.add('hidden'), 200);
+            }
+        }
+
+        function closeAllDropdowns(e) {
+            const notif = document.getElementById('notifDropdown');
+            const borrow = document.getElementById('borrowerDropdown');
+            
+            if (notif && !notif.contains(e?.target) && !e?.target?.closest('button[onclick*="notifDropdown"]')) { 
+                notif.classList.add('opacity-0', 'scale-95'); setTimeout(() => notif.classList.add('hidden'), 200); 
+            }
+            if (borrow && !borrow.contains(e?.target) && !e?.target?.closest('#borrowerSelectContainer')) {
+                borrow.classList.add('opacity-0', 'scale-95'); setTimeout(() => borrow.classList.add('hidden'), 200);
+            }
+        }
+
+        function filterBorrowerOptions() {
+            const query = document.getElementById('borrowerSearchInput').value.toLowerCase();
+            const filtered = availableBorrowers.filter(u => u.name.toLowerCase().includes(query) || u.id.toLowerCase().includes(query));
+            populateBorrowerOptions(filtered);
+        }
+
+        function selectBorrower(id, name) {
+            document.getElementById('newLoanUser').value = name; 
+            document.getElementById('borrowerSelectLabel').innerHTML = `<span class="font-bold text-slate-900">${name}</span> <span class="font-mono text-[10px] text-slate-400 ml-2">(${id})</span>`;
+            document.getElementById('borrowerSelectLabel').parentElement.classList.remove('text-slate-400');
+            toggleDropdown('borrowerDropdown', event);
+        }
+
+        function updateLoanPreview() {
+            const principal = parseFloat(document.getElementById('newLoanPrincipal').value) || 0;
+            const rate = parseFloat(document.getElementById('newLoanInterest').value) || 0;
+            const term = parseInt(document.getElementById('newLoanTerm').value) || 1; 
+
+            const totalPayable = principal + (principal * (rate / 100));
+            const emi = totalPayable / term;
+
+            document.getElementById('previewTotal').innerText = "ZMW " + formatZMW(totalPayable);
+            document.getElementById('previewEMI').innerText = "ZMW " + formatZMW(emi);
+        }
+
+        function openOriginateModal() {
+            const modal = document.getElementById('originateLoanModal');
+            const overlay = document.getElementById('originateOverlay');
+            const content = document.getElementById('originateLoanContent');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+                updateLoanPreview(); 
+            }, 10);
+        }
+
+        function closeOriginateModal() {
+            const modal = document.getElementById('originateLoanModal');
+            const overlay = document.getElementById('originateOverlay');
+            const content = document.getElementById('originateLoanContent');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                document.getElementById('originateForm').reset();
+                document.getElementById('borrowerSelectLabel').innerText = "Search user registry...";
+                document.getElementById('newLoanUser').value = '';
+                updateLoanPreview();
+            }, 300);
+        }
+
+        function submitOriginateForm(e) {
+            e.preventDefault();
+
+            const userText = document.getElementById('newLoanUser').value; 
+            if(!userText) { showToast('Selection Required', 'Please select a borrower.', 'ph-warning-circle', 'text-amber-400'); return; }
+
+            const newId = `L-${Math.floor(Math.random() * 9000) + 1000}`; 
+            
+            loanDb.unshift({
+                id: newId, user: userText, 
+                type: document.getElementById('newLoanProduct').value,
+                principal: parseFloat(document.getElementById('newLoanPrincipal').value),
+                interestRate: parseFloat(document.getElementById('newLoanInterest').value),
+                term: parseInt(document.getElementById('newLoanTerm').value),
+                paid: 0, status: "Active", date: "24 Mar 2026"
+            });
+            
+            closeOriginateModal();
+            executeSearchAndFilter();
+            updateSummaryMetrics();
+            showToast('Loan Disbursed', `Facility ${newId} created and active.`, 'ph-check-circle', 'text-emerald-400');
+        }
+
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title; 
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('translate-y-20', 'opacity-0'), 10);
+            
+            if(window.toastTimer) clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 3000);
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.querySelector('.hamburger');
+            
+            if (sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = 'translateX(-100%)';
+                backdrop.classList.add('opacity-0');
+                hamburger.classList.remove('active');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            } else {
+                sidebar.style.transform = 'translateX(0)';
+                backdrop.classList.remove('hidden');
+                hamburger.classList.add('active');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.querySelector('.hamburger');
+            
+            if(sidebar) sidebar.style.transform = 'translateX(-100%)';
+            if(backdrop) backdrop.classList.add('opacity-0');
+            if(hamburger) hamburger.classList.remove('active');
+            setTimeout(() => {
+                if(backdrop) backdrop.classList.add('hidden');
+            }, 300);
+        }
+
+        // INIT
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'loans.html');
+            }
+            renderLoans();
+            updateSummaryMetrics();
+        });
+    </script>
+</body>
+</html>

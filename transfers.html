@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank of Zambia - Transfers & Payments</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .interactive-press:active { transform: scale(0.97); }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05); }
+        
+        /* Smooth Animations */
+        .animate-fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        
+        /* Hide scrollbar for clean horizontal scrolling */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid #f1f5f9; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .bg-glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        
+        .tab-container { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .transfer-card { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; opacity: 0; }
+        
+        .network-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .channel-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Form input smooth animation */
+        .input-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-smooth:focus { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); }
+
+        /* Bottom Nav Active State (Mobile) */
+        .nav-item.active .nav-icon-wrapper {
+            background-color: #eff6ff;
+            color: #2563eb;
+            transform: translateY(-8px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .nav-item.active span { color: #2563eb; font-weight: 700; }
+        .nav-icon-wrapper { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    </style>
+    <script src="navigation-config.js"></script>
+</head>
+<body class="bg-[#f8fafc] flex h-screen overflow-hidden text-slate-800" onclick="closeAllDropdowns(event)">
+
+    <header class="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-40">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-400 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-lg shadow-green-500/30"><i class="ph ph-bank text-white text-sm"></i></div>
+            <span class="font-bold text-lg text-slate-800 tracking-tight">BOZ</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="notifBtnMobile" onclick="toggleNotifications(event)" class="text-slate-400 hover:text-blue-600 transition relative p-2 bg-slate-50 rounded-full interactive-press">
+                <i class="ph ph-bell text-xl"></i>
+                <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="p-2 interactive-press">
+                <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="md:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+    <aside id="mobileSidebar" class="md:hidden fixed left-0 top-0 bottom-0 w-72 bg-slate-900 text-slate-300 flex flex-col z-40 hidden transition-transform duration-300 ease-out shadow-2xl" style="transform: translateX(-100%);">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-950 -z-10"></div>
+        <div class="p-6 flex items-center space-x-3 text-white border-b border-slate-800/60">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-400 w-10 h-10 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-green-500/30"><i class="ph ph-bank text-2xl"></i></div>
+            <span class="text-xl font-bold tracking-wide">Bank of Zambia</span>
+        </div>
+        <nav class="flex-1 px-4 space-y-1.5 mt-6 overflow-y-auto hide-scrollbar">
+            <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3.5 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-squares-four text-xl text-slate-400"></i><span class="font-medium">Dashboard</span>
+            </a>
+            <a href="transfers.html" class="flex items-center space-x-3 text-white bg-slate-800/50 px-4 py-3.5 rounded-xl transition interactive-press">
+                <i class="ph ph-arrows-left-right text-xl text-slate-400"></i><span class="font-medium">Transfers</span>
+            </a>
+            <a href="wallet.html" class="flex items-center space-x-3 px-4 py-3.5 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-wallet text-xl text-slate-400"></i><span class="font-medium">Wallet & Cards</span>
+            </a>
+            <a href="statements.html" class="flex items-center space-x-3 px-4 py-3.5 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-file-text text-xl text-slate-400"></i><span class="font-medium">Statements</span>
+            </a>
+            <a href="borrow.html" class="flex items-center space-x-3 px-4 py-3.5 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-hand-coins text-xl text-slate-400"></i><span class="font-medium">Borrow & Credit</span>
+            </a>
+        </nav>
+    </aside>
+
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col hidden md:flex z-10 border-r border-slate-800 relative">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-950 -z-10"></div>
+        <div class="p-6 flex items-center space-x-3 text-white">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-400 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-lg shadow-green-500/30"><i class="ph ph-bank text-xl"></i></div>
+            <span class="text-xl font-bold tracking-wide">Bank of Zambia</span>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-squares-four text-xl text-slate-400"></i><span class="font-medium">Dashboard</span>
+            </a>
+            <a href="transfers.html" class="flex items-center space-x-3 text-white bg-slate-800/50 px-4 py-3 rounded-xl transition interactive-press">
+                <i class="ph ph-arrows-left-right text-xl"></i><span class="font-medium">Transfers</span>
+            </a>
+            <a href="wallet.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-wallet text-xl text-slate-400"></i><span class="font-medium">Wallet & Cards</span>
+            </a>
+            <a href="statements.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-file-text text-xl text-slate-400"></i><span class="font-medium">Statements</span>
+            </a>
+            <a href="borrow.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-hand-coins text-xl text-slate-400"></i><span class="font-medium">Borrow & Credit</span>
+            </a>
+            <a href="settings.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800/50 hover:text-white transition interactive-press">
+                <i class="ph ph-gear text-xl text-slate-400"></i><span class="font-medium">Settings</span>
+            </a>
+        </nav>
+        <div class="p-4 mt-auto">
+            <a href="index.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition text-slate-400 interactive-press">
+                <i class="ph ph-sign-out text-xl"></i><span class="font-medium">Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative md:pt-0 pt-16 pb-28 md:pb-0">
+        
+        <header class="bg-glass border-b border-slate-200/80 px-4 md:px-8 py-4 md:py-5 flex flex-col md:flex-row md:justify-between md:items-center sticky top-0 z-30 shadow-sm gap-3 md:gap-0">
+            <div class="animate-fade-in-up">
+                <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">Transfers & Payments</h2>
+                <p class="text-xs md:text-sm text-slate-500 font-medium mt-0.5">Move money securely across accounts and payees.</p>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-6 animate-fade-in-up delay-100">
+                <div class="relative">
+                    <button id="notifBtn" onclick="toggleNotifications(event)" class="text-slate-500 hover:text-blue-600 transition relative p-2.5 bg-white rounded-full shadow-sm border border-slate-200 interactive-press">
+                        <i class="ph ph-bell text-xl font-bold"></i>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 class="font-bold text-slate-800 text-sm">Notifications</h3>
+                            <button class="text-xs text-blue-600 font-bold hover:text-blue-800">Dismiss all</button>
+                        </div>
+                        <div class="p-4 text-center text-sm text-slate-500">No new alerts.</div>
+                    </div>
+                </div>
+
+                <div class="relative border-l border-slate-200 pl-6">
+                    <div id="profileBtn" onclick="toggleProfile(event)" class="flex items-center space-x-3 cursor-pointer group interactive-press bg-white border border-slate-200 pl-2 pr-4 py-1.5 rounded-full shadow-sm hover:border-blue-300 transition">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-inner">JD</div>
+                        <div class="hidden md:block text-left">
+                            <p class="text-xs font-bold text-slate-700 leading-tight">John Doe</p>
+                            <p class="text-[10px] text-emerald-500 font-bold flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Verified</p>
+                        </div>
+                        <i class="ph ph-caret-down text-slate-400 font-bold group-hover:text-blue-500 transition"></i>
+                    </div>
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="py-2">
+                            <a href="index.html" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 transition"><i class="ph ph-sign-out text-lg"></i> Secure Sign Out</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 md:p-8 max-w-[1200px] mx-auto w-full pb-24">
+            
+            <div class="flex space-x-2 md:space-x-4 border-b border-slate-200 mb-8 tab-container overflow-x-auto hide-scrollbar whitespace-nowrap pb-1">
+                <button onclick="switchTab('internal')" id="tab-internal" class="text-blue-600 font-bold border-b-2 border-blue-600 pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press flex items-center gap-1 shrink-0">
+                    <i class="ph ph-squares-four"></i>Internal
+                </button>
+                <button onclick="switchTab('local')" id="tab-local" class="text-slate-400 hover:text-slate-700 font-bold pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press flex items-center gap-1 shrink-0">
+                    <i class="ph ph-bank"></i>Local Bank
+                </button>
+                <button onclick="switchTab('mobile')" id="tab-mobile" class="text-slate-400 hover:text-slate-700 font-bold pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press flex items-center gap-1 shrink-0">
+                    <i class="ph ph-mobile-camera"></i>Mobile Money
+                </button>
+                <button onclick="switchTab('bills')" id="tab-bills" class="text-slate-400 hover:text-slate-700 font-bold pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press flex items-center gap-1 shrink-0">
+                    <i class="ph ph-receipt"></i>Pay Bills
+                </button>
+                <button onclick="switchTab('intl')" id="tab-intl" class="text-slate-400 hover:text-slate-700 font-bold pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press flex items-center gap-1 shrink-0">
+                    <i class="ph ph-globe"></i>International
+                </button>
+                <button onclick="openReportModal()" class="text-slate-400 hover:text-slate-700 font-bold pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press md:ml-auto flex items-center gap-1 border-l border-slate-200 pl-4 hover:shadow-lg shrink-0">
+                    <i class="ph ph-file-text text-lg"></i> Reports
+                </button>
+            </div>
+
+            <div class="bg-white border border-slate-200 shadow-sm rounded-3xl p-6 md:p-10 relative transfer-card">
+                
+                <div class="mb-8 p-5 bg-slate-50 border border-slate-100 rounded-2xl">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+                        <span class="flex items-center gap-1"><i class="ph ph-arrow-up-right text-blue-600"></i>Transfer From (Debit Account)</span>
+                        <span class="text-emerald-500 font-bold flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Active</span>
+                    </label>
+                    <select id="fromAccount" class="w-full px-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white hover:border-blue-300 transition cursor-pointer font-bold text-slate-700 text-sm shadow-sm input-smooth"></select>
+                </div>
+
+                <form id="transferForm" class="space-y-8" onsubmit="handleTransferSubmit(event)">
+                    
+                    <div id="dynamic-fields" class="transition-all duration-300"></div>
+
+                    <div id="universal-amount-fields" class="pt-4 border-t border-slate-100">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <i class="ph ph-money text-blue-600"></i>Amount to Transfer <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative flex">
+                                    <select id="transferCurrency" class="px-4 py-3.5 bg-slate-100 border border-slate-200 border-r-0 rounded-l-xl font-bold text-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-500 z-10 cursor-pointer">
+                                        <option value="ZMW" selected>ZMW</option>
+                                        <option value="USD">USD</option>
+                                    </select>
+                                    <input type="number" id="transferAmount" class="w-full pl-4 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-r-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none font-bold text-xl text-slate-800 transition input-smooth" placeholder="0.00" required min="1">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <i class="ph ph-calendar text-blue-600"></i>Value Date <span class="text-red-500">*</span>
+                                </label>
+                                <input type="date" id="transferDate" class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none text-slate-800 font-bold text-sm cursor-pointer transition input-smooth" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-8 flex flex-col md:flex-row justify-end items-center gap-4">
+                        <button type="reset" class="w-full md:w-auto px-8 py-4 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition interactive-press text-sm btn-smooth flex items-center justify-center gap-2">
+                            <i class="ph ph-arrow-counterclockwise"></i><span>Reset Form</span>
+                        </button>
+                        <button type="submit" class="w-full md:w-auto px-10 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:from-blue-700 hover:to-blue-800 transition shadow-lg shadow-blue-500/30 interactive-press flex justify-center items-center gap-2 btn-smooth">
+                            <span>Review Transfer</span> <i class="ph ph-arrow-right font-bold text-lg"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <div id="reviewModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-3xl p-0 max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 relative overflow-hidden" id="modalContent">
+            <button onclick="closeModal()" class="absolute top-5 right-5 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition interactive-press">
+                <i class="ph ph-x font-bold"></i>
+            </button>
+
+            <div class="bg-blue-50 p-8 text-center border-b border-blue-100">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+                    <i class="ph ph-paper-plane-right text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight">Review Transfer</h3>
+                <p class="text-sm font-medium text-slate-500 mt-1">Please verify the details before confirming.</p>
+            </div>
+            
+            <div class="p-8">
+                <div class="bg-slate-50 rounded-2xl p-5 space-y-4 border border-slate-100 mb-8">
+                    <div class="flex justify-between border-b border-slate-200/60 pb-3">
+                        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">To Name/Bank:</span>
+                        <span class="font-bold text-slate-800 text-sm text-right" id="reviewTo">--</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-200/60 pb-3">
+                        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Destination Acc:</span>
+                        <span class="font-mono font-bold text-slate-800 text-sm text-right" id="reviewDest">--</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-200/60 pb-3">
+                        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Reference:</span>
+                        <span class="font-bold text-slate-800 text-sm text-right uppercase" id="reviewRef">--</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-200/60 pb-3">
+                        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Value Date:</span>
+                        <span class="font-bold text-slate-800 text-sm text-right" id="reviewDate">--</span>
+                    </div>
+                    <div class="flex justify-between pt-2 items-center">
+                        <span class="text-xs text-blue-600 font-bold uppercase tracking-widest">Total Amount:</span>
+                        <span class="font-extrabold text-blue-600 text-2xl tracking-tight" id="reviewAmount">--</span>
+                    </div>
+                </div>
+
+                <button onclick="processTransfer()" id="confirmBtn" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/30 flex justify-center items-center interactive-press text-base">
+                    <span id="btnText">Confirm & Send</span>
+                    <i class="ph ph-spinner-gap animate-spin hidden ml-2 text-xl" id="btnSpinner"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-3xl p-0 max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 relative overflow-hidden" id="reportModalContent">
+            <button onclick="closeReportModal()" class="absolute top-5 right-5 z-20 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition interactive-press">
+                <i class="ph ph-x font-bold"></i>
+            </button>
+
+            <div class="bg-purple-50 p-8 text-center border-b border-purple-100">
+                <div class="w-16 h-16 bg-purple-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/30">
+                    <i class="ph ph-file-text text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight">Generate Report</h3>
+                <p class="text-sm font-medium text-slate-500 mt-1">Export your transfer history.</p>
+            </div>
+            
+            <div class="p-8 space-y-6">
+                <!-- Date Range Selection -->
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-slate-600 uppercase tracking-widest">Start Date</label>
+                    <input type="date" id="reportStartDate" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-slate-700">
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-slate-600 uppercase tracking-widest">End Date</label>
+                    <input type="date" id="reportEndDate" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-slate-700">
+                </div>
+
+                <!-- Report Format Selection -->
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-slate-600 uppercase tracking-widest">Report Format</label>
+                    <select id="reportType" class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-slate-700 bg-white">
+                        <option value="pdf">PDF Document</option>
+                        <option value="csv">CSV Spreadsheet</option>
+                    </select>
+                </div>
+
+                <!-- Format Info -->
+                <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <p class="text-xs text-purple-700 font-medium">
+                        <span id="formatInfo">PDF format includes formatted summaries and detailed layouts. Perfect for sharing.</span>
+                    </p>
+                </div>
+
+                <button onclick="generateTransferReport()" class="w-full py-4 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition shadow-lg shadow-purple-500/30 flex justify-center items-center interactive-press text-base">
+                    <i class="ph ph-download-simple mr-2"></i>
+                    Download Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-28 md:bottom-8 right-4 md:right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 transform transition-all translate-y-10 opacity-0 z-50 border border-slate-700">
+        <i id="toastIcon" class="ph ph-check-circle text-emerald-400 text-2xl font-fill"></i>
+        <div>
+            <h4 id="toastTitle" class="font-bold tracking-wide text-sm">Transfer Successful</h4>
+            <p id="toastMessage" class="text-slate-400 text-xs font-medium mt-0.5">Your funds have been dispatched.</p>
+        </div>
+    </div>
+
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-lg border-t border-slate-200/50 z-40 pb-safe">
+        <div class="flex justify-around items-center h-full px-2">
+            <a href="dashboard.html" class="nav-item flex flex-col items-center justify-center w-full h-full text-slate-400 transition-colors duration-300">
+                <div class="nav-icon-wrapper w-12 h-8 rounded-full flex items-center justify-center mb-1">
+                    <i class="ph-fill ph-squares-four text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-medium tracking-wide">Home</span>
+            </a>
+            <a href="transfers.html" class="nav-item active flex flex-col items-center justify-center w-full h-full text-slate-400 transition-colors duration-300">
+                <div class="nav-icon-wrapper w-12 h-8 rounded-full flex items-center justify-center mb-1">
+                    <i class="ph-fill ph-arrows-left-right text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-medium tracking-wide">Send</span>
+            </a>
+            <a href="wallet.html" class="nav-item flex flex-col items-center justify-center w-full h-full text-slate-400 transition-colors duration-300">
+                <div class="nav-icon-wrapper w-12 h-8 rounded-full flex items-center justify-center mb-1">
+                    <i class="ph-fill ph-wallet text-2xl"></i>
+                </div>
+                <span class="text-[10px] font-medium tracking-wide">Wallet</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        // --- 1. App State & Base Data ---
+        let accounts = {
+            checking: { id: 'checking', number: '107883', name: 'Main Checking', balance: 1245000.00 },
+            savings: { id: 'savings', number: '108992', name: 'High-Yield Savings', balance: 4520050.50 }
+        };
+        
+        let currentTab = 'internal';
+        let transferHistory = JSON.parse(localStorage.getItem('transferHistory')) || [];
+        
+        // Init
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('transferDate').valueAsDate = new Date(); 
+            updateAccountDropdown();
+            renderDynamicFields('internal');
+            
+            // Set up report type change listener
+            const reportTypeSelect = document.getElementById('reportType');
+            if(reportTypeSelect) {
+                reportTypeSelect.addEventListener('change', (e) => {
+                    const formatInfo = document.getElementById('formatInfo');
+                    if(e.target.value === 'pdf') {
+                        formatInfo.textContent = 'PDF format includes formatted summaries and detailed layouts. Perfect for sharing.';
+                    } else {
+                        formatInfo.textContent = 'CSV format is ideal for importing into spreadsheets and databases. Easily customizable.';
+                    }
+                });
+            }
+        });
+
+        function updateAccountDropdown() {
+            const select = document.getElementById('fromAccount');
+            select.innerHTML = `
+                <option value="${accounts.checking.number}">${accounts.checking.name} (**** ${accounts.checking.number.slice(-4)}) - ZMW ${accounts.checking.balance.toLocaleString()}</option>
+                <option value="${accounts.savings.number}">${accounts.savings.name} (**** ${accounts.savings.number.slice(-4)}) - ZMW ${accounts.savings.balance.toLocaleString()}</option>
+            `;
+        }
+
+        // T24 MOCK VERIFICATION
+        function verifyAccount() {
+            const accInput = document.getElementById('inputRecipientAcc').value;
+            const resultEl = document.getElementById('accountNameResult');
+            const nameEl = document.getElementById('verifiedName');
+
+            if(accInput.length > 3) {
+                // Mock T24 Account Lookup
+                nameEl.innerText = "JOHN DOE";
+                document.getElementById('inputRecipient').value = "JOHN DOE"; // Hidden field for payload
+                resultEl.classList.remove('hidden');
+                document.getElementById('inputRecipientAcc').classList.add('border-emerald-300', 'bg-emerald-50/50');
+            } else {
+                alert("Please enter a valid BOZ account number to verify.");
+            }
+        }
+
+        // --- 2. Tab & Form Rendering Logic ---
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // UI Tab Update
+            ['internal', 'local', 'mobile', 'bills', 'intl'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if(btn) {
+                    if(t === tab) {
+                        btn.className = "text-blue-600 font-bold border-b-2 border-blue-600 pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press shrink-0 flex items-center gap-1";
+                    } else {
+                        btn.className = "text-slate-400 hover:text-slate-700 font-bold pb-3 px-2 transition text-sm uppercase tracking-wide interactive-press shrink-0 flex items-center gap-1";
+                    }
+                }
+            });
+
+            renderDynamicFields(tab);
+        }
+
+        function renderDynamicFields(tab) {
+            const dynamicFields = document.getElementById('dynamic-fields');
+            let html = '';
+            
+            if (tab === 'internal') {
+                // T24 Strict Payload Fields for Internal
+                html = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">To BOZ Account Number <span class="text-red-500">*</span></label>
+                            <div class="flex shadow-sm">
+                                <input type="text" id="inputRecipientAcc" class="w-full px-4 py-3.5 border border-slate-200 rounded-l-xl focus:ring-2 focus:ring-blue-500 outline-none font-mono font-bold text-sm bg-slate-50 hover:bg-white transition input-smooth" placeholder="e.g. 107689" required>
+                                <button type="button" onclick="verifyAccount()" class="px-6 py-3.5 bg-blue-100 text-blue-700 font-bold text-sm rounded-r-xl hover:bg-blue-200 transition interactive-press shrink-0 border border-l-0 border-blue-200">Verify</button>
+                            </div>
+                            <p id="accountNameResult" class="text-xs font-bold text-emerald-600 mt-2 ml-1 hidden flex items-center gap-1">
+                                <i class="ph-fill ph-check-circle text-sm"></i> Validated: <span id="verifiedName"></span>
+                            </p>
+                            <input type="hidden" id="inputDestination" value="Internal BOZ Account">
+                            <input type="hidden" id="inputRecipient" value="">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Transfer Reference <span class="text-red-500">*</span></label>
+                            <input type="text" id="transferReference" required class="w-full px-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm bg-slate-50 hover:bg-white transition uppercase shadow-sm input-smooth" placeholder="e.g. TRF-OTH-001">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Additional Info (Optional)</label>
+                            <input type="text" id="transferNarration" class="w-full px-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm bg-slate-50 hover:bg-white transition shadow-sm input-smooth" placeholder="Optional notes">
+                        </div>
+                    </div>`;
+            } 
+            else if (tab === 'local') {
+                html = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Recipient Bank</label>
+                            <select id="inputDestination" class="w-full px-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-slate-50 hover:bg-white font-bold text-sm text-slate-700 cursor-pointer transition shadow-sm input-smooth">
+                                <option value="Equity Bank">Equity Bank</option>
+                                <option value="KCB Bank">KCB Bank</option>
+                                <option value="ZANACO">ZANACO</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Account Number</label>
+                            <input type="text" id="inputRecipientAcc" class="w-full px-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-mono font-bold text-sm bg-slate-50 hover:bg-white transition shadow-sm input-smooth" placeholder="e.g. 021000..." required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Account Name</label>
+                            <input type="text" id="inputRecipient" class="w-full px-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm bg-slate-50 hover:bg-white transition uppercase shadow-sm input-smooth" placeholder="Full legal name of recipient" required>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Reference</label>
+                            <input type="text" id="transferReference" required class="w-full px-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-sm bg-slate-50 hover:bg-white transition uppercase shadow-sm input-smooth" placeholder="e.g. Payment">
+                        </div>
+                    </div>`;
+            }
+            // Add other tabs similarly... (truncated for brevity, defaulting to a placeholder)
+            else {
+                html = `<div class="p-6 bg-slate-50 border border-slate-200 rounded-2xl text-center text-slate-500 font-bold">Module configuring...</div>`;
+            }
+
+            dynamicFields.style.opacity = 0;
+            setTimeout(() => {
+                dynamicFields.innerHTML = html;
+                dynamicFields.style.opacity = 1;
+            }, 150);
+        }
+
+        // --- 3. SUBMIT & REVIEW LOGIC ---
+        function handleTransferSubmit(e) {
+            e.preventDefault();
+            
+            const amountInput = document.getElementById('transferAmount').value;
+            const amount = parseFloat(amountInput);
+            const selectedAcc = document.getElementById('fromAccount').value;
+            const date = document.getElementById('transferDate').value;
+            const currency = document.getElementById('transferCurrency').value;
+
+            // Extract based on tab
+            let recipient = "";
+            let destination = "";
+            let reference = document.getElementById('transferReference') ? document.getElementById('transferReference').value : "TRF-" + Date.now();
+            let destAcc = document.getElementById('inputRecipientAcc') ? document.getElementById('inputRecipientAcc').value : "Unknown";
+
+            if (currentTab === 'internal') {
+                recipient = document.getElementById('inputRecipient').value || "UNVERIFIED ACCOUNT";
+                destination = "Internal BOZ Account";
+                
+                if (recipient === "UNVERIFIED ACCOUNT" || recipient === "") {
+                    alert("Please verify the BOZ account number before proceeding.");
+                    return;
+                }
+            } else if (currentTab === 'local') {
+                recipient = document.getElementById('inputRecipient').value;
+                destination = document.getElementById('inputDestination').value;
+            }
+
+            // Set Review Modal values
+            document.getElementById('reviewTo').innerText = recipient;
+            document.getElementById('reviewDest').innerText = destAcc;
+            document.getElementById('reviewRef').innerText = reference;
+            document.getElementById('reviewDate').innerText = date;
+            document.getElementById('reviewAmount').innerText = `${currency} ${amount.toLocaleString('en-KE', {minimumFractionDigits: 2})}`;
+
+            // Open Modal
+            const modal = document.getElementById('reviewModal');
+            const modalContent = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('reviewModal');
+            const modalContent = document.getElementById('modalContent');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        function processTransfer() {
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const confirmBtn = document.getElementById('confirmBtn');
+
+            btnText.innerText = "Processing via Core...";
+            btnSpinner.classList.remove('hidden');
+            confirmBtn.disabled = true;
+            confirmBtn.classList.add('opacity-90');
+
+            setTimeout(() => {
+                // Specific T24 Internal Transfer Logic Logging
+                if(currentTab === 'internal') {
+                    const debitAccount = document.getElementById('fromAccount').value;
+                    const creditAccount = document.getElementById('inputRecipientAcc').value;
+                    const amount = document.getElementById('transferAmount').value;
+                    const currency = document.getElementById('transferCurrency').value;
+                    const reference = document.getElementById('transferReference').value;
+                    const narration = document.getElementById('transferNarration') ? document.getElementById('transferNarration').value : "";
+                    const dateRaw = document.getElementById('transferDate').value;
+                    const formattedDate = dateRaw.replace(/-/g,"");
+
+                    const t24Payload = {
+                        PaymentOrderProduct: "ACTRF",
+                        DebitAccountNumber: debitAccount,
+                        DebitCurrency: currency,
+                        DebitAmount: amount,
+                        OrderingReference: reference,
+                        CreditAccount: creditAccount,
+                        CreditCurrency: currency,
+                        PaymentCurrency: currency,
+                        PaymentAmount: amount,
+                        AdditionalInfo: narration,
+                        TCSIMCHECKED: "Y",
+                        DebitValueDate: formattedDate,
+                    };
+                    console.log("🚀 Internal Funds Transfer T24 Payload:");
+                    console.log(JSON.stringify(t24Payload, null, 2));
+
+                    // Add to Transfer History
+                    const transfer = {
+                        date: new Date().toISOString(),
+                        recipientName: document.getElementById('inputRecipient').value,
+                        recipientAccount: creditAccount,
+                        amount: amount,
+                        status: 'Completed',
+                        type: 'Internal',
+                        reference: reference,
+                        narration: narration,
+                        fromAccount: debitAccount
+                    };
+                    transferHistory.push(transfer);
+                    localStorage.setItem('transferHistory', JSON.stringify(transferHistory));
+                }
+
+                document.getElementById('transferForm').reset();
+                document.getElementById('transferDate').valueAsDate = new Date();
+                
+                if(currentTab === 'internal') {
+                    document.getElementById('accountNameResult').classList.add('hidden');
+                    document.getElementById('inputRecipientAcc').classList.remove('border-emerald-300', 'bg-emerald-50/50');
+                }
+
+                closeModal();
+
+                // Reset Button
+                btnText.innerText = "Confirm & Send";
+                btnSpinner.classList.add('hidden');
+                confirmBtn.disabled = false;
+                confirmBtn.classList.remove('opacity-90');
+
+                showToast('Transfer Successful', 'Your funds have been securely dispatched.', 'ph-check-circle', 'text-emerald-400');
+            }, 1500);
+        }
+
+        function showToast(title, msg, icon='ph-check-circle', color='text-emerald-400') {
+            const t = document.getElementById('toast'); 
+            document.getElementById('toastTitle').innerText = title; 
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph ${icon} ${color} text-2xl font-fill`;
+            t.classList.remove('hidden'); setTimeout(() => t.classList.remove('translate-y-10', 'opacity-0'), 10);
+            setTimeout(() => { t.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => t.classList.add('hidden'), 300); }, 3500);
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const btn = document.getElementById('mobileMenuBtn');
+            const isOpen = !sidebar.classList.contains('hidden');
+            if (isOpen) {
+                sidebar.style.transform = 'translateX(-100%)';
+                backdrop.classList.add('opacity-0');
+                btn.querySelector('.hamburger').classList.remove('active');
+                setTimeout(() => { sidebar.classList.add('hidden'); backdrop.classList.add('hidden'); }, 300);
+            } else {
+                sidebar.classList.remove('hidden'); backdrop.classList.remove('hidden');
+                btn.querySelector('.hamburger').classList.add('active');
+                requestAnimationFrame(() => { sidebar.style.transform = 'translateX(0)'; backdrop.classList.remove('opacity-0'); });
+            }
+        }
+
+        // Report Generation Functions
+        function generateTransferReport() {
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            const reportType = document.getElementById('reportType').value;
+
+            if(!startDate || !endDate) {
+                showToast('Error', 'Please select both start and end dates.', 'ph-warning-circle', 'text-amber-400');
+                return;
+            }
+
+            if(new Date(startDate) > new Date(endDate)) {
+                showToast('Error', 'Start date must be before end date.', 'ph-warning-circle', 'text-amber-400');
+                return;
+            }
+
+            // Filter transfers based on date range
+            const filteredTransfers = transferHistory.filter(transfer => {
+                const transferDate = new Date(transfer.date);
+                return transferDate >= new Date(startDate) && transferDate <= new Date(endDate);
+            });
+
+            if(filteredTransfers.length === 0) {
+                showToast('No Data', 'No transfers found for the selected date range.', 'ph-info', 'text-blue-400');
+                return;
+            }
+
+            if(reportType === 'pdf') {
+                generatePDFReport(filteredTransfers, startDate, endDate);
+            } else if(reportType === 'csv') {
+                generateCSVReport(filteredTransfers, startDate, endDate);
+            }
+        }
+
+        function generatePDFReport(transfers, startDate, endDate) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            let yPosition = 15;
+
+            // Header
+            doc.setFontSize(20);
+            doc.setTextColor(15, 23, 42);
+            doc.text('Transfer Report', pageWidth / 2, yPosition, { align: 'center' });
+            
+            yPosition += 10;
+            doc.setFontSize(10);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`Date Range: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
+            
+            yPosition += 12;
+
+            // Summary Section
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text('Summary', 15, yPosition);
+            
+            yPosition += 8;
+            doc.setFontSize(10);
+            doc.setTextColor(64, 74, 89);
+            const totalAmount = transfers.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            const avgAmount = (totalAmount / transfers.length).toFixed(2);
+            
+            doc.text(`Total Transfers: ${transfers.length}`, 20, yPosition);
+            yPosition += 6;
+            doc.text(`Total Amount: ₹${totalAmount.toFixed(2)}`, 20, yPosition);
+            yPosition += 6;
+            doc.text(`Average Amount: ₹${avgAmount}`, 20, yPosition);
+            yPosition += 12;
+
+            // Table Header
+            doc.setFillColor(51, 65, 85);
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(9);
+            doc.rect(15, yPosition - 5, pageWidth - 30, 6, 'F');
+            doc.text('Date', 20, yPosition);
+            doc.text('Recipient', 50, yPosition);
+            doc.text('Amount', 120, yPosition);
+            doc.text('Status', 160, yPosition);
+            
+            yPosition += 8;
+
+            // Table Rows
+            doc.setTextColor(64, 74, 89);
+            transfers.forEach((transfer, index) => {
+                if(yPosition > pageHeight - 20) {
+                    doc.addPage();
+                    yPosition = 15;
+                }
+
+                doc.setFillColor(248, 250, 252);
+                if(index % 2 === 0) {
+                    doc.rect(15, yPosition - 5, pageWidth - 30, 6, 'F');
+                }
+
+                doc.text(new Date(transfer.date).toLocaleDateString(), 20, yPosition);
+                doc.text(transfer.recipientName.substring(0, 20), 50, yPosition);
+                doc.text(`₹${transfer.amount}`, 120, yPosition);
+                doc.text(transfer.status, 160, yPosition);
+                
+                yPosition += 6;
+            });
+
+            // Footer
+            yPosition += 10;
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text(`Generated on ${new Date().toLocaleString()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+
+            doc.save(`transfer-report-${startDate}-to-${endDate}.pdf`);
+            showToast('Success', 'PDF report downloaded successfully.', 'ph-check-circle', 'text-emerald-400');
+        }
+
+        function generateCSVReport(transfers, startDate, endDate) {
+            let csv = 'Date,Recipient Name,Recipient Account,Amount,Status,Transfer Type\n';
+            
+            transfers.forEach(transfer => {
+                const date = new Date(transfer.date).toLocaleDateString();
+                const row = [
+                    date,
+                    `"${transfer.recipientName}"`,
+                    transfer.recipientAccount,
+                    transfer.amount,
+                    transfer.status,
+                    transfer.type || 'Internal'
+                ].join(',');
+                csv += row + '\n';
+            });
+
+            // Add Summary
+            csv += '\n\nSummary\n';
+            csv += `Total Transfers,${transfers.length}\n`;
+            const totalAmount = transfers.reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            csv += `Total Amount,${totalAmount.toFixed(2)}\n`;
+            csv += `Average Amount,${(totalAmount / transfers.length).toFixed(2)}\n`;
+            csv += `Date Range,"${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}"\n`;
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transfer-report-${startDate}-to-${endDate}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            showToast('Success', 'CSV report downloaded successfully.', 'ph-check-circle', 'text-emerald-400');
+        }
+
+        function openReportModal() {
+            const modal = document.getElementById('reportModal');
+            const modalContent = document.getElementById('reportModalContent');
+            
+            // Set default dates
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('reportStartDate').valueAsDate = thirtyDaysAgo;
+            document.getElementById('reportEndDate').valueAsDate = today;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeReportModal() {
+            const modal = document.getElementById('reportModal');
+            const modalContent = document.getElementById('reportModalContent');
+            
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavigation('customer', 'transfers.html');
+        });
+    </script>
+</body>
+</html>

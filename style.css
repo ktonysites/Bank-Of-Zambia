@@ -1,0 +1,733 @@
+/* ==========================================================================
+   Nexus Bank - Premium Global Styles
+   ========================================================================== */
+
+/* 1. Typography & Base */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --app-bg: #f8fafc;
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-bg: rgba(255, 255, 255, 0.65);
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--app-bg);
+    scroll-behavior: smooth;
+}
+
+/* 2. Refined Scrollbar (Mac-OS Style) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 20px;
+    border: 2px solid var(--app-bg); /* Creates a padded look */
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* 3. Advanced Glassmorphism */
+/* Gives a frosted, premium look with inner light reflection */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8); /* Inner top highlight */
+}
+
+/* 4. Tactile Interactive Elements (The "App" Feel) */
+.card-hover {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Slight spring effect */
+}
+
+.card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.05), 
+        0 10px 10px -5px rgba(0, 0, 0, 0.02),
+        0 0 0 1px rgba(59, 130, 246, 0.1); /* Subtle blue glow ring */
+}
+
+/* Gives a satisfying 'push' feeling when clicking buttons or cards */
+.interactive-press:active {
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+    transition: all 0.1s ease;
+}
+
+/* 5. Navigation Glows */
+.nav-link-active {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    box-shadow: 
+        0 4px 14px 0 rgba(37, 99, 235, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    color: white !important;
+}
+
+/* 6. Typography Gradients */
+/* Apply this to main balance numbers or headers for a modern look */
+.text-gradient-primary {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* 7. Micro-Animations */
+/* Upgraded Fade In: Adds a subtle scale out of the blur */
+@keyframes fade-in-up-scale {
+    0% { 
+        opacity: 0; 
+        transform: translateY(20px) scale(0.98); 
+        filter: blur(4px);
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+        filter: blur(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up-scale 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Continuous smooth floating for abstract background elements or featured icons */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+
+.animate-float {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* Staggered load delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* 8. Enhanced Button Animations */
+@keyframes button-glow {
+    0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.btn-glow:hover {
+    animation: button-glow 1s infinite;
+}
+
+@keyframes button-shine {
+    0%, 100% { background-position: 200% center; }
+    50% { background-position: -200% center; }
+}
+
+.btn-shine {
+    background-size: 200% auto;
+    animation: button-shine 3s linear infinite;
+}
+
+/* 9. Icon Animations */
+@keyframes icon-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes icon-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes icon-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+@keyframes icon-wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+}
+
+.icon-bounce { animation: icon-bounce 1s ease-in-out infinite; }
+.icon-spin { animation: icon-spin 2s linear infinite; }
+.icon-pulse { animation: icon-pulse 2s ease-in-out infinite; }
+.icon-wiggle { animation: icon-wiggle 0.5s ease-in-out infinite; }
+
+/* 10. Loading Spinner */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.spinner {
+    border: 3px solid rgba(37, 99, 235, 0.1);
+    border-top: 3px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* 11. Smooth Page Transitions */
+@keyframes page-enter {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes page-exit {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+}
+
+.page-enter { animation: page-enter 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.page-exit { animation: page-exit 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* 12. Modal Animations */
+@keyframes modal-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes modal-backdrop-in {
+    from { backdrop-filter: blur(0px); }
+    to { backdrop-filter: blur(8px); }
+}
+
+.modal-enter { animation: modal-slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.modal-backdrop { animation: modal-backdrop-in 0.3s ease-out forwards; }
+
+/* 13. Card Stagger Animation */
+@keyframes slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.slide-in-left { animation: slide-in-left 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.slide-in-right { animation: slide-in-right 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* 14. Ripple Effect */
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+/* 15. Smooth Transitions for Forms */
+.form-input-focus {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-input-focus:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+/* 16. Gradient Text Animations */
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.gradient-text-animated {
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #2563eb);
+    background-size: 200% auto;
+    animation: gradient-shift 3s ease infinite;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* 17. Scale Hover Effects */
+.scale-hover {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-hover:hover {
+    transform: scale(1.05);
+}
+
+.scale-hover:active {
+    transform: scale(0.98);
+}
+
+/* 18. Smooth Badge Animations */
+@keyframes badge-pulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.badge-pulse { animation: badge-pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* 19. Enhanced Focus States */
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+/* 20. Toast Notification Animations */
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(400px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toast-slide-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(400px);
+    }
+}
+
+.toast-enter { animation: toast-slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.toast-exit { animation: toast-slide-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* 21. Skeleton Loader Animation */
+@keyframes skeleton-loading {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 1000px 100%;
+    animation: skeleton-loading 2s infinite;
+    border-radius: 8px;
+}
+
+/* 22. Smooth Dropdown Animations */
+@keyframes dropdown-open {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-enter { animation: dropdown-open 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* 23. Checkbox/Toggle Animations */
+@keyframes check-mark {
+    0% { transform: scale(0) rotate(-45deg); }
+    50% { transform: scale(1.2) rotate(10deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+.check-animate { animation: check-mark 0.3s ease forwards; }
+
+/* 24. Attention Pulse for Important Items */
+@keyframes attention-pulse {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+        transform: scale(1.02);
+    }
+}
+
+.attention-pulse { animation: attention-pulse 2s ease infinite; }
+
+/* ========================================================================== */
+/* MOBILE RESPONSIVE OPTIMIZATION */
+/* ========================================================================== */
+
+/* 25. Mobile Menu Hamburger Animation */
+@keyframes hamburger-top {
+    from { transform: rotate(0deg) translateY(0); }
+    to { transform: rotate(45deg) translateY(8px); }
+}
+
+@keyframes hamburger-middle {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes hamburger-bottom {
+    from { transform: rotate(0deg) translateY(0); }
+    to { transform: rotate(-45deg) translateY(-8px); }
+}
+
+.hamburger.active .line:nth-child(1) { animation: hamburger-top 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.hamburger.active .line:nth-child(2) { animation: hamburger-middle 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.hamburger.active .line:nth-child(3) { animation: hamburger-bottom 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* 26. Mobile Sidebar Slide In/Out */
+@keyframes sidebar-slide-in {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes sidebar-slide-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+@keyframes mobile-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes mobile-backdrop-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.mobile-sidebar.active { animation: sidebar-slide-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.mobile-sidebar { animation: sidebar-slide-out 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+.mobile-backdrop.active { animation: mobile-backdrop-in 0.2s ease forwards; }
+
+/* 27. Bottom Navigation Mobile Tab Animation */
+@keyframes tab-slide-up {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.bottom-nav { animation: tab-slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* 28. Mobile Touch Target Sizing */
+.touch-button {
+    min-height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 29. Mobile Form Input Optimization */
+.mobile-input {
+    font-size: 16px; /* Prevents auto-zoom on iOS input focus */
+    min-height: 44px; /* Touch-friendly height */
+    padding: 12px 16px;
+}
+
+/* 30. Mobile Responsive Text */
+@media (max-width: 640px) {
+    /* Base responsive sizing */
+    html {
+        font-size: 14px;
+    }
+    
+    body {
+        font-size: 14px;
+    }
+    
+    h1 { font-size: 24px; } /* From 48px */
+    h2 { font-size: 20px; } /* From 36px */
+    h3 { font-size: 18px; } /* From 30px */
+    h4 { font-size: 16px; } /* From 24px */
+    h5 { font-size: 15px; } /* From 22px */
+    h6 { font-size: 14px; } /* From 20px */
+    
+    p { font-size: 14px; }
+    
+    /* Header optimization */
+    main > header {
+        padding: 16px !important;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    main > header > div:first-child {
+        width: 100%;
+    }
+    
+    main > header > div:first-child h2 {
+        font-size: 18px;
+    }
+    
+    main > header > div:first-child p {
+        font-size: 12px;
+    }
+    
+    /* Hide desktop-only header items on mobile */
+    .desktop-header-item {
+        display: none !important;
+    }
+    
+    /* Content padding optimization */
+    main > div:not(header) {
+        padding: 12px;
+    }
+    
+    /* Make main full width on mobile */
+    main {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 70px; /* Account for bottom nav */
+        overflow-y: auto;
+        padding-top: 60px; /* Mobile header height */
+    }
+    
+    /* Grid responsiveness */
+    .grid-auto-fit {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Card spacing reduction */
+    .card-compact {
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+    
+    /* Button text sizing for mobile */
+    button, a.button {
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+    
+    /* Hide sidebar on mobile (except in drawer) */
+    aside:not(.mobile-sidebar) {
+        display: none !important;
+    }
+    
+    /* Tab content padding */
+    .tab-panel {
+        padding: 12px;
+    }
+    
+    /* Form field optimization */
+    input, select, textarea {
+        font-size: 16px; /* Prevent zoom on iOS */
+        min-height: 44px;
+    }
+    
+    /* Notification dropdown responsive */
+    #notifDropdown {
+        width: 100vw !important;
+        right: -12px !important;
+        border-radius: 20px 20px 0 0 !important;
+        max-height: 60vh !important;
+    }
+    
+    /* Profile dropdown responsive */
+    #profileDropdown {
+        width: calc(100vw - 24px) !important;
+        right: -12px !important;
+        left: 12px !important;
+        border-radius: 20px 20px 0 0 !important;
+    }
+    
+    /* Modal optimization for mobile */
+    .modal {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-height: none !important;
+        border-radius: 20px 20px 0 0 !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-width: none !important;
+    }
+    
+    /* Card grid single column */
+    [class*="grid-cols-"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Section spacing */
+    .section-mobile {
+        margin-bottom: 16px;
+    }
+    
+    /* Input focus state */
+    input:focus, textarea:focus, select:focus {
+        font-size: 16px;
+    }
+    
+    /* Flex direction responsive */
+    .flex-responsive {
+        flex-direction: column;
+    }
+    
+    /* Space reduction */
+    .space-y-6 {
+        row-gap: 12px !important;
+    }
+    
+    .space-x-6 {
+        column-gap: 12px !important;
+    }
+    
+    /* Table scrolling on mobile */
+    table {
+        font-size: 12px;
+    }
+    
+    table th, table td {
+        padding: 8px 4px;
+    }
+    
+    /* Icon sizing for mobile */
+    .icon-mobile {
+        font-size: 16px;
+    }
+    
+    i.ph {
+        font-size: 18px;
+    }
+}
+
+/* 31. Tablet Optimization (medium screens) */
+@media (min-width: 641px) and (max-width: 1024px) {
+    main > header {
+        padding: 20px;
+    }
+    
+    main > div:not(header) {
+        padding: 16px;
+    }
+    
+    [class*="grid-cols-"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* 32. Safe area support for notched devices */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+    
+    .bottom-nav {
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+}
+
+/* 33. Landscape Mobile Optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+    main {
+        bottom: 50px;
+    }
+    
+    h1 { font-size: 18px; }
+    h2 { font-size: 16px; }
+    
+    main > header {
+        padding: 8px 12px;
+    }
+    
+    main > div:not(header) {
+        padding: 8px;
+    }
+}
+
+/* 34. Interaction Optimizations for Mobile */
+@media (pointer: coarse) {
+    /* Larger touch targets */
+    button, a, input[type="button"], input[type="submit"] {
+        min-height: 48px;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .card-hover:hover {
+        transform: none;
+    }
+    
+    /* Tap highlight color */
+    * {
+        -webkit-tap-highlight-color: rgba(37, 99, 235, 0.2);
+    }
+}
+
+/* 35. Print-friendly Mobile */
+@media print {
+    .mobile-header, .bottom-nav, .mobile-sidebar {
+        display: none !important;
+    }
+}

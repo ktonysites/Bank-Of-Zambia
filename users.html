@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ CORE | User Accounts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">Z</div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button class="relative p-2 text-slate-600 hover:text-indigo-600 transition">
+                <i class="ph-bold ph-bell text-xl"></i>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button onclick="toggleMobileMenu()" class="hamburger-icon p-2 transition-transform duration-300 text-slate-600">
+                <i class="ph-bold ph-list text-2xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-black/50 z-30 hidden transition-opacity duration-300" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto" style="transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-4 pb-8 hide-scrollbar">
+            <nav id="desktopNav" class="space-y-6"></nav>
+        </div>
+
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0">
+            <div>
+                <h2 class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Customer Accounts</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Manage retail and corporate user profiles, KYC, and limits.</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="showToast('Exporting Data', 'Downloading user ledger as CSV...', 'ph-download-simple', 'text-indigo-400')" class="bg-white border border-slate-200 text-slate-700 px-3 lg:px-4 py-2 lg:py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-slate-50 transition shadow-sm flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-export text-lg"></i> <span class="hidden sm:inline">Export CSV</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-10 max-w-[1600px] mx-auto w-full pb-24 lg:pb-10">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0"><i class="ph-fill ph-users text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Users</p>
+                        <h3 id="statTotal" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0"><i class="ph-fill ph-wallet text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Active Wallets</p>
+                        <h3 id="statActive" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0"><i class="ph-fill ph-hourglass-high text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Pending KYC</p>
+                        <h3 id="statPending" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform border-rose-200 bg-rose-50/30">
+                    <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-shield-warning text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-rose-500 font-black uppercase tracking-widest mb-1">Flagged / Frozen</p>
+                        <h3 id="statFrozen" class="text-2xl lg:text-3xl font-extrabold text-rose-700">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl lg:rounded-[2rem] shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+                
+                <div class="px-4 lg:px-8 py-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white/50">
+                    <div class="flex bg-slate-100/80 p-1 rounded-xl overflow-x-auto hide-scrollbar w-full sm:w-auto border border-slate-200/50 shadow-sm">
+                        <button onclick="filterUsers('All')" id="tab-All" class="filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap bg-white text-indigo-600 shadow-sm transition">All Users</button>
+                        <button onclick="filterUsers('Pending KYC')" id="tab-Pending KYC" class="filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Pending KYC</button>
+                        <button onclick="filterUsers('Frozen')" id="tab-Frozen" class="filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Frozen Accounts</button>
+                    </div>
+
+                    <div class="relative w-full lg:w-80 shrink-0">
+                        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search users, IDs, emails..." class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm">
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto flex-1 w-full">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                        <thead class="bg-slate-50/50 text-slate-400 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">User Profile</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">Contact Info</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">Classification</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">KYC & Status</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px] text-right">Wallet Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody" class="divide-y divide-slate-50 bg-white">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="px-4 lg:px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto">
+                    <span class="text-xs text-slate-500 font-bold tracking-wide" id="paginationText">Showing entries</span>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1.5 border border-slate-200 bg-white text-slate-400 rounded-lg cursor-not-allowed text-xs font-bold">Prev</button>
+                        <button class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold text-xs shadow-sm shadow-indigo-200">1</button>
+                        <button class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 rounded-lg font-bold text-xs opacity-50 cursor-not-allowed">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav id="bottomNav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-20 z-40 flex items-center justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe"></nav>
+
+    <div id="userProfileModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay" onclick="closeUserProfile()"></div>
+        <div class="bg-slate-50 rounded-[2rem] p-0 max-w-4xl w-full max-h-[95vh] overflow-y-auto shadow-2xl relative z-10 modal-animate border border-slate-200 hide-scrollbar" id="userProfileContent">
+            
+            <div class="bg-gradient-to-br from-slate-900 to-[#0B0F19] p-6 lg:p-8 relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-slate-800">
+                <button onclick="closeUserProfile()" class="absolute top-4 right-4 sm:top-6 sm:right-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition interactive-press z-20">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+                
+                <div class="flex items-center gap-4 sm:gap-5 relative z-10">
+                    <div id="modalUserAvatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white/20 bg-indigo-500 text-white flex items-center justify-center text-2xl sm:text-3xl font-extrabold shadow-lg shrink-0"></div>
+                    <div>
+                        <h3 id="modalUserName" class="text-xl sm:text-2xl font-black text-white tracking-tight"></h3>
+                        <p id="modalUserId" class="text-xs font-mono text-slate-400 mt-1 uppercase tracking-wider"></p>
+                        <div class="flex flex-wrap gap-2 mt-3" id="modalUserBadges"></div>
+                    </div>
+                </div>
+
+                <div class="sm:text-right relative z-10 sm:mt-2 sm:mr-10">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Available Funds</p>
+                    <h3 id="modalUserBalance" class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight"></h3>
+                </div>
+            </div>
+
+            <div class="p-4 lg:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                
+                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="ph-fill ph-address-book text-indigo-500"></i> Contact & Location</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0"><i class="ph-fill ph-envelope-simple text-slate-400"></i></div>
+                            <div class="break-all">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email Address</p>
+                                <p id="modalUserEmail" class="text-sm font-bold text-slate-800"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0"><i class="ph-fill ph-phone text-slate-400"></i></div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone Number</p>
+                                <p id="modalUserPhone" class="text-sm font-bold text-slate-800"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0"><i class="ph-fill ph-map-pin text-slate-400"></i></div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Residential Address</p>
+                                <p id="modalUserLocation" class="text-sm font-bold text-slate-800"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="ph-fill ph-fingerprint text-emerald-500"></i> Identity Information</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0"><i class="ph-fill ph-identification-card text-slate-400"></i></div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID Type & Number</p>
+                                <p class="text-sm font-bold text-slate-800"><span id="modalUserIdType"></span> <span class="text-slate-400 mx-1">|</span> <span id="modalUserIdNumber" class="font-mono"></span></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0"><i class="ph-fill ph-calendar-blank text-slate-400"></i></div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date of Birth</p>
+                                <p id="modalUserDob" class="text-sm font-bold text-slate-800"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0"><i class="ph-fill ph-translate text-slate-400"></i></div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Preferred Language</p>
+                                <p id="modalUserLanguage" class="text-sm font-bold text-slate-800"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 md:col-span-2">
+                    <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="ph-fill ph-cube text-amber-500"></i> Account Classification (T24 Data)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="ph-bold ph-users-three"></i> Customer Segment</p>
+                            <p id="modalUserSegment" class="text-sm font-bold text-slate-800"></p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="ph-bold ph-factory"></i> Industry</p>
+                            <p id="modalUserIndustry" class="text-sm font-bold text-slate-800"></p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="ph-bold ph-barcode"></i> Product Code</p>
+                            <p id="modalUserProduct" class="text-sm font-mono font-bold text-slate-800"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4 lg:space-y-6 md:col-span-2">
+                    <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
+                            <span>Tier <span id="modalUserTier"></span> Velocity Limits</span>
+                            <span class="text-xs text-slate-400 font-medium tracking-normal">Joined: <span id="modalUserJoinDate" class="font-bold text-slate-600"></span></span>
+                        </h4>
+                        <div>
+                            <div class="flex justify-between text-xs font-bold mb-2">
+                                <span class="text-slate-500">Daily Transfer Capacity</span>
+                                <span class="text-slate-900">ZMW <span id="modalLimitUsed"></span> / <span id="modalLimitTotal"></span></span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="bg-indigo-500 h-2 rounded-full" style="width: 35%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 mb-4">Command Interface</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="modalActionButtons">
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[70] pointer-events-none w-max max-w-[90vw]">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- EXPANDED MOCK DATABASE ---
+        let userDb = [
+            { 
+                id: "USR-88201", name: "Daniel Banda", email: "daniel.b@zambia.co.zm", phone: "+260 97 123 4567", 
+                location: "15 Independence Ave, Lusaka", status: "Active", kyc: "Pending KYC", tier: 1, balance: 14500.00, joinDate: "12 Feb 2026", color: "indigo",
+                dob: "1992-05-14", idType: "National ID (NRC)", idNumber: "123456/78/1", language: "1 - English", segment: "4 - Ret.Client std", industry: "1000 - Private Person", productCode: "1001"
+            },
+            { 
+                id: "USR-88190", name: "Alice Phiri", email: "alice.phiri@mail.zm", phone: "+260 96 987 6543", 
+                location: "Plot 42, Ndola", status: "Active", kyc: "Verified", tier: 3, balance: 450000.50, joinDate: "05 Nov 2025", color: "emerald",
+                dob: "1988-11-23", idType: "Passport", idNumber: "ZA987654", language: "1 - English", segment: "2 - Priv High Net", industry: "1000 - Private Person", productCode: "1001"
+            },
+            { 
+                id: "USR-88102", name: "Copperbelt Mining Co.", email: "finance@copperbelt.co.zm", phone: "+260 95 555 1111", 
+                location: "Industrial Area, Kitwe", status: "Frozen", kyc: "Verified", tier: 3, balance: 1250000.00, joinDate: "18 Aug 2024", color: "slate",
+                dob: "N/A", idType: "Company Reg", idNumber: "CO-992211", language: "1 - English", segment: "7 - Corporate", industry: "2100 - Mining & Quarries", productCode: "1001"
+            },
+            { 
+                id: "USR-88055", name: "Kevin Mwewa", email: "kevin.m@domain.com", phone: "+260 97 222 3333", 
+                location: "Mosi-oa-Tunya Rd, Livingstone", status: "Active", kyc: "Verified", tier: 2, balance: 8520.00, joinDate: "02 Mar 2026", color: "amber",
+                dob: "1995-02-10", idType: "Driving License", idNumber: "DL-45678", language: "1 - English", segment: "15 - Bus Banking", industry: "2300 - Trader", productCode: "1001"
+            },
+            { 
+                id: "USR-87999", name: "Mercy Tembo", email: "mercy.t@webmail.com", phone: "+260 96 666 7777", 
+                location: "Boma St, Kabwe", status: "Active", kyc: "Verified", tier: 2, balance: 64100.25, joinDate: "20 Jan 2026", color: "purple",
+                dob: "1990-09-05", idType: "National ID (NRC)", idNumber: "654321/11/2", language: "2 - French", segment: "4 - Ret.Client std", industry: "1800 - Health Care", productCode: "1001"
+            },
+            { 
+                id: "USR-87950", name: "Brian Mulenga", email: "brian.m@example.com", phone: "+260 95 111 2222", 
+                location: "Chilenje, Lusaka", status: "Active", kyc: "Pending KYC", tier: 1, balance: 500.00, joinDate: "23 Mar 2026", color: "blue",
+                dob: "1999-12-01", idType: "National ID (NRC)", idNumber: "987123/55/1", language: "1 - English", segment: "4 - Ret.Client std", industry: "1400 - Student", productCode: "1001"
+            }
+        ];
+
+        let currentFilter = 'All';
+
+        function updateSummaryMetrics() {
+            document.getElementById('statTotal').innerText = "8,432";
+            document.getElementById('statActive').innerText = "7,105";
+            const pendingCount = userDb.filter(u => u.kyc === 'Pending KYC').length;
+            document.getElementById('statPending').innerText = 124 + pendingCount;
+            const frozenCount = userDb.filter(u => u.status === 'Frozen').length;
+            document.getElementById('statFrozen').innerText = 42 + frozenCount;
+        }
+
+        function formatZMW(amount) {
+            return new Intl.NumberFormat('en-ZM', { style: 'currency', currency: 'ZMW' }).format(amount).replace('ZMW', '').trim();
+        }
+
+        function renderUsers(dataToRender = userDb) {
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '';
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 lg:px-8 py-12 text-center text-slate-500 font-bold">No accounts found matching criteria.</td></tr>`;
+                document.getElementById('paginationText').innerText = "Showing 0 entries";
+                return;
+            }
+
+            dataToRender.forEach((user, index) => {
+                const initials = user.name.split(' ').slice(0,2).map(n => n[0]).join('');
+                
+                let statusBadge = user.status === 'Active' 
+                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[10px] uppercase font-black tracking-widest"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active</span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-600 rounded-md text-[10px] uppercase font-black tracking-widest"><i class="ph-bold ph-lock-key"></i> Frozen</span>`;
+
+                let kycBadge = user.kyc === 'Verified'
+                    ? `<span class="text-xs font-bold text-slate-700 flex items-center gap-1.5"><i class="ph-fill ph-check-circle text-emerald-500"></i> Tier ${user.tier}</span>`
+                    : `<span class="text-xs font-bold text-slate-700 flex items-center gap-1.5"><i class="ph-fill ph-warning-circle text-amber-500"></i> Pending</span>`;
+
+                const row = `
+                    <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer animate-row border-b border-slate-50" style="animation-delay: ${index * 50}ms" onclick="openUserProfile('${user.id}')">
+                        <td class="px-6 lg:px-8 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-${user.color}-100 text-${user.color}-700 flex items-center justify-center font-bold shrink-0 border border-${user.color}-200/50">${initials}</div>
+                                <div>
+                                    <div class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">${user.name}</div>
+                                    <div class="text-[10px] font-mono text-slate-400 mt-0.5">${user.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-5">
+                            <div class="font-bold text-slate-700 text-xs">${user.email}</div>
+                            <div class="text-[11px] font-medium text-slate-500 mt-0.5">${user.phone}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-5">
+                            <div class="font-bold text-slate-700 text-xs truncate max-w-[150px]">${user.industry.split(' - ')[1]}</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">${user.segment.split(' - ')[1]}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-5">
+                            ${kycBadge}
+                            <div class="mt-1.5">${statusBadge}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-5 text-right">
+                            <div class="font-black text-slate-900">${formatZMW(user.balance)}</div>
+                            <div class="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-widest">ZMW</div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+
+            document.getElementById('paginationText').innerText = `Showing 1 to ${dataToRender.length} of ${dataToRender.length} entries`;
+        }
+
+        function filterUsers(filterType) {
+            currentFilter = filterType;
+            const tabs = ['All', 'Pending KYC', 'Frozen'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if(t === filterType) {
+                    el.className = "filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap bg-white text-indigo-600 shadow-sm transition";
+                } else {
+                    el.className = "filter-tab px-5 py-2 text-sm font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition";
+                }
+            });
+            executeSearchAndFilter();
+        }
+
+        function handleSearch() { executeSearchAndFilter(); }
+
+        function executeSearchAndFilter() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = userDb;
+
+            if (currentFilter === 'Pending KYC') filtered = filtered.filter(u => u.kyc === 'Pending KYC');
+            else if (currentFilter === 'Frozen') filtered = filtered.filter(u => u.status === 'Frozen');
+
+            if (query) {
+                filtered = filtered.filter(u => 
+                    u.name.toLowerCase().includes(query) || 
+                    u.email.toLowerCase().includes(query) || 
+                    u.id.toLowerCase().includes(query) ||
+                    u.phone.includes(query)
+                );
+            }
+            renderUsers(filtered);
+        }
+
+        // --- USER PROFILE MODAL ---
+        let currentOpenUserId = null;
+
+        function openUserProfile(userId) {
+            const user = userDb.find(u => u.id === userId);
+            if (!user) return;
+            currentOpenUserId = userId;
+
+            // Header info
+            document.getElementById('modalUserName').innerText = user.name;
+            document.getElementById('modalUserId').innerText = user.id;
+            document.getElementById('modalUserBalance').innerText = formatZMW(user.balance);
+            
+            // Section 1: Contact
+            document.getElementById('modalUserEmail').innerText = user.email;
+            document.getElementById('modalUserPhone').innerText = user.phone;
+            document.getElementById('modalUserLocation').innerText = user.location;
+            
+            // Section 2: Identity
+            document.getElementById('modalUserDob').innerText = user.dob;
+            document.getElementById('modalUserIdType').innerText = user.idType;
+            document.getElementById('modalUserIdNumber').innerText = user.idNumber;
+            document.getElementById('modalUserLanguage').innerText = user.language;
+
+            // Section 3: Classification
+            document.getElementById('modalUserSegment').innerText = user.segment;
+            document.getElementById('modalUserIndustry').innerText = user.industry;
+            document.getElementById('modalUserProduct').innerText = user.productCode;
+
+            // Tier Limits
+            document.getElementById('modalUserJoinDate').innerText = user.joinDate;
+            document.getElementById('modalUserTier').innerText = user.tier;
+
+            const initials = user.name.split(' ').slice(0,2).map(n => n[0]).join('');
+            const avatar = document.getElementById('modalUserAvatar');
+            avatar.innerText = initials;
+            avatar.className = `w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white/20 bg-${user.color}-500 text-white flex items-center justify-center text-2xl sm:text-3xl font-extrabold shadow-lg shrink-0`;
+
+            let badgesHtml = '';
+            if(user.status === 'Active') badgesHtml += `<span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div> Active</span>`;
+            else badgesHtml += `<span class="px-2.5 py-1 bg-rose-500/20 text-rose-400 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><i class="ph-bold ph-lock-key"></i> Frozen</span>`;
+
+            if(user.kyc === 'Verified') badgesHtml += `<span class="px-2.5 py-1 bg-white/10 text-white rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><i class="ph-bold ph-check-circle"></i> KYC Level ${user.tier}</span>`;
+            else badgesHtml += `<span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5"><i class="ph-bold ph-warning-circle"></i> KYC Pending</span>`;
+            
+            document.getElementById('modalUserBadges').innerHTML = badgesHtml;
+
+            let maxLimit = user.tier === 1 ? '50,000' : (user.tier === 2 ? '250,000' : '1,000,000');
+            document.getElementById('modalLimitTotal').innerText = maxLimit;
+            let used = Math.floor(Math.random() * 20000);
+            document.getElementById('modalLimitUsed').innerText = used.toLocaleString();
+
+            // Build Actions
+            const actionContainer = document.getElementById('modalActionButtons');
+            let actionsHtml = '';
+
+            if(user.kyc === 'Pending KYC') actionsHtml += `<button onclick="approveKyc('${user.id}')" class="w-full py-3.5 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-check-circle text-lg"></i> Approve KYC</button>`;
+            else actionsHtml += `<button onclick="showToast('View Docs', 'Opening verification documents...')" class="w-full py-3.5 bg-slate-50 text-slate-700 border border-slate-200 font-bold rounded-xl hover:bg-slate-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-file-text text-lg"></i> View KYC Docs</button>`;
+
+            if(user.status === 'Active') actionsHtml += `<button onclick="freezeAccount('${user.id}')" class="w-full py-3.5 bg-rose-50 text-rose-700 font-bold rounded-xl hover:bg-rose-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-lock-key text-lg"></i> Freeze Account</button>`;
+            else actionsHtml += `<button onclick="unfreezeAccount('${user.id}')" class="w-full py-3.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl hover:bg-emerald-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-lock-key-open text-lg"></i> Unfreeze Account</button>`;
+            
+            actionsHtml += `<button onclick="showToast('Ledger', 'Opening transaction history...')" class="col-span-1 sm:col-span-2 md:col-span-1 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-list-dashes text-lg"></i> View Ledger</button>`;
+            
+            actionContainer.innerHTML = actionsHtml;
+
+            document.getElementById('userProfileModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('userProfileContent').classList.remove('scale-95', 'opacity-0');
+                document.getElementById('userProfileContent').classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeUserProfile() {
+            document.getElementById('userProfileContent').classList.remove('scale-100', 'opacity-100');
+            document.getElementById('userProfileContent').classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('userProfileModal').classList.add('hidden');
+            }, 200);
+            currentOpenUserId = null;
+        }
+
+        // --- ACTION FUNCTIONS ---
+        function approveKyc(userId) {
+            const user = userDb.find(u => u.id === userId);
+            if(user) {
+                user.kyc = 'Verified'; user.tier = 2;
+                showToast('KYC Approved', `${user.name} upgraded to Tier 2.`, 'ph-check-circle', 'text-emerald-400');
+                openUserProfile(userId); executeSearchAndFilter(); updateSummaryMetrics();
+            }
+        }
+
+        function freezeAccount(userId) {
+            const user = userDb.find(u => u.id === userId);
+            if(user) {
+                user.status = 'Frozen';
+                showToast('Account Frozen', `${user.name}'s account suspended.`, 'ph-shield-warning', 'text-rose-400');
+                openUserProfile(userId); executeSearchAndFilter(); updateSummaryMetrics();
+            }
+        }
+
+        function unfreezeAccount(userId) {
+            const user = userDb.find(u => u.id === userId);
+            if(user) {
+                user.status = 'Active';
+                showToast('Account Restored', `${user.name}'s account reactivated.`, 'ph-check-circle', 'text-emerald-400');
+                openUserProfile(userId); executeSearchAndFilter(); updateSummaryMetrics();
+            }
+        }
+
+        // --- UTILS ---
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        // Mobile Menu Functionality
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            if (sidebar.style.transform === "translateX(0px)" || sidebar.style.transform === "translateX(0)") {
+                closeMobileMenu();
+            } else {
+                sidebar.style.transform = "translateX(0)";
+                backdrop.classList.remove("hidden", "opacity-0");
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            sidebar.style.transform = "translateX(-100%)";
+            backdrop.classList.add("opacity-0");
+            setTimeout(() => backdrop.classList.add("hidden"), 300);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Setup navigation using config
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'users.html');
+            }
+            renderUsers();
+            updateSummaryMetrics();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ CORE | Transaction Ledger</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); transition: opacity 0.3s; }
+
+        /* Slide Pane */
+        .slide-pane { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .slide-pane-open { transform: translateX(0%); }
+        .slide-pane-closed { transform: translateX(100%); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Checkbox styling */
+        .auth-checkbox { accent-color: #4f46e5; width: 1.1rem; height: 1.1rem; cursor: pointer; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900" onclick="closeAllDropdowns(event)">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-40 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-indigo-600 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">Z</div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button class="relative p-2 text-slate-600 hover:text-indigo-600 transition">
+                <i class="ph-bold ph-bell text-xl"></i>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button onclick="toggleMobileMenu()" class="p-2 transition-transform duration-300 text-slate-600">
+                <i class="ph-bold ph-list text-2xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0 bg-[#f8fafc]">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0">
+            <div>
+                <h2 class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Transaction Ledger</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Comprehensive analysis of all network clearings and operational mandates.</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <button onclick="toggleDropdown('mandateDropdown', event)" class="bg-slate-900 text-white px-4 py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-slate-800 transition shadow-lg shadow-slate-900/20 flex items-center gap-2 interactive-press">
+                        <i class="ph-bold ph-file-plus text-lg"></i> <span class="hidden sm:inline">Mandate Ops</span> <i class="ph-bold ph-caret-down ml-1"></i>
+                    </button>
+                    <div id="mandateDropdown" class="hidden absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="p-2 space-y-1">
+                            <button onclick="openRegisterMandateModal()" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl flex items-center gap-3 transition">
+                                <div class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg"><i class="ph-bold ph-file-plus text-lg"></i></div> Register New Mandate
+                            </button>
+                            <button onclick="openBulkAuthModal()" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-amber-50 hover:text-amber-700 rounded-xl flex items-center gap-3 transition">
+                                <div class="bg-amber-100 text-amber-600 p-1.5 rounded-lg"><i class="ph-bold ph-checks text-lg"></i></div> Bulk Authorization
+                            </button>
+                            <button onclick="openAuditMandatesPane()" class="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl flex items-center gap-3 transition">
+                                <div class="bg-emerald-100 text-emerald-600 p-1.5 rounded-lg"><i class="ph-bold ph-magnifying-glass text-lg"></i></div> Audit Active Mandates
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-8 max-w-[1600px] mx-auto w-full">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0"><i class="ph-fill ph-swap text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Volume (24h)</p>
+                        <h3 id="statVolume" class="text-2xl lg:text-3xl font-extrabold text-slate-900">14,289</h3>
+                    </div>
+                </div>
+                
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0"><i class="ph-fill ph-coins text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Value (24h)</p>
+                        <h3 id="statValue" class="text-2xl lg:text-3xl font-extrabold text-slate-900">ZMW 42.5M</h3>
+                    </div>
+                </div>
+                
+                <div class="bg-amber-50/50 border border-amber-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200/50"><i class="ph-fill ph-hourglass-high text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-amber-500 font-black uppercase tracking-widest mb-1">Pending INAU</p>
+                        <h3 id="statPending" class="text-2xl lg:text-3xl font-extrabold text-amber-700">3</h3>
+                    </div>
+                </div>
+
+                <div class="bg-rose-50/30 border border-rose-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-warning-circle text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-rose-500 font-black uppercase tracking-widest mb-1">Flagged / Failed</p>
+                        <h3 id="statFailed" class="text-2xl lg:text-3xl font-extrabold text-rose-700">1</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl lg:rounded-[2rem] shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+                
+                <div class="px-4 lg:px-8 py-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-slate-50/50">
+                    <div class="flex bg-white p-1 rounded-xl overflow-x-auto hide-scrollbar w-full sm:w-auto border border-slate-200/80 shadow-sm">
+                        <button onclick="filterTxns('All')" id="tab-All" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap bg-indigo-50 text-indigo-700 transition">All Transactions</button>
+                        <button onclick="filterTxns('Credit')" id="tab-Credit" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Inflows (Credits)</button>
+                        <button onclick="filterTxns('Debit')" id="tab-Debit" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Outflows (Debits)</button>
+                        <button onclick="filterTxns('Review')" id="tab-Review" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition"><i class="ph-fill ph-warning text-amber-500 mr-1"></i> Flagged/INAU</button>
+                    </div>
+
+                    <div class="flex gap-3 w-full lg:w-auto">
+                        <div class="relative w-full lg:w-72 shrink-0">
+                            <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                            <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search ID, Name, Reference..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto flex-1 w-full">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[1000px]">
+                        <thead class="bg-slate-50/80 text-slate-500 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px]">Transaction Details</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px]">Sender (Ordering)</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px]">Receiver (Beneficiary)</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px] text-right">Amount</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px] text-center">Status</th>
+                                <th class="px-6 lg:px-8 py-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="txnTableBody" class="divide-y divide-slate-50 bg-white">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="px-4 lg:px-8 py-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto">
+                    <span class="text-xs text-slate-500 font-bold tracking-wide" id="paginationText">Showing entries</span>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1.5 border border-slate-200 bg-slate-50 text-slate-400 rounded-lg cursor-not-allowed text-xs font-bold">Prev</button>
+                        <button class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold text-xs shadow-sm shadow-indigo-200">1</button>
+                        <button class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 rounded-lg font-bold text-xs cursor-not-allowed opacity-50">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="paneBackdrop" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm hidden z-50 opacity-0 transition-opacity" onclick="closeTxnDetails()"></div>
+    <div id="txnDetailsPane" class="fixed inset-y-0 right-0 w-full md:w-[500px] lg:w-[600px] bg-slate-50 shadow-2xl slide-pane slide-pane-closed z-[60] flex flex-col border-l border-slate-200">
+        <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
+            <div>
+                <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">Transaction Record</h3>
+                <span id="paneTxnId" class="font-mono text-xs font-bold text-slate-500 uppercase tracking-wider mt-1 block"></span>
+            </div>
+            <button onclick="closeTxnDetails()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition interactive-press"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
+                <div id="paneIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border-4 border-white shadow-md z-10 relative"></div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Settlement Amount</p>
+                <h2 id="paneAmount" class="text-3xl font-black text-slate-900 tracking-tight"></h2>
+                <div class="mt-4 flex justify-center gap-2">
+                    <span id="paneStatusBadge"></span>
+                    <span id="paneTypeBadge" class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-black uppercase tracking-widest border border-slate-200"></span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <h4 class="font-black text-slate-900 text-xs uppercase tracking-widest bg-slate-50 border-b border-slate-100 px-5 py-3">Routing Path</h4>
+                <div class="p-5 relative">
+                    <div class="absolute left-[39px] top-10 bottom-10 w-0.5 bg-slate-100"></div>
+                    <div class="flex items-start gap-4 mb-6 relative">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0 z-10"><i class="ph-fill ph-arrow-circle-up"></i></div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sender (Ordering)</p>
+                            <p id="paneSenderName" class="text-sm font-bold text-slate-900 mt-0.5"></p>
+                            <p id="paneSenderAcc" class="text-xs font-mono text-slate-500"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4 relative">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0 z-10"><i class="ph-fill ph-arrow-circle-down"></i></div>
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Receiver (Beneficiary)</p>
+                            <p id="paneReceiverName" class="text-sm font-bold text-slate-900 mt-0.5"></p>
+                            <p id="paneReceiverAcc" class="text-xs font-mono text-slate-500"></p>
+                            <p id="paneReceiverBank" class="text-xs font-medium text-indigo-600 mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="flex justify-between items-center bg-slate-50 border-b border-slate-100 px-5 py-3">
+                    <h4 class="font-black text-slate-900 text-xs uppercase tracking-widest">T24 Processing Data</h4>
+                    <i class="ph-fill ph-cube text-slate-400"></i>
+                </div>
+                <div class="p-5 grid grid-cols-2 gap-y-4 gap-x-6">
+                    <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Product</p><p id="paneProduct" class="text-sm font-mono font-bold text-slate-800 mt-0.5"></p></div>
+                    <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Channel</p><p id="paneChannel" class="text-sm font-bold text-slate-800 mt-0.5"></p></div>
+                    <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Value Date</p><p id="paneDate" class="text-sm font-bold text-slate-800 mt-0.5"></p></div>
+                    <div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ordering Ref</p><p id="paneRef" class="text-xs font-mono font-bold text-slate-800 mt-0.5 break-all"></p></div>
+                    <div class="col-span-2"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Narration / Info</p><p id="paneInfo" class="text-sm font-medium text-slate-700 mt-0.5 bg-slate-50 p-2 rounded-lg border border-slate-100"></p></div>
+                </div>
+            </div>
+            
+            <div class="pb-6" id="paneActionContainer">
+                </div>
+        </div>
+    </div>
+
+    <div id="mandateModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0" id="mandateOverlay" onclick="closeMandateModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full relative z-10 modal-animate border border-slate-100 scale-95 opacity-0 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-indigo-600 p-6 flex justify-between items-start text-white shrink-0">
+                <div>
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-4"><i class="ph-bold ph-file-plus text-xl"></i></div>
+                    <h2 class="text-xl font-black">Register New Mandate</h2>
+                    <p class="text-xs font-medium text-indigo-200 mt-1">Configure operational transfer rules and institutional linkages.</p>
+                </div>
+                <button onclick="closeMandateModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <div class="p-6 md:p-8 overflow-y-auto">
+                <form id="mandateForm" onsubmit="submitMandate(event)" class="space-y-5">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Mandate Name</label>
+                        <input type="text" id="mName" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-sm text-slate-800" placeholder="e.g. Payroll Disbursement Alpha">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Source Account (Debit)</label>
+                            <input type="text" id="mAcc" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-mono font-bold text-sm text-slate-800" placeholder="Acc No.">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Mandate Type</label>
+                            <select id="mType" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-sm text-slate-700 cursor-pointer">
+                                <option value="BKT">Bulk Transfer (BKT)</option>
+                                <option value="ACTRF">Account Transfer (ACTRF)</option>
+                                <option value="STND">Standing Order (STND)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Authorization Threshold (ZMW)</label>
+                        <input type="number" id="mLimit" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-sm text-slate-800" placeholder="Limit requiring secondary approval">
+                    </div>
+                    <div class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl mt-2">
+                        <i class="ph-fill ph-warning-circle text-amber-500 text-lg mt-0.5"></i>
+                        <p class="text-xs font-medium text-amber-800 leading-relaxed">Registering a new mandate requires dual authorization. This request will be placed in the INAU (Input Unauthorised) state pending supervisor approval.</p>
+                    </div>
+                    <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4">
+                        <button type="button" onclick="closeMandateModal()" class="flex-1 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition interactive-press text-sm">Cancel</button>
+                        <button type="submit" id="mandateSubmitBtn" class="flex-[2] py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 interactive-press flex justify-center items-center gap-2 text-sm">
+                            <span id="mandateBtnText">Submit for Authorization</span>
+                            <i id="mandateSpinner" class="ph ph-spinner-gap animate-spin hidden ml-2 text-lg"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulkAuthModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0" id="bulkAuthOverlay" onclick="closeBulkAuthModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full relative z-10 modal-animate border border-slate-100 scale-95 opacity-0 flex flex-col max-h-[90vh]">
+            <div class="bg-amber-500 p-6 flex justify-between items-center text-white shrink-0 rounded-t-[2rem]">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center"><i class="ph-bold ph-checks text-xl"></i></div>
+                    <div>
+                        <h2 class="text-xl font-black">Bulk Authorization (INAU)</h2>
+                        <p class="text-xs font-medium text-amber-100 mt-0.5">Review and authorize pending transactions/mandates.</p>
+                    </div>
+                </div>
+                <button onclick="closeBulkAuthModal()" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+                <table class="w-full text-left text-sm whitespace-nowrap bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <thead class="bg-slate-100 text-slate-500 border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 w-10"><input type="checkbox" class="auth-checkbox" id="selectAllAuth" onchange="toggleAllAuth(this)"></th>
+                            <th class="px-4 py-3 font-black tracking-widest uppercase text-[10px]">Reference / ID</th>
+                            <th class="px-4 py-3 font-black tracking-widest uppercase text-[10px]">Type</th>
+                            <th class="px-4 py-3 font-black tracking-widest uppercase text-[10px] text-right">Amount / Limit</th>
+                            <th class="px-4 py-3 font-black tracking-widest uppercase text-[10px] text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bulkAuthTableBody" class="divide-y divide-slate-100">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="p-6 bg-white border-t border-slate-200 rounded-b-[2rem] flex justify-between items-center shrink-0">
+                <span class="text-sm font-bold text-slate-500"><span id="selectedAuthCount">0</span> Selected</span>
+                <div class="flex gap-3">
+                    <button onclick="processBulkAuth('Reject')" class="px-6 py-3 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition interactive-press text-sm border border-rose-200">Reject Selected</button>
+                    <button onclick="processBulkAuth('Authorize')" class="px-6 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30 interactive-press flex justify-center items-center gap-2 text-sm">
+                        <i class="ph-bold ph-check-circle"></i> Authorize Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="auditPaneBackdrop" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm hidden z-[70] opacity-0 transition-opacity" onclick="closeAuditMandatesPane()"></div>
+    <div id="auditMandatesPane" class="fixed inset-y-0 right-0 w-full md:w-[500px] lg:w-[600px] bg-slate-50 shadow-2xl slide-pane slide-pane-closed z-[80] flex flex-col border-l border-slate-200">
+        <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
+            <div>
+                <h3 class="text-lg font-black text-slate-900 flex items-center gap-2"><i class="ph-fill ph-magnifying-glass text-indigo-600"></i> Active Mandates Registry</h3>
+                <span class="text-xs font-medium text-slate-500 mt-1 block">Audit and manage registered operational mandates.</span>
+            </div>
+            <button onclick="closeAuditMandatesPane()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition interactive-press"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6">
+            <div id="auditMandatesList" class="space-y-4">
+                </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[100] pointer-events-none w-max max-w-[90vw]">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <nav id="mobileFooterNav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-20 z-40 flex items-center justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe"></nav>
+
+    <script>
+        // --- DATA STORES ---
+        let txnDb = [
+            { id: "PI241370ZWPD", ref: "TRF-OTH-190149", date: "2026-04-05 09:31", sender: "John Doe", senderAcc: "107883", receiver: "Copperbelt Mining", receiverAcc: "107689", receiverBank: "Internal BOZ", type: "Internal Transfer", product: "ACTRF", channel: "WEB", ccy: "ZMW", amount: 450000.00, status: "Processed", info: "Transfer to other account", mandateRequired: false, approvals: [] },
+            { id: "FT24099XYZ88", ref: "PAY-SAL-001", date: "2026-04-04 14:20", sender: "Min. of Education", senderAcc: "BOZ-GOV-045", receiver: "Bulk Disbursement", receiverAcc: "Multiple", receiverBank: "Various", type: "Bulk Transfer", product: "BKT", channel: "API", ccy: "ZMW", amount: 12500000.00, status: "Pending", info: "INAU: Requires 2 signatories", mandateRequired: true, mandateId: "MND-1001", mandateMinRequired: 2, approvals: [{ signer: "John Chipaila", role: "Director Finance", timestamp: "2026-04-04 15:00", status: "Approved" }] },
+            { id: "SW24100ABC12", ref: "INV-88992", date: "2026-04-04 11:05", sender: "National Defense", senderAcc: "BOZ-GOV-098", receiver: "AeroTech Global", receiverAcc: "US99001122", receiverBank: "Bank of America", type: "SWIFT", product: "ISOSWIFT", channel: "TWS", ccy: "USD", amount: 250000.00, status: "Review", info: "INAU: Awaiting 1 more approval (1/2)", mandateRequired: true, mandateId: "MND-1002", mandateMinRequired: 1, approvals: [] },
+            { id: "PI241355KKLM", ref: "TRF-LOCAL-09", date: "2026-04-03 16:45", sender: "Alice Phiri", senderAcc: "108992", receiver: "Daniel Banda", receiverAcc: "021334455", receiverBank: "ZANACO", type: "Local Transfer", product: "ACTRF", channel: "MOBILE", ccy: "ZMW", amount: 15000.00, status: "Processed", info: "Consulting fees", mandateRequired: false, approvals: [] },
+            { id: "PI241340OPQR", ref: "SUSP-9988", date: "2026-04-03 08:12", sender: "Unknown Source", senderAcc: "999999", receiver: "Kevin Mwewa", receiverAcc: "109887", receiverBank: "Internal BOZ", type: "Incoming", product: "ACTRF", channel: "RTGS", ccy: "ZMW", amount: 5000000.00, status: "Review", info: "INAU: Velocity limit exceeded", mandateRequired: false, approvals: [] }
+        ];
+
+        let mandatesDb = [
+            { id: "MND-1001", name: "Payroll Disbursement Alpha", account: "BOZ-GOV-045", type: "BKT", limit: 5000000, status: "Active", signatories: [{ name: "John Chipaila", role: "Director Finance", status: "Active" }, { name: "Rebecca Lusaka", role: "Compliance Officer", status: "Active" }], thresholds: { single: 1000000, dual: 5000000 } },
+            { id: "MND-1002", name: "Utility Sweep (KPLC)", account: "107883", type: "STND", limit: 100000, status: "Suspended", signatories: [{ name: "Samuel Ng'andu", role: "Operations Lead", status: "Active" }], thresholds: { single: 50000, dual: 100000 } },
+            { id: "MND-1003", name: "National Defense Operations", account: "BOZ-GOV-098", type: "SWIFT", limit: 10000000, status: "Active", signatories: [{ name: "Gen. Patrick Mwaba", role: "Director Operations", status: "Active" }, { name: "Col. David Zulu", role: "Finance Head", status: "Active" }, { name: "Major Susan Banda", role: "Compliance", status: "Active" }], thresholds: { single: 500000, dual: 2000000, triple: 10000000 } }
+        ];
+
+        // Mandate tracking for transactions (separate from signatories approval)
+        let transactionApprovals = {}; 
+
+        let currentFilter = 'All';
+
+        // --- MANDATE VALIDATION ENGINE ---
+        function validateTransactionMandates(txn) {
+            if (!txn.mandateRequired) return { required: false, reason: "" };
+            
+            const mandate = mandatesDb.find(m => m.id === txn.mandateId);
+            if (!mandate) return { required: false, reason: "Mandate not found" };
+            
+            if (mandate.status === 'Suspended') {
+                return { required: true, reason: "Mandate is suspended", status: "BLOCKED" };
+            }
+
+            const approvedCount = (txn.approvals || []).filter(a => a.status === 'Approved').length;
+            const requiredCount = txn.mandateMinRequired || determineRequiredSignatories(txn.amount, mandate);
+            
+            return {
+                required: true,
+                requiredSignatories: requiredCount,
+                currentApprovals: approvedCount,
+                approved: approvedCount >= requiredCount,
+                signatories: mandate.signatories,
+                pendingApproval: requiredCount > approvedCount
+            };
+        }
+
+        function determineRequiredSignatories(amount, mandate) {
+            if (!mandate.thresholds) return 1;
+            
+            const { single, dual, triple } = mandate.thresholds;
+            
+            if (triple && amount > dual) return 3;
+            if (dual && amount > single) return 2;
+            if (single && amount > 0) return 1;
+            
+            return 1;
+        }
+
+        function addMandateApproval(txnId, signerName, signerRole) {
+            const txn = txnDb.find(t => t.id === txnId);
+            if (!txn) return false;
+            
+            if (txn.approvals.some(a => a.signer === signerName)) {
+                return { success: false, message: "This signatory has already approved" };
+            }
+            
+            txn.approvals.push({
+                signer: signerName,
+                role: signerRole,
+                timestamp: new Date().toLocaleString('en-ZM'),
+                status: "Approved"
+            });
+
+            const validation = validateTransactionMandates(txn);
+            if (validation.approved) {
+                txn.status = 'Processed';
+                txn.info = `All ${validation.requiredSignatories} mandate(s) approved - Sent to Core`;
+                return { success: true, allApprovalsComplete: true, message: `Mandate approved (${validation.currentApprovals}/${validation.requiredSignatories})` };
+            }
+            
+            txn.info = `INAU: Awaiting ${validation.requiredSignatories - validation.currentApprovals} more approval(${validation.requiredSignatories - validation.currentApprovals > 1 ? 's' : ''}) (${validation.currentApprovals}/${validation.requiredSignatories})`;
+            return { success: true, allApprovalsComplete: false, message: `Approval recorded (${validation.currentApprovals}/${validation.requiredSignatories})` };
+        }
+
+        function rejectMandateApproval(txnId, rejectReason) {
+            const txn = txnDb.find(t => t.id === txnId);
+            if (!txn) return false;
+            
+            txn.status = 'Review';
+            txn.info = `Mandate rejected: ${rejectReason}`;
+            txn.approvals = []; 
+            return true;
+        }
+
+        let currentUser = { name: "Tony Ken", role: "Senior Administrator" };
+
+        // --- UTILS ---
+        function formatCcy(amount, ccy) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: ccy }).format(amount).replace(ccy, '').trim();
+        }
+
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function toggleDropdown(id, e) {
+            e.stopPropagation();
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden')) {
+                closeAllDropdowns(e); // Close others
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.remove('opacity-0', 'scale-95'), 10);
+            } else {
+                el.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => el.classList.add('hidden'), 200);
+            }
+        }
+
+        function closeAllDropdowns(e) {
+            const dd = document.getElementById('mandateDropdown');
+            if(dd && !dd.contains(e.target) && !e.target.closest('button[onclick*="mandateDropdown"]')) {
+                dd.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => dd.classList.add('hidden'), 200);
+            }
+        }
+
+        // --- RENDER MAIN TRANSACTIONS TABLE ---
+        function renderTransactions(dataToRender = txnDb) {
+            const tbody = document.getElementById('txnTableBody');
+            tbody.innerHTML = '';
+
+            document.getElementById('statPending').innerText = txnDb.filter(t => t.status !== 'Processed').length;
+            document.getElementById('statFailed').innerText = txnDb.filter(t => t.status === 'Review').length;
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 lg:px-8 py-12 text-center text-slate-500 font-bold">No transactions found matching criteria.</td></tr>`;
+                document.getElementById('paginationText').innerText = "Showing 0 entries";
+                return;
+            }
+
+            dataToRender.forEach((txn, index) => {
+                let statusBadge = '';
+                let typeColor = 'indigo';
+                if(txn.type === 'SWIFT') typeColor = 'blue';
+                if(txn.type === 'Bulk Transfer') typeColor = 'purple';
+                if(txn.type === 'Incoming') typeColor = 'emerald';
+
+                if (txn.status === 'Processed') {
+                    statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[10px] uppercase font-black tracking-widest border border-emerald-200"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Done</span>`;
+                } else if (txn.status === 'Pending') {
+                    statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-md text-[10px] uppercase font-black tracking-widest border border-amber-200"><div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> INAU</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-600 rounded-md text-[10px] uppercase font-black tracking-widest border border-rose-200"><i class="ph-bold ph-warning"></i> INAU</span>`;
+                }
+
+                let icon = 'ph-arrows-left-right';
+                if(txn.type === 'SWIFT') icon = 'ph-globe';
+                if(txn.type === 'Bulk Transfer') icon = 'ph-users-three';
+
+                const row = `
+                    <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer animate-row border-b border-slate-50" style="animation-delay: ${index * 40}ms" onclick="openTxnDetails('${txn.id}')">
+                        <td class="px-6 lg:px-8 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-${typeColor}-50 text-${typeColor}-600 flex items-center justify-center text-xl shrink-0"><i class="ph-fill ${icon}"></i></div>
+                                <div>
+                                    <div class="font-bold text-slate-900 font-mono text-xs group-hover:text-indigo-600 transition-colors">${txn.id}</div>
+                                    <div class="text-[10px] font-medium text-slate-500 mt-0.5">${txn.date}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4">
+                            <div class="font-bold text-slate-700 text-xs">${txn.sender}</div>
+                            <div class="text-[10px] font-mono text-slate-500 mt-0.5">${txn.senderAcc}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4">
+                            <div class="font-bold text-slate-700 text-xs truncate max-w-[150px]">${txn.receiver}</div>
+                            <div class="text-[10px] font-mono text-slate-500 mt-0.5">${txn.receiverBank}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4 text-right">
+                            <div class="font-black text-slate-900">${formatCcy(txn.amount, txn.ccy)}</div>
+                            <div class="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-widest">${txn.ccy}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4 text-center">
+                            ${statusBadge}
+                        </td>
+                        <td class="px-6 lg:px-8 py-4 text-right">
+                            <button class="text-indigo-600 font-bold text-sm lg:opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end w-full gap-1">
+                                View <i class="ph-bold ph-arrow-right"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+            document.getElementById('paginationText').innerText = `Showing 1 to ${dataToRender.length} of ${dataToRender.length} entries`;
+        }
+
+        function filterTxns(filterType) {
+            currentFilter = filterType;
+            const tabs = ['All', 'Credit', 'Debit', 'Review'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if(t === filterType) {
+                    el.className = "filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap bg-indigo-50 text-indigo-700 transition";
+                } else {
+                    el.className = "filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition";
+                }
+            });
+            executeSearchAndFilter();
+        }
+
+        function handleSearch() { executeSearchAndFilter(); }
+
+        function executeSearchAndFilter() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = txnDb;
+
+            if (currentFilter === 'Review') filtered = filtered.filter(t => t.status === 'Review' || t.status === 'Pending');
+            else if (currentFilter === 'Credit') filtered = filtered.filter(t => t.type === 'Incoming');
+            else if (currentFilter === 'Debit') filtered = filtered.filter(t => t.type !== 'Incoming');
+
+            if (query) {
+                filtered = filtered.filter(t => 
+                    t.id.toLowerCase().includes(query) || 
+                    t.sender.toLowerCase().includes(query) || 
+                    t.receiver.toLowerCase().includes(query) ||
+                    t.ref.toLowerCase().includes(query)
+                );
+            }
+            renderTransactions(filtered);
+        }
+
+        // --- TXN DETAILS SLIDE PANE ---
+        function openTxnDetails(id) {
+            const txn = txnDb.find(t => t.id === id);
+            if(!txn) return;
+
+            document.getElementById('paneTxnId').innerText = txn.id;
+            document.getElementById('paneAmount').innerText = `${txn.ccy} ${formatCcy(txn.amount, txn.ccy)}`;
+            
+            document.getElementById('paneSenderName').innerText = txn.sender;
+            document.getElementById('paneSenderAcc').innerText = txn.senderAcc;
+            
+            document.getElementById('paneReceiverName').innerText = txn.receiver;
+            document.getElementById('paneReceiverAcc').innerText = txn.receiverAcc;
+            document.getElementById('paneReceiverBank').innerText = txn.receiverBank;
+
+            document.getElementById('paneProduct').innerText = txn.product;
+            document.getElementById('paneChannel').innerText = txn.channel;
+            document.getElementById('paneDate').innerText = txn.date.split(' ')[0];
+            document.getElementById('paneRef').innerText = txn.ref;
+            document.getElementById('paneInfo').innerText = txn.info;
+
+            const iconEl = document.getElementById('paneIcon');
+            const statusEl = document.getElementById('paneStatusBadge');
+            const typeEl = document.getElementById('paneTypeBadge');
+            const actionContainer = document.getElementById('paneActionContainer');
+
+            typeEl.innerText = txn.type;
+
+            let mandateHtml = '';
+            if (txn.mandateRequired) {
+                const mandateValidation = validateTransactionMandates(txn);
+                const mandate = mandatesDb.find(m => m.id === txn.mandateId);
+                
+                let mandateStatusColor = 'bg-amber-50 border-amber-200 text-amber-700';
+                let mandateIcon = 'ph-hourglass-high';
+                let mandateStatusText = 'Pending Approval';
+                
+                if (mandateValidation.approved) {
+                    mandateStatusColor = 'bg-emerald-50 border-emerald-200 text-emerald-700';
+                    mandateIcon = 'ph-check-circle';
+                    mandateStatusText = 'All Approvals Received';
+                } else if (mandateValidation.status === 'BLOCKED') {
+                    mandateStatusColor = 'bg-rose-50 border-rose-200 text-rose-700';
+                    mandateIcon = 'ph-warning-circle';
+                    mandateStatusText = 'Mandate Suspended';
+                }
+                
+                mandateHtml = `
+                    <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i class="ph-bold ph-shield-check text-indigo-600"></i> Mandate Requirements
+                            </h4>
+                            <span class="px-2 py-1 ${mandateStatusColor} rounded-lg text-xs font-bold uppercase border flex items-center gap-1">
+                                <i class="ph-bold ${mandateIcon}"></i> ${mandateStatusText}
+                            </span>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg p-3 mb-4 border border-slate-200">
+                            <p class="text-xs font-bold text-slate-500 uppercase mb-2">Mandate</p>
+                            <p class="font-bold text-slate-900">${mandate ? mandate.name : 'Unknown'}</p>
+                            <p class="text-xs text-slate-600 mt-1">Required: <span class="font-black">${mandateValidation.requiredSignatories} signator${mandateValidation.requiredSignatories > 1 ? 'ies' : 'y'}</span> | Approved: <span class="font-black text-emerald-600">${mandateValidation.currentApprovals}</span></p>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold text-slate-500 uppercase mb-3">Approval Status</p>
+                            ${renderApprovalStatus(txn.approvals, mandate ? mandate.signatories : [])}
+                        </div>
+                    </div>
+                    ${!mandateValidation.approved && mandate && mandate.status === 'Active' ? `
+                        <div class="bg-indigo-50 rounded-xl p-5 border border-indigo-200 mb-6">
+                            <p class="text-xs font-bold text-indigo-600 uppercase mb-3">Available Signatories</p>
+                            <div class="space-y-2">
+                                ${renderAvailableSignatories(txn, mandate)}
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+            }
+
+            let actionsHtml = `<button class="w-full py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition text-sm flex justify-center items-center gap-2 shadow-sm interactive-press"><i class="ph-bold ph-printer"></i> Print Receipt</button>`;
+
+            if (txn.status === 'Processed') {
+                iconEl.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border-4 border-white shadow-md z-10 relative bg-emerald-500 text-white";
+                iconEl.innerHTML = "<i class='ph-bold ph-check'></i>";
+                statusEl.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-black uppercase tracking-widest border border-emerald-200">Processed</span>`;
+                actionsHtml += `<button class="w-full py-3.5 bg-rose-50 text-rose-700 font-bold rounded-xl hover:bg-rose-100 transition text-sm flex justify-center items-center gap-2 shadow-sm interactive-press"><i class="ph-bold ph-arrow-u-up-left"></i> Reverse Transfer</button>`;
+            } else {
+                iconEl.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border-4 border-white shadow-md z-10 relative bg-amber-500 text-white";
+                iconEl.innerHTML = "<i class='ph-bold ph-hourglass-high'></i>";
+                statusEl.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded text-[10px] font-black uppercase tracking-widest border border-amber-200">INAU Status</span>`;
+                
+                if (!txn.mandateRequired || (txn.mandateRequired && validateTransactionMandates(txn).approved)) {
+                    actionsHtml += `<button onclick="authorizeSingleTxn('${txn.id}')" class="w-full py-3.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition text-sm flex justify-center items-center gap-2 shadow-lg shadow-emerald-500/30 interactive-press"><i class="ph-bold ph-check-circle"></i> Send to Core</button>`;
+                } else {
+                    actionsHtml += `<button disabled class="w-full py-3.5 bg-slate-200 text-slate-500 font-bold rounded-xl cursor-not-allowed text-sm flex justify-center items-center gap-2 shadow-sm"><i class="ph-bold ph-lock"></i> Awaiting Mandate Approvals</button>`;
+                }
+            }
+
+            actionContainer.innerHTML = mandateHtml + `<div class="space-y-3">${actionsHtml}</div>`;
+
+            document.getElementById('paneBackdrop').classList.remove('hidden');
+            setTimeout(() => document.getElementById('paneBackdrop').classList.remove('opacity-0'), 10);
+            
+            const pane = document.getElementById('txnDetailsPane');
+            pane.classList.remove('slide-pane-closed');
+            pane.classList.add('slide-pane-open');
+        }
+
+        function renderApprovalStatus(approvals, signatories) {
+            let html = '';
+            signatories.forEach(sig => {
+                const hasApproved = approvals.find(a => a.signer === sig.name);
+                const statusClass = hasApproved ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500';
+                
+                html += `
+                    <div class="flex items-center justify-between p-3 rounded-lg border ${statusClass}">
+                        <div>
+                            <p class="text-xs font-bold">${sig.name}</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${sig.role}</p>
+                        </div>
+                        <div class="text-right">
+                            ${hasApproved ? `<div class="flex items-center gap-1"><i class="ph-fill ph-check-circle text-emerald-600 text-lg"></i><span class="text-[10px] font-bold">${hasApproved.timestamp}</span></div>` : '<span class="text-xs font-bold">Pending</span>'}
+                        </div>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        function renderAvailableSignatories(txn, mandate) {
+            if (!mandate) return '';
+            
+            let html = '';
+            const alreadyApproved = txn.approvals.map(a => a.signer);
+            const availableSignatories = mandate.signatories.filter(s => !alreadyApproved.includes(s.name) && s.status === 'Active');
+            
+            if (availableSignatories.length === 0) {
+                html = '<p class="text-xs text-slate-600">All available signatories have approved or are inactive.</p>';
+            } else {
+                availableSignatories.forEach(sig => {
+                    html += `
+                        <button onclick="processMandateApproval('${txn.id}', '${sig.name}', '${sig.role}')" class="w-full px-4 py-3 bg-white border border-indigo-300 text-indigo-700 font-bold rounded-lg hover:bg-indigo-50 transition text-xs flex items-center gap-2 interactive-press">
+                            <i class="ph-bold ph-check-circle"></i> Approve as ${sig.name}
+                        </button>
+                    `;
+                });
+            }
+            return html;
+        }
+
+        function closeTxnDetails() {
+            const backdrop = document.getElementById('paneBackdrop');
+            backdrop.classList.add('opacity-0');
+            const pane = document.getElementById('txnDetailsPane');
+            pane.classList.remove('slide-pane-open');
+            pane.classList.add('slide-pane-closed');
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
+        }
+
+        function processMandateApproval(txnId, signerName, signerRole) {
+            const result = addMandateApproval(txnId, signerName, signerRole);
+            
+            if (!result.success) {
+                showToast("Approval Failed", result.message, "ph-warning-circle", "text-amber-400");
+                return;
+            }
+            
+            const txn = txnDb.find(t => t.id === txnId);
+            if (result.allApprovalsComplete) {
+                showToast("All Mandates Approved", `Transaction can now be sent to Core (${result.message})`, "ph-check-circle", "text-emerald-400");
+            } else {
+                showToast("Approval Recorded", result.message, "ph-check", "text-indigo-400");
+            }
+            
+            openTxnDetails(txnId);
+            executeSearchAndFilter();
+        }
+
+        function authorizeSingleTxn(id) {
+            const txn = txnDb.find(t => t.id === id);
+            if(!txn) return;
+            
+            if (txn.mandateRequired) {
+                const validation = validateTransactionMandates(txn);
+                if (!validation.approved) {
+                    showToast("Mandate Incomplete", `This transaction requires ${validation.requiredSignatories} approvals. Currently ${validation.currentApprovals} approved.`, "ph-warning-circle", "text-amber-400");
+                    return;
+                }
+            }
+            
+            txn.status = 'Processed';
+            txn.info = txn.mandateRequired ? `All mandates approved - Sent to Core by ${currentUser.name}` : `Authorized by ${currentUser.name} - Sent to Core`;
+            
+            closeTxnDetails();
+            executeSearchAndFilter();
+            showToast("Transaction Processed", `${id} successfully sent to core system.`, "ph-check-circle", "text-emerald-400");
+        }
+
+        // --- REGISTER MANDATE MODAL ---
+        function openRegisterMandateModal() {
+            const modal = document.getElementById('mandateModal');
+            const overlay = document.getElementById('mandateOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            document.getElementById('mandateDropdown').classList.add('hidden'); // close menu
+        }
+
+        function closeMandateModal() {
+            const modal = document.getElementById('mandateModal');
+            const overlay = document.getElementById('mandateOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function submitMandate(e) {
+            e.preventDefault();
+            const btnText = document.getElementById('mandateBtnText');
+            const spinner = document.getElementById('mandateSpinner');
+            const btn = document.getElementById('mandateSubmitBtn');
+
+            btnText.innerText = "Processing...";
+            spinner.classList.remove('hidden');
+            btn.disabled = true;
+
+            setTimeout(() => {
+                const newMnd = {
+                    id: "MND-" + Math.floor(Math.random() * 9000 + 1000),
+                    name: document.getElementById('mName').value,
+                    account: document.getElementById('mAcc').value,
+                    type: document.getElementById('mType').value,
+                    limit: parseFloat(document.getElementById('mLimit').value),
+                    status: "Active",
+                    signatories: [{ name: "TBD Signatory 1", role: "To be assigned", status: "Active" }],
+                    thresholds: { single: parseFloat(document.getElementById('mLimit').value) * 0.2, dual: parseFloat(document.getElementById('mLimit').value) }
+                };
+                mandatesDb.push(newMnd);
+
+                closeMandateModal();
+                e.target.reset();
+                btnText.innerText = "Register Mandate";
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+                showToast("Mandate Registered", `Successfully registered ${newMnd.name}. Configure signatories in Government Accounts.`, "ph-check-circle", "text-emerald-400");
+            }, 1000);
+        }
+
+        // --- BULK AUTHORIZATION ---
+        function openBulkAuthModal() {
+            const tbody = document.getElementById('bulkAuthTableBody');
+            tbody.innerHTML = '';
+            const pendingTxns = txnDb.filter(t => t.status === 'Pending' || t.status === 'Review');
+
+            if(pendingTxns.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500 font-bold">No INAU entries requiring authorization.</td></tr>`;
+            } else {
+                pendingTxns.forEach(txn => {
+                    const row = `
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3"><input type="checkbox" class="auth-checkbox txn-checkbox" value="${txn.id}" onchange="updateSelectedAuthCount()"></td>
+                            <td class="px-4 py-3">
+                                <div class="font-bold text-slate-800 text-xs">${txn.id}</div>
+                                <div class="text-[10px] text-slate-500 font-mono">${txn.ref}</div>
+                            </td>
+                            <td class="px-4 py-3"><span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">${txn.type}</span></td>
+                            <td class="px-4 py-3 text-right">
+                                <div class="font-bold text-slate-900 text-xs">${formatCcy(txn.amount, txn.ccy)}</div>
+                                <div class="text-[10px] text-slate-500 font-bold">${txn.ccy}</div>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-2 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded text-[10px] font-bold uppercase">INAU</span>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            }
+
+            document.getElementById('selectedAuthCount').innerText = "0";
+            document.getElementById('selectAllAuth').checked = false;
+
+            const modal = document.getElementById('bulkAuthModal');
+            const overlay = document.getElementById('bulkAuthOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            document.getElementById('mandateDropdown').classList.add('hidden');
+        }
+
+        function closeBulkAuthModal() {
+            const modal = document.getElementById('bulkAuthModal');
+            const overlay = document.getElementById('bulkAuthOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function toggleAllAuth(checkbox) {
+            const checkboxes = document.querySelectorAll('.txn-checkbox');
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+            updateSelectedAuthCount();
+        }
+
+        function updateSelectedAuthCount() {
+            const count = document.querySelectorAll('.txn-checkbox:checked').length;
+            document.getElementById('selectedAuthCount').innerText = count;
+        }
+
+        function processBulkAuth(action) {
+            const selectedIds = Array.from(document.querySelectorAll('.txn-checkbox:checked')).map(cb => cb.value);
+            if(selectedIds.length === 0) {
+                alert("Please select at least one entry.");
+                return;
+            }
+
+            let processedCount = 0;
+            let blockedCount = 0;
+
+            selectedIds.forEach(id => {
+                const txn = txnDb.find(t => t.id === id);
+                if(!txn) return;
+                
+                if (action === 'Authorize' && txn.mandateRequired) {
+                    const validation = validateTransactionMandates(txn);
+                    if (!validation.approved) {
+                        blockedCount++;
+                        return;
+                    }
+                }
+                
+                txn.status = action === 'Authorize' ? 'Processed' : 'Review';
+                txn.info = action === 'Authorize' ? 'Authorized in Bulk' : 'Rejected in Bulk';
+                processedCount++;
+            });
+
+            closeBulkAuthModal();
+            executeSearchAndFilter();
+            
+            let message = `${processedCount} entries successfully ${action.toLowerCase()}d.`;
+            if (blockedCount > 0) message += ` ${blockedCount} blocked (mandate requirements not met).`;
+            
+            showToast("Bulk Operation Complete", message, action === 'Authorize' ? "ph-check-circle" : "ph-x-circle", action === 'Authorize' ? "text-emerald-400" : "text-rose-400");
+        }
+
+        // --- AUDIT MANDATES ---
+        function openAuditMandatesPane() {
+            renderMandatesList();
+            document.getElementById('auditPaneBackdrop').classList.remove('hidden');
+            setTimeout(() => document.getElementById('auditPaneBackdrop').classList.remove('opacity-0'), 10);
+            
+            const pane = document.getElementById('auditMandatesPane');
+            pane.classList.remove('slide-pane-closed');
+            pane.classList.add('slide-pane-open');
+            document.getElementById('mandateDropdown').classList.add('hidden');
+        }
+
+        function closeAuditMandatesPane() {
+            const backdrop = document.getElementById('auditPaneBackdrop');
+            backdrop.classList.add('opacity-0');
+            const pane = document.getElementById('auditMandatesPane');
+            pane.classList.remove('slide-pane-open');
+            pane.classList.add('slide-pane-closed');
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
+        }
+
+        function renderMandatesList() {
+            const container = document.getElementById('auditMandatesList');
+            container.innerHTML = '';
+
+            if (mandatesDb.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-500 font-bold py-10">No active mandates registered.</p>`;
+                return;
+            }
+
+            mandatesDb.forEach(mnd => {
+                const isSuspended = mnd.status === 'Suspended';
+                const statusClass = isSuspended ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700';
+                const cardClass = isSuspended ? 'opacity-70' : '';
+
+                const card = `
+                    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm ${cardClass}">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">${mnd.name}</h4>
+                                <p class="text-[10px] font-mono text-slate-500 mt-0.5">${mnd.id}</p>
+                            </div>
+                            <span class="px-2 py-1 ${statusClass} rounded text-[10px] font-black uppercase tracking-widest">${mnd.status}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Debit Acc</p>
+                                <p class="font-mono font-bold text-slate-700 text-xs">${mnd.account}</p>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Type & Limit</p>
+                                <p class="font-bold text-slate-700 text-xs">${mnd.type} / ZMW ${formatCcy(mnd.limit, '')}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="toggleMandateStatus('${mnd.id}')" class="flex-1 py-2 ${isSuspended ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'} rounded-lg font-bold text-xs transition border border-transparent hover:border-current">
+                                ${isSuspended ? 'Reactivate' : 'Suspend'}
+                            </button>
+                            <button class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold text-xs hover:bg-slate-200 transition"><i class="ph-bold ph-pencil-simple"></i></button>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        function toggleMandateStatus(id) {
+            const mnd = mandatesDb.find(m => m.id === id);
+            if(mnd) {
+                mnd.status = mnd.status === 'Active' ? 'Suspended' : 'Active';
+                renderMandatesList();
+                showToast("Mandate Updated", `${mnd.name} is now ${mnd.status}.`, "ph-check-circle", "text-indigo-400");
+            }
+        }
+
+        // --- MOBILE MENU ---
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            if (sidebar.style.transform === "translateX(0px)" || sidebar.style.transform === "translateX(0)") {
+                sidebar.style.transform = "translateX(-100%)";
+                backdrop.classList.add("opacity-0");
+                setTimeout(() => backdrop.classList.add("hidden"), 300);
+            } else {
+                sidebar.style.transform = "translateX(0)";
+                backdrop.classList.remove("hidden", "opacity-0");
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            sidebar.style.transform = "translateX(-100%)";
+            backdrop.classList.add("opacity-0");
+            setTimeout(() => backdrop.classList.add("hidden"), 300);
+        }
+
+        // INIT
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'transactions.html');
+            }
+            renderTransactions();
+        });
+    </script>
+</body>
+</html>

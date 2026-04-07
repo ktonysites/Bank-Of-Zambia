@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ | Government Accounts</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); transition: opacity 0.3s; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Progress Bar */
+        .progress-bar-fill { transition: width 1s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.5s; }
+        
+        /* Slide Pane */
+        .slide-pane { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .slide-pane-open { transform: translateX(0%); }
+        .slide-pane-closed { transform: translateX(100%); }
+        
+        /* Hamburger Animation */
+        .hamburger .line { transition: all 0.3s ease-in-out; transform-origin: center; }
+        .hamburger.active .line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active .line:nth-child(2) { opacity: 0; }
+        .hamburger.active .line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900" onclick="closeAllDropdowns(event)">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-40 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-400 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-lg shadow-green-500/30 text-white"><i class="ph-bold ph-bank text-sm"></i></div>
+            <span class="font-bold text-sm text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="notifBtnMobile" onclick="toggleNotifications(event)" class="text-slate-400 hover:text-indigo-600 transition relative p-2 bg-slate-50 rounded-full interactive-press">
+                <i class="ph-bold ph-bell text-lg"></i>
+                <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            </button>
+            <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="p-2 interactive-press">
+                <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0 shadow-sm">
+            <div>
+                <h2 class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Government Treasury Hub</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Consolidated view of all government entity accounts and transactions.</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative hidden sm:block">
+                    <button onclick="toggleDropdown('notifDropdown', event)" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-indigo-600 transition interactive-press relative">
+                        <i class="ph-fill ph-bell text-lg"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-slate-100"></span>
+                    </button>
+                    
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 class="font-bold text-slate-800 text-sm">System Alerts</h3>
+                            <button class="text-xs text-indigo-600 font-bold hover:text-indigo-800">Dismiss all</button>
+                        </div>
+                        <div id="notifList" class="max-h-72 overflow-y-auto">
+                            <div class="p-4 text-center text-sm text-slate-500">No new alerts.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="openAddAccountModal()" class="bg-indigo-600 text-white px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-plus-circle text-lg"></i> <span class="hidden sm:inline">Open Account</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-10 max-w-[1600px] mx-auto w-full">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0"><i class="ph-fill ph-briefcase text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Treasury Pool</p>
+                        <h3 id="statTotalPool" class="text-2xl lg:text-3xl font-extrabold text-slate-900">ZMW 0</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0"><i class="ph-fill ph-buildings text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Active Mandates</p>
+                        <h3 id="statActiveCount" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0"><i class="ph-fill ph-chart-pie-slice text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Utilization Avg</p>
+                        <h3 id="statUtilization" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0%</h3>
+                    </div>
+                </div>
+
+                <div id="complianceMetric" class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform border-emerald-200 bg-emerald-50/30">
+                    <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-check-circle text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-emerald-600 font-black uppercase tracking-widest mb-1">Compliance</p>
+                        <h3 class="text-2xl lg:text-3xl font-extrabold text-emerald-700">100%</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[2rem] shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+                
+                <div class="px-4 lg:px-8 py-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/50">
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900">Entity Account Ledger</h3>
+                        <p class="text-xs text-slate-500 font-medium">Real-time monitoring of departmental funding and expenditure.</p>
+                    </div>
+                    
+                    <div class="relative w-full sm:w-80 shrink-0">
+                        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input type="text" id="accountSearch" onkeyup="filterAccounts()" placeholder="Search ministry or ID..." class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm">
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto flex-1 w-full">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                        <thead class="bg-slate-50/50 text-slate-400 border-b border-slate-100 select-none">
+                            <tr>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px] cursor-pointer hover:text-indigo-500 transition" onclick="sortData('name')">Department Entity <i class="ph-bold ph-caret-up-down inline-block ml-1"></i></th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">Mandate Ref</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px] cursor-pointer hover:text-indigo-500 transition" onclick="sortData('balance')">Financial Standing <i class="ph-bold ph-caret-up-down inline-block ml-1"></i></th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px] text-right cursor-pointer hover:text-indigo-500 transition" onclick="sortData('limit')">Allocation Limit <i class="ph-bold ph-caret-up-down inline-block ml-1"></i></th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px] text-center">Status</th>
+                                <th class="px-6 lg:px-8 py-5"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="govTableBody" class="divide-y divide-slate-50 bg-white">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="paneBackdrop" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm hidden z-40 opacity-0 transition-opacity" onclick="closeDetailsPane()"></div>
+    <div id="detailsPane" class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white shadow-2xl slide-pane slide-pane-closed z-50 flex flex-col border-l border-slate-200">
+        
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div>
+                <h3 id="paneAccName" class="text-xl font-black text-slate-900">Account Details</h3>
+                <span id="paneAccId" class="font-mono text-xs font-bold px-2 py-1 bg-white border border-slate-200 rounded mt-2 inline-block text-slate-600">ID</span>
+            </div>
+            <button onclick="closeDetailsPane()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition interactive-press"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-8">
+            
+            <div class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-indigo-100/50"><i class="ph-fill ph-bank text-8xl"></i></div>
+                <p class="text-[10px] text-indigo-500 font-black uppercase tracking-widest mb-1 relative z-10">Available Balance</p>
+                <h2 id="paneBalance" class="text-3xl font-black text-indigo-900 relative z-10 mb-4">ZMW 0</h2>
+                
+                <div class="relative z-10">
+                    <div class="flex justify-between text-xs font-bold text-indigo-700 mb-2">
+                        <span>Utilization</span>
+                        <span id="paneUtilText">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-indigo-200/50 rounded-full overflow-hidden">
+                        <div id="paneUtilBar" class="progress-bar-fill h-full bg-indigo-600 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <p id="paneLimit" class="text-[10px] text-indigo-500/80 font-bold mt-2 text-right">Limit: ZMW 0</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="promptAddFunds()" class="py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition shadow-md shadow-indigo-200 flex items-center justify-center gap-2 interactive-press">
+                    <i class="ph-bold ph-plus"></i> Add Funds
+                </button>
+                <button id="btnSuspend" onclick="toggleAccountStatus()" class="py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition shadow-sm flex items-center justify-center gap-2 interactive-press">
+                    <i class="ph-bold ph-pause"></i> Suspend
+                </button>
+            </div>
+
+            <div id="addFundsForm" class="hidden bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <p class="text-xs font-bold text-slate-700 mb-3">Deposit Funds</p>
+                <input type="number" id="fundAmount" placeholder="Amount in ZMW" class="w-full px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none mb-3">
+                <div class="flex gap-2">
+                    <button onclick="confirmAddFunds()" class="flex-1 py-2 bg-emerald-500 text-white rounded-lg font-bold text-xs hover:bg-emerald-600 transition">Confirm</button>
+                    <button onclick="cancelAddFunds()" class="py-2 px-4 bg-slate-200 text-slate-700 rounded-lg font-bold text-xs hover:bg-slate-300 transition">Cancel</button>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-sm font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Recent Activity</h4>
+                <div class="space-y-4" id="paneTransactions">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="accountModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0" id="accountModalOverlay" onclick="toggleModal('accountModal', false)"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-6 sm:p-8 relative z-10 modal-animate border border-slate-100 scale-95 opacity-0">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900">New Treasury Mandate</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-1">Provision a new government account.</p>
+                </div>
+                <button onclick="toggleModal('accountModal', false)" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <form id="newAccountForm" onsubmit="handleAccountSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Department Name</label>
+                    <input type="text" id="newAccName" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm" placeholder="e.g. Ministry of Energy">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Initial Balance</label>
+                        <input type="number" id="newAccBalance" required min="0" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 text-sm" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Funding Limit</label>
+                        <input type="number" id="newAccLimit" required min="1000" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 text-sm" placeholder="1000000">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 mt-2">
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Language</label>
+                        <select id="accLanguage" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 text-sm cursor-pointer"></select>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Customer Segment</label>
+                        <select id="accTarget" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 text-sm cursor-pointer"></select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Industry Classification</label>
+                        <select id="accIndustry" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 text-sm cursor-pointer"></select>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2 mt-2">
+                    <button type="button" onclick="toggleModal('accountModal', false)" class="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition interactive-press text-sm">Cancel</button>
+                    <button type="submit" class="flex-[2] py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 interactive-press flex justify-center items-center gap-2 text-sm">
+                        <i class="ph-bold ph-check-circle text-lg"></i> Establish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[100] pointer-events-none">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <script src="boz-static-data.js"></script>
+    <script>
+        // --- 1. MOCK DATABASE & STATE ---
+        let accountsData = [
+            { id: "BOZ-GOV-001", name: "Ministry of Health", balance: 2400000000, limit: 5000000000, status: "Active" },
+            { id: "BOZ-GOV-045", name: "Ministry of Education", balance: 1850000000, limit: 3000000000, status: "Active" },
+            { id: "BOZ-GOV-112", name: "Transport & Infrastructure", balance: 3800000000, limit: 4000000000, status: "Review" },
+            { id: "BOZ-GOV-098", name: "National Defense Fund", balance: 4200000000, limit: 5000000000, status: "Active" },
+            { id: "BOZ-GOV-554", name: "Ministry of Agriculture", balance: 120000000, limit: 1000000000, status: "Suspended" }
+        ];
+
+        let currentSort = { col: null, asc: true };
+        let activeAccountId = null; // Track which account is currently viewed in slide-pane
+
+        // --- 2. FORMATTING ---
+        function formatZMWCompact(val) {
+            return new Intl.NumberFormat('en-ZM', { style: 'currency', currency: 'ZMW', notation: 'compact', maximumFractionDigits: 1 }).format(val);
+        }
+        function formatZMWFull(val) {
+            return new Intl.NumberFormat('en-ZM', { style: 'currency', currency: 'ZMW', minimumFractionDigits: 2 }).format(val);
+        }
+
+        // --- 3. METRICS & RENDER ---
+        function updateMetrics() {
+            const activeAccs = accountsData.filter(a => a.status === 'Active');
+            document.getElementById('statActiveCount').innerText = activeAccs.length;
+            
+            const totalBal = accountsData.reduce((sum, acc) => sum + acc.balance, 0);
+            const totalLimit = accountsData.reduce((sum, acc) => sum + acc.limit, 0);
+            document.getElementById('statTotalPool').innerText = formatZMWCompact(totalBal);
+            
+            const util = totalLimit > 0 ? (totalBal / totalLimit) * 100 : 0;
+            document.getElementById('statUtilization').innerText = `${util.toFixed(1)}%`;
+            
+            // Compliance metric logic (Just for UI flavor)
+            const complianceBox = document.getElementById('complianceMetric');
+            if(accountsData.some(a => (a.balance/a.limit) > 0.95)) {
+                complianceBox.className = "glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform border-amber-200 bg-amber-50/30";
+                complianceBox.querySelector('i').className = "ph-fill ph-warning-circle text-2xl text-amber-600";
+                complianceBox.querySelector('h3').innerText = "Warning";
+                complianceBox.querySelector('h3').className = "text-3xl font-extrabold text-amber-700";
+                complianceBox.querySelector('p').className = "text-[10px] text-amber-600 font-black uppercase tracking-widest mb-1";
+            } else {
+                complianceBox.className = "glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform border-emerald-200 bg-emerald-50/30";
+                complianceBox.querySelector('i').className = "ph-fill ph-check-circle text-2xl text-emerald-600";
+                complianceBox.querySelector('h3').innerText = "100%";
+                complianceBox.querySelector('h3').className = "text-3xl font-extrabold text-emerald-700";
+                complianceBox.querySelector('p').className = "text-[10px] text-emerald-600 font-black uppercase tracking-widest mb-1";
+            }
+        }
+
+        function renderAccounts(dataToRender = accountsData) {
+            const tbody = document.getElementById('govTableBody');
+            tbody.innerHTML = '';
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-8 py-12 text-center text-slate-500 font-bold"><i class="ph-bold ph-file-dashed text-3xl mb-2 text-slate-300 block"></i> No accounts found matching criteria.</td></tr>`;
+                return;
+            }
+
+            dataToRender.forEach((acc, i) => {
+                const util = (acc.balance / acc.limit) * 100;
+                let statusTheme = 'emerald';
+                if(acc.status === 'Review') statusTheme = 'amber';
+                if(acc.status === 'Suspended') statusTheme = 'red';
+                
+                let barColor = 'bg-indigo-500';
+                if(util > 80) barColor = 'bg-amber-500';
+                if(util > 95) barColor = 'bg-red-500';
+                
+                const row = `
+                    <tr onclick="openDetailsPane('${acc.id}')" class="group hover:bg-slate-50/80 transition-colors border-b border-slate-50 animate-row cursor-pointer relative" style="animation-delay: ${i * 50}ms">
+                        <td class="px-6 lg:px-8 py-6">
+                            <span class="text-sm font-bold text-slate-900 block group-hover:text-indigo-600 transition-colors">${acc.name}</span>
+                            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5 block">Institutional Entity</span>
+                        </td>
+                        <td class="px-6 lg:px-8 py-6">
+                            <span class="font-mono text-xs font-bold px-3 py-1.5 bg-slate-100 group-hover:bg-white border border-slate-200 rounded-lg text-slate-600 transition-colors">${acc.id}</span>
+                        </td>
+                        <td class="px-6 lg:px-8 py-6">
+                            <div class="flex items-center gap-4">
+                                <div class="w-24 sm:w-32">
+                                    <span class="text-sm font-black text-slate-900 block mb-1">${formatZMWCompact(acc.balance)}</span>
+                                    <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="progress-bar-fill h-full ${barColor} rounded-full" style="width: ${util}%"></div>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-500 w-8 hidden sm:inline-block">${util.toFixed(0)}%</span>
+                            </div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-6 text-right">
+                            <span class="text-sm font-black text-slate-700">${formatZMWCompact(acc.limit)}</span>
+                        </td>
+                        <td class="px-6 lg:px-8 py-6 text-center">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-${statusTheme}-50 text-${statusTheme}-700 rounded-md text-[10px] uppercase font-black tracking-widest border border-${statusTheme}-200">
+                                <div class="w-1.5 h-1.5 rounded-full bg-${statusTheme}-500"></div> ${acc.status}
+                            </span>
+                        </td>
+                        <td class="px-4 lg:px-6 py-6 text-right relative">
+                            <button onclick="toggleRowMenu(event, '${acc.id}')" class="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition">
+                                <i class="ph-bold ph-dots-three-vertical text-lg"></i>
+                            </button>
+                            <div id="menu-${acc.id}" class="hidden absolute right-12 top-1/2 -translate-y-1/2 w-36 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-20 text-left">
+                                <button onclick="openDetailsPane('${acc.id}'); event.stopPropagation();" class="w-full px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 flex items-center gap-2"><i class="ph-bold ph-eye"></i> View</button>
+                                <button onclick="quickFund(event, '${acc.id}')" class="w-full px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-emerald-600 flex items-center gap-2"><i class="ph-bold ph-plus-circle"></i> Add Funds</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // --- 4. SORTING & FILTERING ---
+        function filterAccounts() {
+            const query = document.getElementById('accountSearch').value.toLowerCase();
+            const filtered = accountsData.filter(a => a.name.toLowerCase().includes(query) || a.id.toLowerCase().includes(query));
+            renderAccounts(filtered);
+        }
+
+        function sortData(col) {
+            if (currentSort.col === col) {
+                currentSort.asc = !currentSort.asc;
+            } else {
+                currentSort.col = col;
+                currentSort.asc = true;
+            }
+            
+            accountsData.sort((a, b) => {
+                let valA = a[col];
+                let valB = b[col];
+                if(typeof valA === 'string') valA = valA.toLowerCase();
+                if(typeof valB === 'string') valB = valB.toLowerCase();
+                
+                if (valA < valB) return currentSort.asc ? -1 : 1;
+                if (valA > valB) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
+            filterAccounts(); 
+        }
+
+        // --- 5. ROW DROPDOWN LOGIC ---
+        function toggleRowMenu(e, id) {
+            e.stopPropagation();
+            document.querySelectorAll('[id^="menu-"]').forEach(el => {
+                if(el.id !== `menu-${id}`) el.classList.add('hidden');
+            });
+            document.getElementById(`menu-${id}`).classList.toggle('hidden');
+        }
+
+        // --- 6. SLIDE-OVER PANE LOGIC ---
+        function openDetailsPane(id) {
+            document.querySelectorAll('[id^="menu-"]').forEach(el => el.classList.add('hidden'));
+
+            const acc = accountsData.find(a => a.id === id);
+            if(!acc) return;
+            
+            activeAccountId = id;
+            
+            document.getElementById('paneAccName').innerText = acc.name;
+            document.getElementById('paneAccId').innerText = acc.id;
+            document.getElementById('paneBalance').innerText = formatZMWFull(acc.balance);
+            document.getElementById('paneLimit').innerText = `Limit: ${formatZMWFull(acc.limit)}`;
+            
+            const util = (acc.balance / acc.limit) * 100;
+            document.getElementById('paneUtilText').innerText = `${util.toFixed(1)}%`;
+            
+            const bar = document.getElementById('paneUtilBar');
+            bar.style.width = `${util}%`;
+            bar.className = `progress-bar-fill h-full rounded-full ${util > 95 ? 'bg-red-500' : util > 80 ? 'bg-amber-500' : 'bg-indigo-600'}`;
+
+            const btnSuspend = document.getElementById('btnSuspend');
+            if(acc.status === 'Suspended') {
+                btnSuspend.innerHTML = `<i class="ph-bold ph-play"></i> Reactivate`;
+                btnSuspend.className = "py-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-sm hover:bg-emerald-100 transition shadow-sm flex items-center justify-center gap-2 interactive-press";
+            } else {
+                btnSuspend.innerHTML = `<i class="ph-bold ph-pause"></i> Suspend`;
+                btnSuspend.className = "py-3 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition shadow-sm flex items-center justify-center gap-2 interactive-press";
+            }
+
+            generateMockTransactions(acc);
+            cancelAddFunds(); 
+
+            document.getElementById('paneBackdrop').classList.remove('hidden');
+            setTimeout(() => document.getElementById('paneBackdrop').classList.remove('opacity-0'), 10);
+            
+            const pane = document.getElementById('detailsPane');
+            pane.classList.remove('slide-pane-closed');
+            pane.classList.add('slide-pane-open');
+        }
+
+        function closeDetailsPane() {
+            const backdrop = document.getElementById('paneBackdrop');
+            backdrop.classList.add('opacity-0');
+            
+            const pane = document.getElementById('detailsPane');
+            pane.classList.remove('slide-pane-open');
+            pane.classList.add('slide-pane-closed');
+            
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
+            activeAccountId = null;
+        }
+
+        function generateMockTransactions(acc) {
+            const txContainer = document.getElementById('paneTransactions');
+            txContainer.innerHTML = '';
+            
+            const txTypes = ['Payroll Disbursement', 'Supplier Payment', 'Inter-department Transfer', 'Treasury Allocation'];
+            for(let i=0; i<4; i++) {
+                const isCredit = Math.random() > 0.6;
+                const amt = Math.floor(Math.random() * 50000000) + 1000000;
+                const type = txTypes[Math.floor(Math.random() * txTypes.length)];
+                
+                txContainer.insertAdjacentHTML('beforeend', `
+                    <div class="flex justify-between items-center p-3 hover:bg-slate-50 rounded-xl transition cursor-default border border-transparent hover:border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full ${isCredit ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-600'} flex items-center justify-center shrink-0">
+                                <i class="ph-bold ${isCredit ? 'ph-arrow-down-left' : 'ph-arrow-up-right'} text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-800">${type}</p>
+                                <p class="text-[10px] text-slate-500 font-medium">${i+1} day(s) ago</p>
+                            </div>
+                        </div>
+                        <span class="font-bold text-sm ${isCredit ? 'text-emerald-600' : 'text-slate-700'}">${isCredit?'+':'-'} ${formatZMWCompact(amt)}</span>
+                    </div>
+                `);
+            }
+        }
+
+        // --- 7. ACTION HANDLERS ---
+        function toggleAccountStatus() {
+            if(!activeAccountId) return;
+            const acc = accountsData.find(a => a.id === activeAccountId);
+            if(acc.status === 'Suspended') {
+                acc.status = 'Active';
+                showToast("Account Reactivated", `${acc.name} is now active.`, "ph-play-circle", "text-emerald-400");
+            } else {
+                acc.status = 'Suspended';
+                showToast("Account Suspended", `${acc.name} has been halted.`, "ph-pause-circle", "text-amber-400");
+            }
+            filterAccounts();
+            openDetailsPane(activeAccountId); 
+        }
+
+        function promptAddFunds() {
+            const acc = accountsData.find(a => a.id === activeAccountId);
+            if(acc.status === 'Suspended') {
+                showToast("Action Denied", "Cannot fund a suspended account.", "ph-warning-circle", "text-red-400");
+                return;
+            }
+            document.getElementById('addFundsForm').classList.remove('hidden');
+            document.getElementById('fundAmount').focus();
+        }
+
+        function cancelAddFunds() {
+            document.getElementById('addFundsForm').classList.add('hidden');
+            document.getElementById('fundAmount').value = '';
+        }
+
+        function confirmAddFunds() {
+            const amt = parseFloat(document.getElementById('fundAmount').value);
+            if(isNaN(amt) || amt <= 0) {
+                showToast("Invalid Amount", "Please enter a valid number.", "ph-warning-circle", "text-amber-400");
+                return;
+            }
+            
+            const acc = accountsData.find(a => a.id === activeAccountId);
+            if(acc.balance + amt > acc.limit) {
+                showToast("Limit Exceeded", "Funding would exceed the allocation limit.", "ph-x-circle", "text-red-400");
+                return;
+            }
+
+            acc.balance += amt;
+            cancelAddFunds();
+            showToast("Funds Allocated", `Successfully added ${formatZMWCompact(amt)} to ${acc.name}.`, "ph-check-circle", "text-emerald-400");
+            
+            filterAccounts();
+            updateMetrics();
+            openDetailsPane(activeAccountId);
+        }
+
+        function quickFund(e, id) {
+            e.stopPropagation(); 
+            openDetailsPane(id);
+            setTimeout(promptAddFunds, 400); 
+        }
+
+        // --- 8. MODAL FOR NEW ACCOUNTS ---
+        function toggleModal(id, show) {
+            const modal = document.getElementById(id);
+            const overlay = document.getElementById(id + 'Overlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            if(show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    overlay.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                overlay.classList.add('opacity-0');
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function openAddAccountModal() { toggleModal('accountModal', true); }
+
+        function handleAccountSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('newAccName').value.trim();
+            const balance = parseFloat(document.getElementById('newAccBalance').value);
+            const limit = parseFloat(document.getElementById('newAccLimit').value);
+            
+            // Capture new static data
+            const language = document.getElementById('accLanguage').value;
+            const targetSegment = document.getElementById('accTarget').value;
+            const industry = document.getElementById('accIndustry').value;
+            const productCode = typeof BozStaticData !== 'undefined' ? BozStaticData.defaults.productCode : "1001";
+
+            if(balance > limit) {
+                showToast("Validation Error", "Initial balance cannot exceed funding limit.", "ph-warning-circle", "text-amber-500");
+                return;
+            }
+
+            console.log("Preparing Payload for T24:", { name, balance, limit, language, targetSegment, industry, productCode });
+
+            const newAcc = {
+                id: `BOZ-GOV-${Math.floor(100+Math.random()*899)}`,
+                name: name,
+                balance: balance,
+                limit: limit,
+                status: "Active"
+            };
+            
+            accountsData.unshift(newAcc);
+            filterAccounts(); 
+            updateMetrics();
+            
+            toggleModal('accountModal', false);
+            e.target.reset();
+            
+            // Reset dropdowns back to defaults if they exist
+            if(document.getElementById('accTarget')) document.getElementById('accTarget').value = "50";
+            if(document.getElementById('accIndustry')) document.getElementById('accIndustry').value = "5000";
+            
+            showToast('Mandate Established', `Successfully provisioned profile for ${newAcc.name}`, 'ph-check-circle', 'text-emerald-400');
+        }
+
+        // Helper to populate dropdowns
+        function populateDropdown(selectElementId, dataArray) {
+            const select = document.getElementById(selectElementId);
+            if (!select) return;
+            select.innerHTML = '<option value="" disabled selected>Select an option...</option>';
+            
+            dataArray.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.id} - ${item.description}`;
+                select.appendChild(option);
+            });
+        }
+
+        // --- 9. UTILS ---
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('translate-y-20', 'opacity-0'), 10);
+            
+            if(window.toastTimer) clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 3000);
+        }
+
+        function toggleDropdown(el, e) {
+            if(e) e.stopPropagation();
+            if(el.classList.contains('hidden')) {
+                document.querySelectorAll('[id$="Dropdown"]').forEach(d => {
+                    if(!d.classList.contains('hidden') && d !== el) {
+                        d.classList.add('opacity-0', 'scale-95'); setTimeout(() => d.classList.add('hidden'), 200);
+                    }
+                });
+                el.classList.remove('hidden'); 
+                setTimeout(() => el.classList.remove('opacity-0', 'scale-95'), 10);
+            } else {
+                el.classList.add('opacity-0', 'scale-95'); setTimeout(() => el.classList.add('hidden'), 200);
+            }
+        }
+
+        function closeAllDropdowns(e) {
+            const notif = document.getElementById('notifDropdown');
+            if (notif && !notif.contains(e.target) && !e.target.closest('button[onclick*="toggleDropdown"]')) {
+                notif.classList.add('opacity-0', 'scale-95'); setTimeout(() => notif.classList.add('hidden'), 200);
+            }
+            if (!e.target.closest('button[onclick*="toggleRowMenu"]')) {
+                document.querySelectorAll('[id^="menu-"]').forEach(el => el.classList.add('hidden'));
+            }
+        }
+
+        // Mobile Menu
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.getElementById('mobileMenuBtn').querySelector('.hamburger');
+            
+            if (sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = 'translateX(-100%)';
+                backdrop.classList.add('opacity-0');
+                hamburger.classList.remove('active');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            } else {
+                sidebar.style.transform = 'translateX(0)';
+                backdrop.classList.remove('hidden');
+                hamburger.classList.add('active');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.getElementById('mobileMenuBtn').querySelector('.hamburger');
+            
+            sidebar.style.transform = 'translateX(-100%)';
+            backdrop.classList.add('opacity-0');
+            hamburger.classList.remove('active');
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
+        }
+
+        // INIT
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'government-accounts.html');
+            }
+            renderAccounts();
+            updateMetrics();
+            
+            // Populate static data dropdowns if BozStaticData exists
+            if (typeof BozStaticData !== 'undefined') {
+                populateDropdown('accLanguage', BozStaticData.languages);
+                populateDropdown('accTarget', BozStaticData.targets);
+                populateDropdown('accIndustry', BozStaticData.industries);
+
+                // Default values
+                if(document.getElementById('accTarget')) document.getElementById('accTarget').value = "50";
+                if(document.getElementById('accIndustry')) document.getElementById('accIndustry').value = "5000";
+            }
+        });
+    </script>
+</body>
+</html>

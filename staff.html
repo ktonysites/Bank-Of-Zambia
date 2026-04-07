@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ | Staff Directory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Hamburger Animation */
+        .hamburger .line { transition: all 0.3s ease-in-out; transform-origin: center; }
+        .hamburger.active .line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active .line:nth-child(2) { opacity: 0; }
+        .hamburger.active .line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-30 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-500 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+                <i class="ph-bold ph-bank text-sm"></i>
+            </div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="p-2 transition-transform duration-300 hover:bg-slate-100 rounded-lg interactive-press">
+                <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0 shadow-sm">
+            <div>
+                <h2 class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Staff Directory</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Manage internal personnel, roles, and structural hierarchies.</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="showToast('Syncing AD', 'Connecting to internal Active Directory...', 'ph-arrows-clockwise', 'text-indigo-400')" class="bg-white border border-slate-200 text-slate-700 px-3 lg:px-4 py-2 lg:py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-slate-50 transition shadow-sm flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-arrows-clockwise text-lg"></i> <span class="hidden sm:inline">Sync Directory</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-10 max-w-[1600px] mx-auto w-full pb-24 lg:pb-10">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 mb-8">
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0"><i class="ph-fill ph-users-three text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Total Personnel</p>
+                        <h3 id="statTotal" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform hidden sm:flex">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0"><i class="ph-fill ph-buildings text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Active Departments</p>
+                        <h3 id="statDepts" class="text-2xl lg:text-3xl font-extrabold text-slate-900">5</h3>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0"><i class="ph-fill ph-airplane-tilt text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Staff On Leave</p>
+                        <h3 id="statLeave" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl lg:rounded-[2rem] shadow-sm overflow-hidden flex flex-col min-h-[500px]">
+                
+                <div class="px-4 lg:px-8 py-6 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white/50">
+                    <div class="relative w-full lg:w-96 shrink-0">
+                        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search staff by name, ID, or role..." class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm">
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                        <select id="deptFilter" onchange="handleSearch()" class="w-full sm:w-auto px-4 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer">
+                            <option value="All">All Departments</option>
+                            <option value="Operations">Operations</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Compliance">Compliance</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Human Resources">Human Resources</option>
+                        </select>
+                        <button onclick="openAddEmployeeModal()" class="w-full sm:w-auto px-5 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition interactive-press shrink-0">
+                            <i class="ph-bold ph-user-plus text-lg"></i> Provision Staff
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto flex-1 w-full">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                        <thead class="bg-slate-50/50 text-slate-400 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">Personnel</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">Role / Contact</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">Department</th>
+                                <th class="px-6 lg:px-8 py-5 font-black tracking-widest uppercase text-[10px]">Status</th>
+                                <th class="px-6 lg:px-8 py-5"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeesTableBody" class="divide-y divide-slate-50 bg-white">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="px-4 lg:px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto">
+                    <span class="text-xs text-slate-500 font-bold tracking-wide" id="paginationText">Showing entries</span>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1.5 border border-slate-200 bg-white text-slate-400 rounded-lg cursor-not-allowed text-xs font-bold">Prev</button>
+                        <button class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold text-xs shadow-sm shadow-indigo-200">1</button>
+                        <button class="px-3 py-1.5 border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 rounded-lg font-bold text-xs cursor-not-allowed opacity-50">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="addEmpModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" id="addEmpOverlay" onclick="closeAddEmployeeModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8 relative z-10 modal-animate border border-slate-100 scale-95 opacity-0 transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900">Provision New Staff</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-1">Create a new Active Directory profile.</p>
+                </div>
+                <button onclick="closeAddEmployeeModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <form id="addEmpForm" onsubmit="saveNewEmployee(event)" class="space-y-4 lg:space-y-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5">
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 lg:mb-2">Full Legal Name</label>
+                        <input type="text" id="newEmpName" required class="w-full px-4 lg:px-5 py-2.5 lg:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm lg:text-base" placeholder="e.g. John Doe">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 lg:mb-2">Corporate Email</label>
+                        <input type="email" id="newEmpEmail" required class="w-full px-4 lg:px-5 py-2.5 lg:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm lg:text-base" placeholder="john.doe@boz.zm">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 lg:mb-2">Job Title</label>
+                        <input type="text" id="newEmpRole" required class="w-full px-4 lg:px-5 py-2.5 lg:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm lg:text-base" placeholder="e.g. Risk Analyst">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 lg:mb-2">Department Assignment</label>
+                        <select id="newEmpDept" required class="w-full px-4 lg:px-5 py-2.5 lg:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 cursor-pointer text-sm lg:text-base">
+                            <option value="" disabled selected>Select Division</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Operations">Operations</option>
+                            <option value="Human Resources">Human Resources</option>
+                            <option value="Compliance">Compliance</option>
+                            <option value="Finance">Finance</option>
+                        </select>
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 lg:mb-2">Reporting Manager</label>
+                        <input type="text" id="newEmpManager" required class="w-full px-4 lg:px-5 py-2.5 lg:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm lg:text-base" placeholder="Manager Name">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5 lg:mb-2">Effective Start Date</label>
+                        <input type="date" id="newEmpJoin" required class="w-full px-4 lg:px-5 py-2.5 lg:py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 text-sm lg:text-base">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100 mt-4 lg:mt-6">
+                    <button type="button" onclick="closeAddEmployeeModal()" class="flex-1 py-3 lg:py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition interactive-press text-sm">Cancel</button>
+                    <button type="submit" class="flex-1 py-3 lg:py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 interactive-press text-sm">Provision</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="empProfileModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" id="empProfileOverlay" onclick="closeEmployeeProfile()"></div>
+        <div class="bg-slate-50 rounded-[2rem] p-0 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative z-10 modal-animate border border-slate-200 scale-95 opacity-0 transition-all" id="empProfileContent">
+            
+            <div id="modalHeaderBg" class="h-28 lg:h-32 bg-gradient-to-r from-indigo-500 to-purple-600 relative">
+                <button onclick="closeEmployeeProfile()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/20 text-white hover:bg-black/40 transition interactive-press z-20">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+
+            <div class="px-6 lg:px-8 pb-6 lg:pb-8 text-center relative">
+                <div class="flex justify-center -mt-10 lg:-mt-12 mb-3 lg:mb-4 relative z-10">
+                    <div id="modalAvatar" class="w-20 h-20 lg:w-24 lg:h-24 rounded-2xl border-4 border-slate-50 bg-white flex items-center justify-center text-3xl lg:text-4xl font-extrabold shadow-lg"></div>
+                </div>
+
+                <h3 id="modalEmpName" class="text-xl lg:text-2xl font-black text-slate-900 tracking-tight"></h3>
+                <p id="modalEmpRole" class="text-xs lg:text-sm font-bold text-indigo-600 mt-1 mb-3 lg:mb-4"></p>
+                <div id="modalEmpStatus" class="mb-5 lg:mb-6"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4 text-left border-t border-slate-200 pt-5 lg:pt-6">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Corporate ID</p>
+                        <p id="modalEmpId" class="text-sm font-bold text-slate-800 font-mono"></p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Department</p>
+                        <p id="modalEmpDept" class="text-sm font-bold text-slate-800"></p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm sm:col-span-2">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Email Address</p>
+                        <p id="modalEmpEmail" class="text-sm font-bold text-slate-800 break-all"></p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Join Date</p>
+                        <p id="modalEmpJoin" class="text-sm font-bold text-slate-800"></p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Reports To</p>
+                        <p id="modalEmpManager" class="text-sm font-bold text-slate-800 flex items-center gap-1.5"><i class="ph-fill ph-user-circle text-slate-400"></i> <span></span></p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 mt-5 lg:mt-6">
+                    <button onclick="showToast('Comms', 'Pinging user via internal network...', 'ph-chat-circle-dots')" class="w-full py-3 lg:py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition shadow-sm interactive-press flex items-center justify-center gap-2 text-sm">
+                        <i class="ph-bold ph-chat-circle-dots text-lg"></i> Direct Message
+                    </button>
+                    <button onclick="showToast('ACL Rules', 'Opening Access Control List...', 'ph-shield-check')" class="w-full py-3 lg:py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-md shadow-indigo-200 interactive-press flex items-center justify-center gap-2 text-sm">
+                        <i class="ph-bold ph-shield-key text-lg"></i> Manage Access
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[70] pointer-events-none w-max max-w-[90vw]">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <button id="supportBtn" onclick="document.getElementById('chatWindow').classList.toggle('hidden')" class="fixed bottom-24 lg:bottom-6 right-6 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl hover:bg-slate-800 transition z-40 interactive-press border border-slate-700">
+        <i class="ph-fill ph-sparkle text-xl text-indigo-400"></i>
+    </button>
+    
+    <div id="chatWindow" class="fixed bottom-40 lg:bottom-24 right-6 w-[calc(100vw-3rem)] sm:w-80 h-96 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl flex flex-col hidden z-[60] border border-slate-200/80 overflow-hidden modal-animate">
+        <div class="bg-slate-900 text-white p-5 flex justify-between items-center">
+            <div class="flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-400"></i><h3 class="font-bold text-sm">HR Assistant</h3></div>
+            <button onclick="document.getElementById('chatWindow').classList.add('hidden')" class="text-slate-400 hover:text-white transition"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50">
+            <div class="flex justify-start"><div class="bg-white border border-slate-200 text-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm text-xs font-medium shadow-sm">I can assist with AD provisioning, ACL lookups, and leave management.</div></div>
+        </div>
+        <form id="chatForm" class="p-4 bg-white border-t border-slate-100 flex gap-2">
+            <input id="chatInput" type="text" placeholder="Query HR data..." class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-400 transition">
+            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"><i class="ph-fill ph-paper-plane-tilt"></i></button>
+        </form>
+    </div>
+
+    <nav id="mobileFooter" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-20 z-40 flex items-center justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe"></nav>
+
+    <script>
+        // --- BOZ Internal Staff Database ---
+        let employeeDb = [
+            { id: "BOZ-001", name: "Tony Ken", email: "tony.k@boz.zm", role: "Senior Data Analyst", dept: "Operations", status: "Active", color: "indigo", joinDate: "12 Mar 2021", manager: "Board of Directors" },
+            { id: "BOZ-042", name: "David Ochieng", email: "david.o@boz.zm", role: "Lead Systems Architect", dept: "Engineering", status: "Active", color: "blue", joinDate: "05 Jun 2022", manager: "CTO" },
+            { id: "BOZ-089", name: "Grace Mutuku", email: "grace.m@boz.zm", role: "Compliance Officer", dept: "Compliance", status: "On Leave", color: "amber", joinDate: "20 Nov 2022", manager: "Chief Risk Officer" },
+            { id: "BOZ-102", name: "Kevin Kimani", email: "kevin.k@boz.zm", role: "Treasury Manager", dept: "Finance", status: "Active", color: "emerald", joinDate: "14 Jan 2023", manager: "CFO" },
+            { id: "BOZ-115", name: "Alice Wanjiru", email: "alice.w@boz.zm", role: "HR Director", dept: "Human Resources", status: "Active", color: "purple", joinDate: "01 Sep 2023", manager: "Tony Ken" }
+        ];
+
+        function updateSummaryCards() {
+            document.getElementById('statTotal').innerText = employeeDb.length;
+            document.getElementById('statLeave').innerText = employeeDb.filter(emp => emp.status === 'On Leave').length;
+        }
+
+        function renderEmployees(dataToRender = employeeDb) {
+            const tbody = document.getElementById('employeesTableBody');
+            tbody.innerHTML = '';
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 lg:px-8 py-12 text-center text-slate-500 font-bold">No personnel found matching criteria.</td></tr>`;
+                document.getElementById('paginationText').innerText = "Showing 0 entries";
+                return;
+            }
+
+            dataToRender.forEach((emp, index) => {
+                const initials = emp.name.split(' ').map(n => n[0]).join('');
+                
+                let statusBadge = emp.status === 'Active' 
+                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[10px] uppercase font-black tracking-widest"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active</span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-md text-[10px] uppercase font-black tracking-widest"><i class="ph-bold ph-airplane-tilt"></i> On Leave</span>`;
+
+                const row = `
+                    <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer animate-row border-b border-slate-50" style="animation-delay: ${index * 50}ms" onclick="openEmployeeProfile('${emp.id}')">
+                        <td class="px-6 lg:px-8 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-${emp.color}-100 text-${emp.color}-700 flex items-center justify-center font-bold shrink-0 border border-${emp.color}-200/50">${initials}</div>
+                                <div>
+                                    <div class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">${emp.name}</div>
+                                    <div class="text-[10px] font-mono text-slate-400 mt-0.5">${emp.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-5">
+                            <div class="font-bold text-slate-700 text-xs">${emp.role}</div>
+                            <div class="text-[11px] font-medium text-slate-500 mt-0.5">${emp.email}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-5">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">${emp.dept}</span>
+                        </td>
+                        <td class="px-6 lg:px-8 py-5">${statusBadge}</td>
+                        <td class="px-6 lg:px-8 py-5 text-right">
+                            <button class="text-indigo-600 font-bold text-sm lg:opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end w-full gap-1">
+                                Profile <i class="ph-bold ph-arrow-right"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+
+            document.getElementById('paginationText').innerText = `Showing 1 to ${dataToRender.length} of ${dataToRender.length} entries`;
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const dept = document.getElementById('deptFilter').value;
+            
+            const filteredData = employeeDb.filter(emp => {
+                const matchesQuery = emp.name.toLowerCase().includes(query) || emp.role.toLowerCase().includes(query) || emp.id.toLowerCase().includes(query);
+                const matchesDept = dept === 'All' || emp.dept === dept;
+                return matchesQuery && matchesDept;
+            });
+            renderEmployees(filteredData);
+        }
+
+        // Add Staff Modal
+        function openAddEmployeeModal() {
+            const modal = document.getElementById('addEmpModal');
+            const overlay = document.getElementById('addEmpOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeAddEmployeeModal() {
+            const modal = document.getElementById('addEmpModal');
+            const overlay = document.getElementById('addEmpOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            
+            setTimeout(() => document.getElementById('addEmpForm').reset(), 400);
+        }
+
+        function saveNewEmployee(event) {
+            event.preventDefault(); 
+            const name = document.getElementById('newEmpName').value.trim();
+            const email = document.getElementById('newEmpEmail').value.trim();
+            const role = document.getElementById('newEmpRole').value.trim();
+            const dept = document.getElementById('newEmpDept').value;
+            const manager = document.getElementById('newEmpManager').value.trim();
+            
+            const rawDate = document.getElementById('newEmpJoin').value;
+            const formattedDate = new Date(rawDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            const newId = `BOZ-${Math.floor(Math.random() * 900) + 100}`;
+            const colors = ['indigo', 'blue', 'amber', 'emerald', 'purple', 'pink'];
+            
+            employeeDb.unshift({
+                id: newId, name, email, role, dept, status: 'Active', 
+                color: colors[Math.floor(Math.random() * colors.length)], 
+                joinDate: formattedDate, manager
+            });
+
+            renderEmployees();
+            updateSummaryCards();
+            closeAddEmployeeModal();
+            showToast('Account Provisioned', `${name} added to AD structure.`, 'ph-user-plus', 'text-emerald-400');
+        }
+
+        // Staff Profile Modal
+        function openEmployeeProfile(empId) {
+            const emp = employeeDb.find(e => e.id === empId);
+            if (!emp) return;
+
+            document.getElementById('modalAvatar').innerText = emp.name.split(' ').map(n => n[0]).join('');
+            document.getElementById('modalAvatar').className = `w-20 h-20 lg:w-24 lg:h-24 rounded-2xl border-4 border-slate-50 bg-${emp.color}-100 text-${emp.color}-600 flex items-center justify-center text-3xl lg:text-4xl font-extrabold shadow-lg`;
+            
+            const gradients = {
+                indigo: 'from-indigo-500 to-purple-600', blue: 'from-blue-500 to-cyan-600',
+                amber: 'from-amber-400 to-orange-500', emerald: 'from-emerald-400 to-teal-600',
+                purple: 'from-purple-500 to-fuchsia-600', pink: 'from-pink-500 to-rose-600'
+            };
+            document.getElementById('modalHeaderBg').className = `h-28 lg:h-32 bg-gradient-to-r ${gradients[emp.color]} relative`;
+
+            document.getElementById('modalEmpName').innerText = emp.name;
+            document.getElementById('modalEmpRole').innerText = emp.role;
+            document.getElementById('modalEmpId').innerText = emp.id;
+            document.getElementById('modalEmpDept').innerText = emp.dept;
+            document.getElementById('modalEmpEmail').innerText = emp.email;
+            document.getElementById('modalEmpJoin').innerText = emp.joinDate;
+            document.getElementById('modalEmpManager').querySelector('span').innerText = emp.manager;
+
+            const statusEl = document.getElementById('modalEmpStatus');
+            if(emp.status === 'Active') {
+                statusEl.className = "inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-[10px] uppercase font-black tracking-widest border border-emerald-100 mb-5 lg:mb-6";
+                statusEl.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Active Employee';
+            } else {
+                statusEl.className = "inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg text-[10px] uppercase font-black tracking-widest border border-amber-100 mb-5 lg:mb-6";
+                statusEl.innerHTML = '<i class="ph-bold ph-airplane-tilt"></i> On Leave';
+            }
+
+            const modal = document.getElementById('empProfileModal');
+            const overlay = document.getElementById('empProfileOverlay');
+            const content = document.getElementById('empProfileContent');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeEmployeeProfile() { 
+            const modal = document.getElementById('empProfileModal');
+            const overlay = document.getElementById('empProfileOverlay');
+            const content = document.getElementById('empProfileContent');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title; 
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('translate-y-20', 'opacity-0'), 10);
+            
+            if (window.toastTimer) clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 3000);
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            const hamburger = document.querySelector(".hamburger-icon .hamburger");
+            
+            if (sidebar.style.transform === "translateX(0px)" || sidebar.style.transform === "translateX(0)") {
+                closeMobileMenu();
+            } else {
+                sidebar.style.transform = "translateX(0)";
+                backdrop.classList.remove("hidden", "opacity-0");
+                hamburger.classList.add("active");
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            const hamburger = document.querySelector(".hamburger-icon .hamburger");
+            
+            sidebar.style.transform = "translateX(-100%)";
+            backdrop.classList.add("opacity-0");
+            hamburger.classList.remove("active");
+            setTimeout(() => backdrop.classList.add("hidden"), 300);
+        }
+
+        document.getElementById("mobileBackdrop")?.addEventListener("click", closeMobileMenu);
+
+        // Chat Widget Setup
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'staff.html');
+            }
+            renderEmployees();
+            updateSummaryCards();
+
+            document.getElementById('chatForm')?.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const input = document.getElementById('chatInput');
+                const msg = input.value.trim();
+                if(!msg) return;
+                const chatLog = document.getElementById('chatMessages');
+                chatLog.insertAdjacentHTML('beforeend', `<div class="flex justify-end"><div class="bg-indigo-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm text-xs font-medium shadow-sm max-w-[80%]">${msg}</div></div>`);
+                input.value = '';
+                chatLog.scrollTop = chatLog.scrollHeight;
+                setTimeout(() => {
+                    chatLog.insertAdjacentHTML('beforeend', `<div class="flex justify-start"><div class="bg-white border border-slate-200 text-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm text-xs font-medium shadow-sm max-w-[80%]">Processing policy request...</div></div>`);
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                }, 600);
+            });
+        });
+    </script>
+</body>
+</html>

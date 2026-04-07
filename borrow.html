@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank of Zambia - Borrow & Credit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .interactive-press:active { transform: scale(0.97); }
+        .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05); }
+        .animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid #f1f5f9; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .bg-glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+        /* Custom Slider Styling aligned with Blue Theme */
+        input[type=range] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            margin-top: -10px;
+            border: 3px solid #2563eb; /* blue-600 */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.1); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 9999px;
+        }
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            appearance: none;
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+    </style>
+    <script src="navigation-config.js"></script>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-800" onclick="closeAllDropdowns(event)">
+
+    <!-- Mobile Header -->
+    <header class="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 z-30 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-500 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+                <i class="ph ph-bank"></i>
+            </div>
+            <span class="text-sm font-bold text-slate-800">BOZ</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleMobileMenu()" class="hamburger-icon p-2 transition-transform duration-300 hover:bg-slate-100 rounded-lg">
+                <i class="ph ph-list text-2xl text-slate-700"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Backdrop -->
+    <div id="mobileBackdrop" onclick="closeMobileMenu()" class="md:hidden fixed inset-0 bg-slate-900/60 z-40 hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm"></div>
+
+    <!-- Mobile Sidebar -->
+    <aside id="mobileSidebar" class="md:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto" style="transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-tr from-green-600 to-emerald-500 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-green-500/30 text-white border border-white/20">
+                    <i class="ph ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-semibold">Customer Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph ph-x text-lg font-bold"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-6">
+            <a href="dashboard.html" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press">
+                <i class="ph ph-squares-four text-xl"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+            <a href="transfers.html" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press">
+                <i class="ph ph-arrows-left-right text-xl"></i>
+                <span class="font-medium">Transfers</span>
+            </a>
+            <a href="wallet.html" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press">
+                <i class="ph ph-wallet text-xl"></i>
+                <span class="font-medium">Wallet & Cards</span>
+            </a>
+            <a href="borrow.html" class="nav-link nav-link-active flex items-center space-x-3 bg-slate-800/50 text-white px-4 py-3 rounded-xl transition interactive-press">
+                <i class="ph ph-hand-coins text-xl"></i>
+                <span class="font-medium">Borrow & Credit</span>
+            </a>
+            <a href="statements.html" class="nav-link flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press">
+                <i class="ph ph-file-text text-xl"></i>
+                <span class="font-medium">Statements</span>
+            </a>
+        </nav>
+
+        <div class="p-4 mt-auto border-t border-slate-800">
+            <a href="#" onclick="handleLogout(event)" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition text-slate-400 interactive-press">
+                <i class="ph ph-sign-out text-xl"></i>
+                <span class="font-medium">Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <aside class="w-64 bg-[#0B0F19] text-slate-400 flex flex-col hidden md:flex z-20 border-r border-slate-800 relative shadow-2xl">
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-[#0B0F19] -z-10"></div>
+        
+        <div class="p-6 flex items-center space-x-3 text-white border-b border-slate-800">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-500 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-green-500/30 text-white border border-white/20">
+                <i class="ph ph-bank text-xl"></i>
+            </div>
+            <div>
+                <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                <span class="text-[10px] text-emerald-400 font-mono tracking-widest uppercase font-semibold">Customer Portal</span>
+            </div>
+        </div>
+        
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition interactive-press mb-1">
+                <i class="ph ph-squares-four text-xl"></i>
+                <span class="font-medium text-sm">Dashboard</span>
+            </a>
+            <a href="transfers.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition interactive-press mb-1">
+                <i class="ph ph-arrows-left-right text-xl"></i>
+                <span class="font-medium text-sm">Transfers</span>
+            </a>
+            <a href="wallet.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition interactive-press mb-1">
+                <i class="ph ph-wallet text-xl"></i>
+                <span class="font-medium text-sm">Wallet & Cards</span>
+            </a>
+            <a href="borrow.html" class="flex items-center space-x-3 bg-slate-800/50 text-white px-4 py-3 rounded-xl transition interactive-press mb-1">
+                <i class="ph ph-hand-coins text-xl"></i>
+                <span class="font-medium text-sm">Borrow & Credit</span>
+            </a>
+            <a href="statements.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition interactive-press">
+                <i class="ph ph-file-text text-xl"></i>
+                <span class="font-medium text-sm">Statements</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-800">
+            <a href="#" onclick="handleLogout(event)" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition text-slate-500 font-medium interactive-press">
+                <i class="ph ph-sign-out text-xl"></i>
+                <span class="text-sm">Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative md:pt-0 pt-16 pb-20 md:pb-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMCwgMCwgMCwgMC4wNCkiLz48L3N2Zz4=')]" >
+        
+        <header class="bg-glass border-b border-slate-200/80 px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-20 shadow-sm">
+            <div>
+                <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Credit Center</h2>
+                <p class="text-sm text-slate-500 font-medium mt-0.5">Manage your limits and active facilities.</p>
+            </div>
+            
+            <div class="flex items-center space-x-6">
+                <div class="relative">
+                    <button id="notifBtn" onclick="toggleNotifications(event)" class="text-slate-400 hover:text-blue-600 transition relative p-2 bg-white rounded-full shadow-sm border border-slate-200 interactive-press">
+                        <i class="ph ph-bell text-xl font-bold"></i>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 class="font-bold text-slate-800 text-sm">Notifications</h3>
+                            <button class="text-xs text-blue-600 font-bold hover:text-blue-800" onclick="dismissAllNotifications()">Dismiss all</button>
+                        </div>
+                        <div class="p-4 text-center text-sm text-slate-500" id="emptyNotifState">
+                            No new alerts.
+                        </div>
+                        <div id="notifList" class="max-h-[300px] overflow-y-auto hidden">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="relative border-l border-slate-200 pl-6">
+                    <div id="profileBtn" onclick="toggleProfile(event)" class="flex items-center space-x-3 cursor-pointer group interactive-press bg-white border border-slate-200 pl-2 pr-4 py-1.5 rounded-full shadow-sm hover:border-blue-300 transition">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+                            JD
+                        </div>
+                        <div class="hidden md:block text-left">
+                            <p class="text-xs font-bold text-slate-700 leading-tight">John Doe</p>
+                            <p class="text-[10px] text-emerald-500 font-bold flex items-center gap-1"><i class="ph-fill ph-check-circle"></i> Verified</p>
+                        </div>
+                        <i class="ph ph-caret-down text-slate-400 font-bold group-hover:text-blue-500 transition"></i>
+                    </div>
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="py-2">
+                            <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
+                                <i class="ph ph-user-circle text-lg"></i> My Profile
+                            </a>
+                            <div class="h-px bg-slate-100 my-1"></div>
+                            <a href="#" onclick="handleLogout(event)" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 transition">
+                                <i class="ph ph-sign-out text-lg"></i> Secure Sign Out
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 md:p-8 max-w-[1400px] mx-auto w-full pb-24">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 opacity-0 animate-fade-in-up">
+                
+                <div class="lg:col-span-2 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[220px] card-hover">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-40 h-40 bg-blue-500 opacity-10 rounded-full -ml-10 -mb-10 blur-2xl pointer-events-none"></div>
+                    
+                    <div class="relative z-10 flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                                <p class="text-xs font-bold text-blue-200 uppercase tracking-widest">Pre-Approved Limit</p>
+                            </div>
+                            <h3 class="text-4xl md:text-5xl font-extrabold tracking-tight" id="preApprovedLimitDisplay">KES 150,000</h3>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-2xl hidden md:block text-center">
+                            <i class="ph ph-trend-up text-emerald-400 text-2xl mb-1"></i>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-blue-100">Limit Increased</p>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 flex items-end justify-between mt-8">
+                        <div>
+                            <p class="text-[10px] font-medium text-blue-200 uppercase tracking-wider mb-1">Current Active Debt</p>
+                            <p class="text-lg font-bold text-white"><span id="activeDebtDisplay">KES 24,500</span> <span class="text-xs font-normal text-blue-300 ml-1">used</span></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-medium text-blue-200 uppercase tracking-wider mb-1">Available to borrow</p>
+                            <p class="text-xl font-extrabold text-emerald-300" id="availableToBorrowDisplay">KES 125,500</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-center items-center text-center card-hover relative overflow-hidden min-h-[220px]">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Nexus Credit Score</p>
+                    
+                    <div class="relative w-32 h-32 flex items-center justify-center mb-4">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="18" cy="18" r="16" fill="none" class="stroke-current text-slate-100" stroke-width="3"></circle>
+                            <circle id="creditScoreCircle" cx="18" cy="18" r="16" fill="none" class="stroke-current text-emerald-500 transition-all duration-1000 ease-out" stroke-width="3" stroke-dasharray="100" stroke-dashoffset="100" stroke-linecap="round"></circle>
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span class="text-3xl font-extrabold text-slate-800" id="creditScoreValue">0</span>
+                            <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded mt-1" id="creditScoreLabel">Excellent</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 font-medium" id="creditScoreDesc">Your strong repayment history unlocks lower interest rates.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-2 space-y-6 opacity-0 animate-fade-in-up delay-100">
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 md:p-8 relative">
+                        <div id="calculatorDisabler" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 rounded-3xl flex flex-col items-center justify-center text-center p-6">
+                             <div class="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-4">
+                                <i class="ph ph-warning-octagon text-3xl font-bold"></i>
+                             </div>
+                             <h3 class="text-lg font-bold text-slate-800 mb-2">Limit Reached</h3>
+                             <p class="text-sm text-slate-500 max-w-sm">You have exhausted your pre-approved limit. Please clear existing facilities to unlock more funds.</p>
+                        </div>
+
+                        <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><i class="ph ph-calculator text-xl font-bold"></i></div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800">Loan Calculator</h3>
+                                <p class="text-xs text-slate-500 font-medium">Customize your facility to fit your budget.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Select Loan Product</label>
+                            <div class="grid grid-cols-2 gap-3" id="loanProductSelector">
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="loanProduct" value="Salary Advance" class="peer sr-only" checked onchange="updateCalculatorContext(5, 'Salary Advance')">
+                                    <div class="p-3 border-2 border-slate-200 rounded-xl peer-checked:border-blue-600 peer-checked:bg-blue-50/50 transition-all text-center">
+                                        <h4 class="font-bold text-slate-800 text-sm">Salary Advance</h4>
+                                        <p class="text-[10px] font-bold text-blue-600 mt-0.5">5% Flat Rate</p>
+                                    </div>
+                                    <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-blue-600 transition-opacity">
+                                        <i class="ph-fill ph-check-circle"></i>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="loanProduct" value="Emergency Loan" class="peer sr-only" onchange="updateCalculatorContext(7.5, 'Emergency Loan')">
+                                    <div class="p-3 border-2 border-slate-200 rounded-xl peer-checked:border-blue-600 peer-checked:bg-blue-50/50 transition-all text-center">
+                                        <h4 class="font-bold text-slate-800 text-sm">Emergency Loan</h4>
+                                        <p class="text-[10px] font-bold text-blue-600 mt-0.5">7.5% Flat Rate</p>
+                                    </div>
+                                    <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 text-blue-600 transition-opacity">
+                                        <i class="ph-fill ph-check-circle"></i>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <div class="flex justify-between items-end mb-4">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest">How much do you need?</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2 text-slate-400 font-bold text-sm">KES</span>
+                                    <input type="number" id="calcAmountInput" min="1000" oninput="handleAmountInput(this.value)" class="w-32 pl-12 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none text-right transition-colors">
+                                </div>
+                            </div>
+                            <div class="relative w-full h-2 bg-slate-100 rounded-full mb-2">
+                                <div id="amountTrack" class="absolute top-0 left-0 h-full bg-blue-500 rounded-full pointer-events-none transition-all duration-150" style="width: 0%;"></div>
+                                <input type="range" id="calcAmountSlider" min="1000" step="1000" oninput="handleAmountSlider(this.value)" class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <div id="amountThumb" class="absolute top-1/2 w-6 h-6 bg-white border-4 border-blue-600 rounded-full shadow-md transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150" style="left: 0%;"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] font-bold text-slate-400">
+                                <span>Min: 1,000</span>
+                                <span id="maxLimitLabel">Max: 150,000</span>
+                            </div>
+                            <p id="amountErrorMsg" class="text-rose-500 text-[10px] font-bold mt-1 hidden text-right"></p>
+                        </div>
+
+                        <div class="mb-10">
+                            <div class="flex justify-between items-end mb-4">
+                                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest">Repayment Period</label>
+                                <div class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 font-extrabold text-slate-800 text-sm">
+                                    <span id="calcDurationText">3 Months</span>
+                                </div>
+                            </div>
+                            <div class="relative w-full h-2 bg-slate-100 rounded-full mb-2">
+                                <div id="durationTrack" class="absolute top-0 left-0 h-full bg-blue-500 rounded-full pointer-events-none transition-all duration-150" style="width: 25%;"></div>
+                                <input type="range" id="calcDurationSlider" min="1" max="12" step="1" value="3" oninput="syncDuration(this.value)" class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <div id="durationThumb" class="absolute top-1/2 w-6 h-6 bg-white border-4 border-blue-600 rounded-full shadow-md transform -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-150" style="left: 25%;"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] font-bold text-slate-400">
+                                <span>1 Month</span>
+                                <span>12 Months</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 rounded-2xl p-6 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 opacity-20 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                            
+                            <div class="grid grid-cols-2 gap-6 relative z-10 mb-6">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Installment</p>
+                                    <p class="text-2xl font-extrabold text-white transition-all" id="resEmi">KES 0</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Payable</p>
+                                    <p class="text-xl font-extrabold text-blue-300 transition-all" id="resTotal">KES 0</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between text-xs text-slate-400 border-t border-slate-700/50 pt-4 mb-6">
+                                <span>Principal: <strong class="text-white transition-all" id="resPrincipal">KES 0</strong></span>
+                                <span>Interest (<span id="resRateLabel">5</span>%): <strong class="text-white transition-all" id="resInterest">KES 0</strong></span>
+                            </div>
+
+                            <button id="btnOpenApply" onclick="openApplyModal()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition shadow-lg shadow-blue-500/30 interactive-press flex justify-center items-center gap-2">
+                                Apply for this Loan <i class="ph ph-arrow-right font-bold"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 space-y-6 opacity-0 animate-fade-in-up delay-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-slate-800">My Active Facilities</h3>
+                        <span class="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-sm" id="activeFacilityCountBadge">0</span>
+                    </div>
+                    
+                    <div id="activeFacilitiesContainer" class="space-y-4 max-h-[600px] overflow-y-auto pr-2 pb-4">
+                        </div>
+
+                    <div id="noFacilitiesState" class="hidden bg-white rounded-2xl border border-slate-200 border-dashed p-8 text-center shadow-sm">
+                         <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                            <i class="ph ph-file-dashed text-2xl"></i>
+                         </div>
+                         <p class="text-sm font-bold text-slate-700">No Active Facilities</p>
+                         <p class="text-xs text-slate-500 mt-1">You currently have no running loans.</p>
+                    </div>
+
+                    <div class="bg-slate-50 rounded-2xl border border-slate-200 border-dashed p-6 text-center">
+                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-slate-400">
+                            <i class="ph ph-check-circle text-xl"></i>
+                        </div>
+                        <p class="text-sm font-bold text-slate-700">View Past Loans</p>
+                        <p class="text-xs text-slate-500 mt-1 mb-4">You have <span id="closedLoanCount">0</span> successfully cleared facilities.</p>
+                        <button class="text-xs font-bold text-blue-600 hover:underline interactive-press" onclick="showToast('History', 'Opening full loan history...', 'ph-clock-counter-clockwise')">View History</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="applyModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 relative" id="applyModalContent">
+            
+            <button onclick="closeApplyModal()" class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition interactive-press">
+                <i class="ph ph-x font-bold"></i>
+            </button>
+
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner border border-blue-100">
+                    <i class="ph ph-file-text text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight">Confirm Application</h3>
+                <p class="text-sm text-slate-500 font-medium mt-1">Review your loan details before submitting.</p>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl border border-slate-100 p-5 space-y-4 mb-8">
+                <div class="flex justify-between items-center pb-3 border-b border-slate-200/60">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Product</span>
+                    <span class="text-sm font-extrabold text-slate-800" id="modProduct"></span>
+                </div>
+                <div class="flex justify-between items-center pb-3 border-b border-slate-200/60">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Principal</span>
+                    <span class="text-sm font-extrabold text-slate-800" id="modPrincipal"></span>
+                </div>
+                <div class="flex justify-between items-center pb-3 border-b border-slate-200/60">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Term</span>
+                    <span class="text-sm font-extrabold text-slate-800" id="modTerm"></span>
+                </div>
+                <div class="flex justify-between items-center pb-3 border-b border-slate-200/60">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Interest</span>
+                    <span class="text-sm font-extrabold text-rose-500" id="modInterest"></span>
+                </div>
+                <div class="flex justify-between items-center pt-1">
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">Total Payable</span>
+                    <span class="text-lg font-extrabold text-blue-700" id="modTotal"></span>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-3 mb-8 bg-amber-50 p-4 rounded-xl border border-amber-100">
+                <i class="ph-fill ph-info text-amber-500 text-lg mt-0.5 shrink-0"></i>
+                <p class="text-xs text-amber-700 font-medium leading-relaxed">By submitting, you authorize Nexus Bank to process this application and disburse funds to your primary wallet upon approval. This action will reduce your available credit limit.</p>
+            </div>
+
+            <button id="btnConfirmApply" onclick="submitApplication()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/30 interactive-press flex justify-center items-center gap-2">
+                <span id="txtConfirmApply">Submit Application</span>
+                <i id="spinConfirmApply" class="ph ph-spinner-gap animate-spin hidden text-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="paymentModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all scale-95 opacity-0 relative" id="paymentModalContent">
+            
+            <button onclick="closePaymentModal()" class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition interactive-press">
+                <i class="ph ph-x font-bold"></i>
+            </button>
+
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner border border-emerald-100">
+                    <i class="ph ph-money text-3xl"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight">Make Repayment</h3>
+                <p class="text-sm text-slate-500 font-medium mt-1">Pay towards <span id="payModalFacilityName" class="font-bold text-slate-700"></span></p>
+                <input type="hidden" id="payModalFacilityId">
+            </div>
+
+            <div class="space-y-4 mb-8">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Outstanding Balance</p>
+                        <p class="text-sm font-extrabold text-slate-800" id="payModalOutstanding"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Suggested EMI</p>
+                        <p class="text-sm font-extrabold text-indigo-600" id="payModalEmi"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2">Amount to Pay (KES)</label>
+                    <input type="number" id="paymentAmountInput" min="1" class="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-lg font-extrabold text-slate-800 focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="0">
+                    <div class="flex gap-2 mt-2">
+                        <button type="button" onclick="setPaymentAmount('emi')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition">Pay EMI</button>
+                        <button type="button" onclick="setPaymentAmount('full')" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-lg transition">Pay Full</button>
+                    </div>
+                </div>
+                
+                <div id="paymentErrorMsg" class="text-rose-500 text-xs font-bold hidden"></div>
+            </div>
+
+            <button id="btnConfirmPayment" onclick="processPayment()" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/30 interactive-press flex justify-center items-center gap-2">
+                <span id="txtConfirmPayment">Authorize Payment</span>
+                <i id="spinConfirmPayment" class="ph ph-spinner-gap animate-spin hidden text-xl"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-8 right-8 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 transform transition-all translate-y-10 opacity-0 z-50 border border-slate-700">
+        <i id="toastIcon" class="ph ph-check-circle text-emerald-400 text-2xl font-fill"></i>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        const USER_STATE = {
+            preApprovedLimit: 150000,
+            creditScore: 740,
+            walletBalance: 250000, // Used to validate payments
+            activeFacilities: [
+                {
+                    id: "L-88210A",
+                    product: "Asset Finance",
+                    principal: 100000,
+                    interestRate: 10,
+                    duration: 12,
+                    paid: 24500,
+                    startDate: new Date(new Date().setMonth(new Date().getMonth() - 2)), // 2 months ago
+                    status: "Active"
+                }
+            ],
+            closedFacilitiesCount: 3
+        };
+
+        // Calculator State
+        const CALC_STATE = {
+            product: "Salary Advance",
+            rate: 5.0,
+            amount: 50000,
+            duration: 3
+        };
+
+        const formatCurrency = (amt) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amt);
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCreditScore();
+            updateDashboardMetrics();
+            renderActiveFacilities();
+            
+            // Init Calculator
+            document.getElementById('calcAmountSlider').max = USER_STATE.preApprovedLimit;
+            document.getElementById('calcAmountInput').max = USER_STATE.preApprovedLimit;
+            document.getElementById('maxLimitLabel').innerText = `Max: ${formatCurrency(USER_STATE.preApprovedLimit).replace('KES', '').trim()}`;
+            
+            syncAmount(50000);
+            syncDuration(3);
+        });
+
+        // --- DASHBOARD RENDERING ---
+        function initCreditScore() {
+            const score = USER_STATE.creditScore;
+            // animate score number
+            let current = 0;
+            const inc = Math.ceil(score / 50);
+            const valEl = document.getElementById('creditScoreValue');
+            const timer = setInterval(() => {
+                current += inc;
+                if(current >= score) {
+                    current = score;
+                    clearInterval(timer);
+                }
+                valEl.innerText = current;
+            }, 20);
+
+            // Animate SVG Circle
+            // dasharray is 100. Score range assumed 300-850.
+            // Normalize score to percentage (roughly)
+            let pct = Math.max(0, Math.min(100, ((score - 300) / 550) * 100));
+            const offset = 100 - pct;
+            
+            setTimeout(() => {
+                document.getElementById('creditScoreCircle').style.strokeDashoffset = offset;
+            }, 300);
+
+            const labelEl = document.getElementById('creditScoreLabel');
+            const descEl = document.getElementById('creditScoreDesc');
+            
+            if(score > 700) {
+                labelEl.innerText = "Excellent"; labelEl.className = "text-[9px] font-bold text-emerald-600 uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded mt-1";
+                document.getElementById('creditScoreCircle').classList.replace('text-amber-500', 'text-emerald-500');
+            } else if (score > 600) {
+                labelEl.innerText = "Good"; labelEl.className = "text-[9px] font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded mt-1";
+                document.getElementById('creditScoreCircle').classList.replace('text-emerald-500', 'text-blue-500');
+                descEl.innerText = "Maintain good repayment habits to improve your score.";
+            } else {
+                labelEl.innerText = "Fair"; labelEl.className = "text-[9px] font-bold text-amber-600 uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded mt-1";
+                document.getElementById('creditScoreCircle').classList.replace('text-emerald-500', 'text-amber-500');
+                descEl.innerText = "Your score limits your borrowing capacity. Clear debts to improve.";
+            }
+        }
+
+        function calculateFacilityMath(fac) {
+            const interest = fac.principal * (fac.interestRate / 100);
+            const totalPayable = fac.principal + interest;
+            const emi = totalPayable / fac.duration;
+            const outstanding = totalPayable - fac.paid;
+            const progressPct = Math.min(100, (fac.paid / totalPayable) * 100);
+            return { totalPayable, emi, outstanding, progressPct };
+        }
+
+        function updateDashboardMetrics() {
+            let activeDebt = 0;
+            USER_STATE.activeFacilities.forEach(f => {
+                const { outstanding } = calculateFacilityMath(f);
+                activeDebt += outstanding;
+            });
+
+            // Assuming preApprovedLimit is a static cap on principal, but simple implementation:
+            // Available = Limit - activeDebt (simplified)
+            let available = USER_STATE.preApprovedLimit - activeDebt;
+            if(available < 0) available = 0;
+
+            document.getElementById('preApprovedLimitDisplay').innerText = formatCurrency(USER_STATE.preApprovedLimit);
+            document.getElementById('activeDebtDisplay').innerText = formatCurrency(activeDebt);
+            document.getElementById('availableToBorrowDisplay').innerText = formatCurrency(available);
+
+            // Update Calculator slider max based on availability
+            const calcSlider = document.getElementById('calcAmountSlider');
+            const calcInput = document.getElementById('calcAmountInput');
+            
+            calcSlider.max = available;
+            calcInput.max = available;
+            document.getElementById('maxLimitLabel').innerText = `Avail: ${formatCurrency(available).replace('KES', '').trim()}`;
+
+            const disabler = document.getElementById('calculatorDisabler');
+            const applyBtn = document.getElementById('btnOpenApply');
+
+            if(available < 1000) {
+                disabler.classList.remove('hidden');
+                applyBtn.disabled = true;
+                applyBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                // Force sync to 0
+                calcInput.value = 0;
+                syncAmount(0);
+            } else {
+                disabler.classList.add('hidden');
+                applyBtn.disabled = false;
+                applyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                // If current amount is higher than available, adjust down
+                if(CALC_STATE.amount > available) {
+                    syncAmount(available);
+                }
+            }
+
+            document.getElementById('activeFacilityCountBadge').innerText = USER_STATE.activeFacilities.length;
+            document.getElementById('closedLoanCount').innerText = USER_STATE.closedFacilitiesCount;
+        }
+
+        function renderActiveFacilities() {
+            const container = document.getElementById('activeFacilitiesContainer');
+            const emptyState = document.getElementById('noFacilitiesState');
+
+            if(USER_STATE.activeFacilities.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = '';
+
+            USER_STATE.activeFacilities.forEach(fac => {
+                const { totalPayable, emi, outstanding, progressPct } = calculateFacilityMath(fac);
+                
+                // Calculate next EMI date (dummy logic: +1 month from start date iteratively)
+                const nextEmiDate = new Date();
+                nextEmiDate.setMonth(nextEmiDate.getMonth() + 1);
+                nextEmiDate.setDate(15); // dummy fixed day
+
+                const cardHtml = `
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm mb-0.5">${fac.product}</h4>
+                                <p class="text-[10px] text-slate-400 font-mono tracking-widest">${fac.id}</p>
+                            </div>
+                            <span class="px-2 py-1 bg-emerald-50 text-emerald-600 rounded text-[10px] uppercase font-bold border border-emerald-100 flex items-center gap-1">
+                                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Active
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between items-end mb-2">
+                            <p class="text-xs font-bold text-slate-500">Paid: <span class="text-emerald-600 font-extrabold">${formatCurrency(fac.paid)}</span></p>
+                            <p class="text-xs font-bold text-slate-800">Total: ${formatCurrency(totalPayable)}</p>
+                        </div>
+                        
+                        <div class="w-full bg-slate-100 rounded-full h-1.5 mb-4">
+                            <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style="width: ${progressPct}%"></div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs border-t border-slate-100 pt-3 mb-4">
+                            <span class="text-slate-500 font-medium">Next EMI: <strong class="text-slate-800">${nextEmiDate.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'})}</strong></span>
+                            <strong class="text-slate-800">${formatCurrency(emi)}</strong>
+                        </div>
+                        
+                        <button onclick="openPaymentModal('${fac.id}')" class="w-full py-2.5 bg-slate-50 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition text-xs interactive-press flex items-center justify-center gap-1.5">
+                            <i class="ph-bold ph-wallet"></i> Make Repayment
+                        </button>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // --- CALCULATOR LOGIC ---
+        function updateCalculatorContext(newRate, productName) {
+            CALC_STATE.rate = newRate;
+            CALC_STATE.product = productName;
+            calculateResults();
+        }
+
+        function handleAmountInput(val) {
+            let amount = parseInt(val);
+            if (isNaN(amount)) amount = 0;
+            
+            const maxAllowed = document.getElementById('calcAmountSlider').max;
+            
+            // Allow typing by not forcing the clamp immediately on input unless it exceeds max
+            if (amount > maxAllowed) {
+                amount = maxAllowed;
+                document.getElementById('calcAmountInput').value = amount;
+                
+                const errMsg = document.getElementById('amountErrorMsg');
+                errMsg.innerText = `Cannot exceed available limit of ${formatCurrency(maxAllowed)}`;
+                errMsg.classList.remove('hidden');
+                setTimeout(() => errMsg.classList.add('hidden'), 3000);
+            }
+            
+            syncAmountInternal(amount);
+        }
+
+        function handleAmountSlider(val) {
+            let amount = parseInt(val);
+            document.getElementById('calcAmountInput').value = amount;
+            syncAmountInternal(amount);
+        }
+
+        function syncAmount(val) {
+            let amount = parseInt(val);
+            document.getElementById('calcAmountInput').value = amount;
+            document.getElementById('calcAmountSlider').value = amount;
+            syncAmountInternal(amount);
+        }
+
+        function syncAmountInternal(amount) {
+            CALC_STATE.amount = amount;
+            
+            const maxAllowed = document.getElementById('calcAmountSlider').max;
+            const percentage = maxAllowed > 0 ? (amount / maxAllowed) * 100 : 0;
+            
+            document.getElementById('amountTrack').style.width = `${percentage}%`;
+            document.getElementById('amountThumb').style.left = `${percentage}%`;
+
+            calculateResults();
+        }
+
+        function syncDuration(val) {
+            CALC_STATE.duration = parseInt(val);
+            
+            document.getElementById('calcDurationSlider').value = CALC_STATE.duration;
+            document.getElementById('calcDurationText').innerText = CALC_STATE.duration === 1 ? '1 Month' : `${CALC_STATE.duration} Months`;
+
+            const percentage = ((CALC_STATE.duration - 1) / 11) * 100;
+            document.getElementById('durationTrack').style.width = `${percentage}%`;
+            document.getElementById('durationThumb').style.left = `${percentage}%`;
+
+            calculateResults();
+        }
+
+        function calculateResults() {
+            const interestAmount = CALC_STATE.amount * (CALC_STATE.rate / 100);
+            const totalPayable = CALC_STATE.amount + interestAmount;
+            const monthlyEmi = CALC_STATE.duration > 0 ? totalPayable / CALC_STATE.duration : totalPayable;
+
+            // Animate number updates (simple fade trick)
+            const resultEls = ['resEmi', 'resTotal', 'resPrincipal', 'resInterest'];
+            resultEls.forEach(id => {
+                const el = document.getElementById(id);
+                el.style.opacity = '0.5';
+            });
+
+            setTimeout(() => {
+                document.getElementById('resEmi').innerText = formatCurrency(monthlyEmi);
+                document.getElementById('resTotal').innerText = formatCurrency(totalPayable);
+                document.getElementById('resPrincipal').innerText = formatCurrency(CALC_STATE.amount);
+                document.getElementById('resInterest').innerText = formatCurrency(interestAmount);
+                document.getElementById('resRateLabel').innerText = CALC_STATE.rate;
+                
+                resultEls.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.style.opacity = '1';
+                });
+            }, 150);
+        }
+
+
+        // --- APPLICATION MODAL ---
+        function openApplyModal() {
+            if(CALC_STATE.amount < 1000) {
+                showToast("Error", "Minimum loan amount is KES 1,000.", "ph-x-circle", "text-rose-400");
+                return;
+            }
+
+            document.getElementById('modProduct').innerText = CALC_STATE.product;
+            document.getElementById('modPrincipal').innerText = formatCurrency(CALC_STATE.amount);
+            document.getElementById('modTerm').innerText = CALC_STATE.duration === 1 ? '1 Month' : `${CALC_STATE.duration} Months`;
+            
+            const interestAmt = CALC_STATE.amount * (CALC_STATE.rate / 100);
+            document.getElementById('modInterest').innerText = `+ ${formatCurrency(interestAmt)}`;
+            document.getElementById('modTotal').innerText = formatCurrency(CALC_STATE.amount + interestAmt);
+
+            toggleModal('applyModal', true);
+        }
+
+        function closeApplyModal() { toggleModal('applyModal', false); }
+
+        function submitApplication() {
+            const btnText = document.getElementById('txtConfirmApply');
+            const spinner = document.getElementById('spinConfirmApply');
+            const btn = document.getElementById('btnConfirmApply');
+
+            btnText.innerText = "Processing...";
+            spinner.classList.remove('hidden');
+            btn.classList.add('opacity-90', 'cursor-not-allowed');
+            btn.disabled = true;
+
+            // Simulate API Call
+            setTimeout(() => {
+                closeApplyModal();
+                
+                // Add new facility to state
+                const newFacility = {
+                    id: `L-${Math.floor(Math.random() * 90000) + 10000}X`,
+                    product: CALC_STATE.product,
+                    principal: CALC_STATE.amount,
+                    interestRate: CALC_STATE.rate,
+                    duration: CALC_STATE.duration,
+                    paid: 0,
+                    startDate: new Date(),
+                    status: "Active"
+                };
+                
+                USER_STATE.activeFacilities.unshift(newFacility);
+                updateDashboardMetrics();
+                renderActiveFacilities();
+                
+                // Reset Button
+                setTimeout(() => {
+                    btnText.innerText = "Submit Application";
+                    spinner.classList.add('hidden');
+                    btn.classList.remove('opacity-90', 'cursor-not-allowed');
+                    btn.disabled = false;
+                }, 300);
+
+                showToast("Funds Disbursed", `${formatCurrency(CALC_STATE.amount)} has been credited to your wallet.`, "ph-check-circle", "text-emerald-400");
+            }, 1500);
+        }
+
+
+        // --- PAYMENT MODAL ---
+        let currentPaymentFacility = null;
+
+        function openPaymentModal(facilityId) {
+            const facility = USER_STATE.activeFacilities.find(f => f.id === facilityId);
+            if(!facility) return;
+
+            currentPaymentFacility = facility;
+            const { outstanding, emi } = calculateFacilityMath(facility);
+
+            document.getElementById('payModalFacilityId').value = facility.id;
+            document.getElementById('payModalFacilityName').innerText = facility.product;
+            document.getElementById('payModalOutstanding').innerText = formatCurrency(outstanding);
+            document.getElementById('payModalEmi').innerText = formatCurrency(emi);
+            
+            const input = document.getElementById('paymentAmountInput');
+            input.value = '';
+            input.max = outstanding;
+            
+            document.getElementById('paymentErrorMsg').classList.add('hidden');
+            
+            toggleModal('paymentModal', true);
+        }
+
+        function closePaymentModal() {
+            toggleModal('paymentModal', false);
+            currentPaymentFacility = null;
+            document.getElementById('paymentAmountInput').value = '';
+        }
+
+        function setPaymentAmount(type) {
+            if(!currentPaymentFacility) return;
+            const { outstanding, emi } = calculateFacilityMath(currentPaymentFacility);
+            const input = document.getElementById('paymentAmountInput');
+            
+            if(type === 'emi') {
+                // If EMI is more than outstanding, just pay outstanding
+                input.value = Math.min(emi, outstanding).toFixed(0);
+            } else if (type === 'full') {
+                input.value = outstanding.toFixed(0);
+            }
+        }
+
+        function processPayment() {
+            if(!currentPaymentFacility) return;
+            
+            const input = document.getElementById('paymentAmountInput');
+            const errorMsg = document.getElementById('paymentErrorMsg');
+            const amountStr = input.value;
+            const amount = parseFloat(amountStr);
+            const { outstanding } = calculateFacilityMath(currentPaymentFacility);
+
+            if(!amountStr || isNaN(amount) || amount <= 0) {
+                errorMsg.innerText = "Please enter a valid amount.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            if(amount > outstanding) {
+                errorMsg.innerText = `Amount cannot exceed outstanding balance of ${formatCurrency(outstanding)}.`;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            if(amount > USER_STATE.walletBalance) {
+                errorMsg.innerText = `Insufficient funds in Wallet. Available: ${formatCurrency(USER_STATE.walletBalance)}.`;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            errorMsg.classList.add('hidden');
+
+            const btnText = document.getElementById('txtConfirmPayment');
+            const spinner = document.getElementById('spinConfirmPayment');
+            const btn = document.getElementById('btnConfirmPayment');
+
+            btnText.innerText = "Processing...";
+            spinner.classList.remove('hidden');
+            btn.classList.add('opacity-90', 'cursor-not-allowed');
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // Apply Payment
+                currentPaymentFacility.paid += amount;
+                USER_STATE.walletBalance -= amount; // Deduct from wallet
+
+                // Check if cleared
+                const newMath = calculateFacilityMath(currentPaymentFacility);
+                let clearedMsg = "";
+                if(newMath.outstanding <= 0.01) { // float tolerance
+                    currentPaymentFacility.status = "Closed";
+                    USER_STATE.closedFacilitiesCount++;
+                    // Remove from active list
+                    USER_STATE.activeFacilities = USER_STATE.activeFacilities.filter(f => f.id !== currentPaymentFacility.id);
+                    clearedMsg = " Facility fully cleared!";
+                }
+
+                updateDashboardMetrics();
+                renderActiveFacilities();
+                closePaymentModal();
+
+                setTimeout(() => {
+                    btnText.innerText = "Authorize Payment";
+                    spinner.classList.add('hidden');
+                    btn.classList.remove('opacity-90', 'cursor-not-allowed');
+                    btn.disabled = false;
+                }, 300);
+
+                showToast("Payment Successful", `${formatCurrency(amount)} applied to ${currentPaymentFacility.id}.${clearedMsg}`, "ph-check-circle", "text-emerald-400");
+            }, 1200);
+        }
+
+        // --- UTILS ---
+        function toggleModal(id, show) {
+            const modal = document.getElementById(id);
+            const content = modal.children[0]; // assumes first child is the content wrapper
+            if(show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 200);
+            }
+        }
+
+        function toggleNotifications(e) { e.stopPropagation(); toggleDropdown(document.getElementById('notifDropdown')); }
+        function toggleProfile(e) { e.stopPropagation(); toggleDropdown(document.getElementById('profileDropdown')); }
+        
+        function toggleDropdown(el) { 
+            if(el.classList.contains('hidden')) {
+                document.getElementById('notifDropdown').classList.add('hidden', 'opacity-0', 'scale-95');
+                document.getElementById('profileDropdown').classList.add('hidden', 'opacity-0', 'scale-95');
+                el.classList.remove('hidden'); setTimeout(() => el.classList.remove('opacity-0', 'scale-95'), 10);
+            } else {
+                el.classList.add('opacity-0', 'scale-95'); setTimeout(() => el.classList.add('hidden'), 200);
+            }
+        }
+        
+        function closeAllDropdowns(e) {
+            const notif = document.getElementById('notifDropdown'); const prof = document.getElementById('profileDropdown');
+            if (!notif.contains(e.target) && !document.getElementById('notifBtn').contains(e.target)) { notif.classList.add('opacity-0', 'scale-95'); setTimeout(() => notif.classList.add('hidden'), 200); }
+            if (!prof.contains(e.target) && !document.getElementById('profileBtn').contains(e.target)) { prof.classList.add('opacity-0', 'scale-95'); setTimeout(() => prof.classList.add('hidden'), 200); }
+        }
+
+        function handleLogout(e) {
+            e.preventDefault();
+            showToast('Logging out...', 'Session terminated.', 'ph-sign-out', 'text-rose-400');
+            setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+        }
+
+        function showToast(title, msg, icon='ph-check-circle', color='text-emerald-400') {
+            const t = document.getElementById('toast'); 
+            document.getElementById('toastTitle').innerText = title; 
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-2xl ${color}`;
+            t.classList.remove('hidden'); setTimeout(() => t.classList.remove('translate-y-10', 'opacity-0'), 10);
+            setTimeout(() => { t.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => t.classList.add('hidden'), 300); }, 3500);
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            const hamburger = document.querySelector(".hamburger-icon");
+            
+            if (sidebar.style.transform === "translateX(0px)" || sidebar.style.transform === "translateX(0)") {
+                sidebar.style.transform = "translateX(-100%)";
+                backdrop.classList.add("hidden");
+                hamburger.style.transform = "rotate(0deg)";
+            } else {
+                sidebar.style.transform = "translateX(0)";
+                backdrop.classList.remove("hidden");
+                hamburger.style.transform = "rotate(90deg)";
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            const hamburger = document.querySelector(".hamburger-icon");
+            
+            setTimeout(() => {
+                sidebar.style.transform = "translateX(-100%)";
+                backdrop.classList.add("hidden");
+                hamburger.style.transform = "rotate(0deg)";
+            }, 300);
+        }
+
+        // Close menu on backdrop click
+        document.getElementById("mobileBackdrop")?.addEventListener("click", closeMobileMenu);
+
+        // Close menu on nav link click
+        document.querySelectorAll("#mobileSidebar .nav-link").forEach(link => {
+            link.addEventListener("click", closeMobileMenu);
+        });
+    </script>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav id="bottomNav" class="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-200 flex items-center justify-around z-30">
+        <a href="dashboard.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-squares-four text-2xl"></i>
+            <span class="text-xs font-medium">Home</span>
+        </a>
+        <a href="transfers.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-arrows-left-right text-2xl"></i>
+            <span class="text-xs font-medium">Send</span>
+        </a>
+        <a href="wallet.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-credit-card text-2xl"></i>
+            <span class="text-xs font-medium">Cards</span>
+        </a>
+        <a href="wallet.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-wallet text-2xl"></i>
+            <span class="text-xs font-medium">Wallet</span>
+        </a>
+    </nav>
+
+    <!-- Chat Support Widget -->
+    <button id="supportBtn" onclick="toggleChat(event)" class="fixed md:bottom-8 bottom-28 right-8 w-14 h-14 bg-gradient-to-tr from-slate-700 to-slate-600 text-white rounded-full shadow-lg hover:shadow-2xl hover:scale-105 transition-all flex items-center justify-center z-40 interactive-press border-2 border-white/20">
+        <i id="supportIcon" class="ph ph-chat-teardrop-dots text-3xl transition-transform"></i>
+    </button>
+
+    <div id="chatWindow" class="hidden fixed bottom-28 right-8 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 origin-bottom-right" style="height: 500px;">
+        <div class="bg-gradient-to-r from-slate-700 to-slate-600 p-4 flex justify-between items-center text-white shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <i class="ph ph-robot text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold leading-tight text-sm">Support</h3>
+                    <p class="text-xs text-slate-100 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Online</p>
+                </div>
+            </div>
+            <button onclick="toggleChat(event)" class="text-white/80 hover:text-white transition p-1 interactive-press">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 bg-slate-50 space-y-4">
+            <div class="flex items-start gap-2">
+                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center shrink-0">
+                    <i class="ph ph-robot"></i>
+                </div>
+                <div class="bg-white border border-slate-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-700 max-w-[80%]">
+                    Hello! How can we help you today?
+                </div>
+            </div>
+        </div>
+        <div class="p-3 bg-white border-t border-slate-200 shrink-0">
+            <form id="chatForm" onsubmit="handleChatSubmit(event)" class="flex items-center gap-2">
+                <input id="chatInput" type="text" placeholder="Type a message..." class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-slate-500 outline-none">
+                <button type="submit" class="p-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition">
+                    <i class="ph ph-send text-lg"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Add chat support functions
+        function toggleChat(e) {
+            if (e) e.stopPropagation();
+            const chatWindow = document.getElementById('chatWindow');
+            const supportIcon = document.getElementById('supportIcon');
+            
+            if (chatWindow.classList.contains('hidden')) {
+                chatWindow.classList.remove('hidden');
+                supportIcon.classList.replace('ph-chat-teardrop-dots', 'ph-caret-down');
+                setTimeout(() => {
+                    chatWindow.classList.remove('opacity-0', 'scale-95');
+                    chatWindow.classList.add('opacity-100', 'scale-100');
+                    document.getElementById('chatInput')?.focus();
+                }, 10);
+            } else {
+                chatWindow.classList.remove('opacity-100', 'scale-100');
+                chatWindow.classList.add('opacity-0', 'scale-95');
+                supportIcon.classList.replace('ph-caret-down', 'ph-chat-teardrop-dots');
+                setTimeout(() => chatWindow.classList.add('hidden'), 200);
+            }
+        }
+
+        function handleChatSubmit(e) {
+            e.preventDefault();
+            const chatInput = document.getElementById('chatInput');
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            const userHTML = `<div class="flex items-start gap-2 justify-end animate-fade-in"><div class="bg-slate-600 text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-sm max-w-[80%]">${message}</div></div>`;
+            chatMessages.insertAdjacentHTML('beforeend', userHTML);
+            chatInput.value = '';
+
+            const botHTML = `<div class="flex items-start gap-2 animate-fade-in"><div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center shrink-0"><i class="ph ph-robot text-sm"></i></div><div class="bg-white border border-slate-200 p-3 rounded-2xl rounded-tl-none shadow-sm text-sm text-slate-800 max-w-[80%]">Thanks for your message! Our support team will get back to you shortly.</div></div>`;
+            setTimeout(() => chatMessages.insertAdjacentHTML('beforeend', botHTML), 500);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const supportBtn = document.getElementById('supportBtn');
+            if (supportBtn) supportBtn.addEventListener('click', toggleChat);
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNavigation('customer', 'borrow.html');
+        });
+    </script>
+</body>
+</html>

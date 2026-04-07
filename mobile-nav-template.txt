@@ -1,0 +1,160 @@
+<!-- MOBILE HEADER - Insert this right after <body> tag -->
+<header class="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 z-40 mobile-header">
+    <div class="flex items-center space-x-2">
+        <div class="bg-gradient-to-tr from-green-600 to-emerald-400 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-lg shadow-green-500/30"><i class="ph ph-bank text-sm"></i></div>
+        <span class="font-bold text-sm text-slate-800">BOZ</span>
+    </div>
+    <div class="flex items-center space-x-2">
+        <button id="notifBtnMobile" onclick="toggleNotifications(event)" class="text-slate-400 hover:text-blue-600 transition relative p-2 bg-slate-50 rounded-full">
+            <i class="ph ph-bell text-lg"></i>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+        </button>
+        <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="touch-button p-2">
+            <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                <span class="line h-0.5 w-6 bg-slate-800 rounded transition"></span>
+                <span class="line h-0.5 w-6 bg-slate-800 rounded transition"></span>
+                <span class="line h-0.5 w-6 bg-slate-800 rounded transition"></span>
+            </div>
+        </button>
+    </div>
+</header>
+
+<!-- MOBILE BACKDROP - Insert before sidebar -->
+<div id="mobileBackdrop" class="md:hidden fixed inset-0 bg-black/50 z-30 hidden" onclick="closeMobileMenu()"></div>
+
+<!-- MOBILE SIDEBAR - Insert before desktop sidebar, with active link updated per page -->
+<aside id="mobileSidebar" class="md:hidden fixed left-0 top-0 bottom-0 w-64 bg-slate-900 text-slate-300 flex flex-col z-40 hidden mobile-sidebar" style="transform: translateX(-100%);">
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-slate-950 -z-10"></div>
+    <div class="p-6 flex items-center space-x-3 text-white border-b border-slate-800">
+        <div class="bg-gradient-to-tr from-green-600 to-emerald-400 w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow-lg shadow-green-500/30"><i class="ph ph-bank text-xl"></i></div>
+        <span class="text-lg font-bold tracking-wide">Bank of Zambia</span>
+    </div>
+    <nav class="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
+        <a href="dashboard.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-squares-four text-xl"></i>
+            <span class="font-medium">Dashboard</span>
+        </a>
+        <a href="transfers.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-arrows-left-right text-xl"></i>
+            <span class="font-medium">Transfers</span>
+        </a>
+        <a href="wallet.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-wallet text-xl"></i>
+            <span class="font-medium">Wallet & Payees</span>
+        </a>
+        <a href="cards.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-credit-card text-xl"></i>
+            <span class="font-medium">Cards</span>
+        </a>
+        <a href="statements.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-file-text text-xl"></i>
+            <span class="font-medium">Statements</span>
+        </a>
+        <a href="calendar.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-calendar text-xl"></i>
+            <span class="font-medium">Calendar</span>
+        </a>
+        <a href="settings.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-gear text-xl"></i>
+            <span class="font-medium">Settings</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-slate-800 space-y-2">
+        <a href="service-channels.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-white transition interactive-press" onclick="closeMobileMenu()">
+            <i class="ph ph-sliders text-xl"></i>
+            <span class="font-medium">Channels</span>
+        </a>
+        <a href="index.html" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition text-slate-400 interactive-press">
+            <i class="ph ph-sign-out text-xl"></i>
+            <span class="font-medium">Sign Out</span>
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN TAG CHANGES - Modify existing main element -->
+<!-- OLD: <main class="flex-1 flex flex-col overflow-y-auto relative"> -->
+<!-- NEW: <main class="flex-1 flex flex-col overflow-y-auto relative md:pt-0 pt-16 pb-20 md:pb-0"> -->
+
+<!-- HEADER TAG CHANGES - Modify existing header element -->
+<!-- Add responsive classes: px-4 md:px-8, py-4 md:py-4, flex flex-col md:flex-row, gap-3 md:gap-0 -->
+<!-- Hide desktop header items: add class "hidden md:flex" to header items section -->
+
+<!-- CONTENT DIV CHANGES - Modify padding div -->
+<!-- OLD: <div class="p-8 max-w-7xl mx-auto w-full pb-24"> -->
+<!-- NEW: <div class="px-4 md:px-8 py-6 md:py-8 max-w-7xl mx-auto w-full pb-24"> -->
+
+<!-- BOTTOM NAV - Insert before closing </body> -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 bottom-nav">
+    <div class="flex justify-around items-center h-20">
+        <a href="dashboard.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-squares-four text-2xl mb-1"></i>
+            <span class="text-xs font-bold">Home</span>
+        </a>
+        <a href="transfers.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-arrows-left-right text-2xl mb-1"></i>
+            <span class="text-xs font-bold">Send</span>
+        </a>
+        <a href="cards.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-credit-card text-2xl mb-1"></i>
+            <span class="text-xs font-bold">Cards</span>
+        </a>
+        <a href="wallet.html" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-wallet text-2xl mb-1"></i>
+            <span class="text-xs font-bold">Wallet</span>
+        </a>
+        <button onclick="toggleMobileMenu()" class="flex flex-col items-center justify-center w-full h-full text-slate-600 hover:text-slate-800 transition">
+            <i class="ph ph-list text-2xl mb-1"></i>
+            <span class="text-xs font-bold">Menu</span>
+        </button>
+    </div>
+</nav>
+
+<!-- JAVASCRIPT - Add before closing </script> tag -->
+// Mobile Menu Functions
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('mobileSidebar');
+    const backdrop = document.getElementById('mobileBackdrop');
+    const btn = document.getElementById('mobileMenuBtn');
+    
+    const isActive = sidebar?.style.transform === 'translateX(0px)';
+    
+    if (isActive) {
+        closeMobileMenu();
+    } else {
+        sidebar.classList.remove('hidden');
+        backdrop.classList.remove('hidden');
+        btn.querySelector('.hamburger').classList.add('active');
+        setTimeout(() => {
+            sidebar.style.transform = 'translateX(0)';
+            sidebar.classList.add('active');
+            backdrop.classList.add('active');
+        }, 10);
+    }
+}
+
+function closeMobileMenu() {
+    const sidebar = document.getElementById('mobileSidebar');
+    const backdrop = document.getElementById('mobileBackdrop');
+    const btn = document.getElementById('mobileMenuBtn');
+    
+    sidebar.style.transform = 'translateX(-100%)';
+    sidebar.classList.remove('active');
+    backdrop.classList.remove('active');
+    btn.querySelector('.hamburger').classList.remove('active');
+    
+    setTimeout(() => {
+        sidebar.classList.add('hidden');
+        backdrop.classList.add('hidden');
+    }, 300);
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('mobileSidebar');
+    const btn = document.getElementById('mobileMenuBtn');
+    if (sidebar && !sidebar.contains(e.target) && !btn.contains(e.target)) {
+        if (!sidebar.classList.contains('hidden')) {
+            closeMobileMenu();
+        }
+    }
+});

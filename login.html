@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank of Zambia - Secure Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                    colors: {
+                        dark: {
+                            900: '#070B14',
+                            800: '#0D1322',
+                            700: '#151E32',
+                            card: 'rgba(13, 19, 34, 0.6)'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0;
+            background-color: #070B14;
+        }
+        
+        .interactive-press:active { transform: scale(0.98); }
+        
+        /* Slow, Elegant Animations */
+        .animate-fade-in { animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-slide-up { animation: slideUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-slide-down { animation: slideDown 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        .animate-scale-in { animation: scaleIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        /* Ambient Floating Orbs */
+        .animate-float-slow { animation: float 14s ease-in-out infinite; }
+        .animate-float-slower { animation: float 18s ease-in-out 3s infinite; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1) rotate(0deg); }
+            33% { transform: translateY(-30px) scale(1.05) rotate(2deg); }
+            66% { transform: translateY(15px) scale(0.95) rotate(-2deg); }
+        }
+
+        .delay-150 { animation-delay: 150ms; }
+        .delay-300 { animation-delay: 300ms; }
+
+        /* Subtle Grid Pattern */
+        .bg-grid-dark {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
+        /* Deep Glassmorphism */
+        .glass-dark {
+            background: rgba(13, 19, 34, 0.5);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .modal-overlay {
+            background: rgba(4, 7, 13, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* Elegant Inputs */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #0D1322 inset !important;
+            -webkit-text-fill-color: white !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* Elegant Dark Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 10px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Spinner & Animations */
+        .spinner { animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .shake { animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translateX(-1px); }
+            20%, 80% { transform: translateX(2px); }
+            30%, 50%, 70% { transform: translateX(-4px); }
+            40%, 60% { transform: translateX(4px); }
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full bg-dark-900 text-slate-200 overflow-hidden font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+
+    <div class="hidden lg:flex w-1/2 relative overflow-hidden flex-col justify-between p-14 2xl:p-20 shadow-2xl z-10 border-r border-white/5">
+        <div class="absolute inset-0 bg-dark-900 z-0"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-dark-900 to-blue-900/20 z-0"></div>
+        <div class="absolute inset-0 bg-grid-dark z-0 mask-image:linear-gradient(to_bottom,transparent,black,transparent)"></div>
+        
+        <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-cyan-600/20 blur-[120px] animate-float-slow z-0"></div>
+        <div class="absolute top-[40%] -right-[20%] w-[70%] h-[70%] rounded-full bg-blue-600/15 blur-[140px] animate-float-slower z-0"></div>
+
+        <div class="relative z-10 flex items-center space-x-4 animate-fade-in">
+            <div class="bg-gradient-to-tr from-cyan-500 to-blue-600 w-14 h-14 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(8,145,178,0.3)] border border-white/20">
+                <i class="ph ph-bank text-3xl text-white"></i>
+            </div>
+            <div>
+                <span class="block text-3xl font-extrabold tracking-tight text-white leading-none">Bank of Zambia</span>
+                <span class="block text-sm font-semibold text-cyan-400 tracking-widest uppercase mt-1">Digital Reserve</span>
+            </div>
+        </div>
+
+        <div class="relative z-10 animate-slide-up delay-150">
+            <h1 class="text-5xl 2xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
+                The Apex of <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-sm">Digital Banking.</span>
+            </h1>
+            <p class="text-lg text-slate-400 font-medium max-w-lg leading-relaxed">
+                Experience unparalleled security and seamless control over your financial assets. The next generation of sovereign wealth management.
+            </p>
+            
+            <div class="flex items-center gap-5 mt-12 bg-white/5 w-fit p-3 pr-6 rounded-full border border-white/10 backdrop-blur-md hover:bg-white/10 transition-colors duration-500 cursor-default">
+                <div class="flex -space-x-3">
+                    <img class="w-10 h-10 rounded-full border-2 border-dark-900" src="https://i.pravatar.cc/100?img=33" alt="User">
+                    <img class="w-10 h-10 rounded-full border-2 border-dark-900" src="https://i.pravatar.cc/100?img=47" alt="User">
+                    <img class="w-10 h-10 rounded-full border-2 border-dark-900" src="https://i.pravatar.cc/100?img=12" alt="User">
+                    <div class="w-10 h-10 rounded-full border-2 border-dark-900 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-xs font-bold text-white shadow-inner">+2M</div>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold text-slate-200 leading-tight">Trusted Nationwide</span>
+                    <span class="text-xs text-slate-400 font-medium">Join the secure network.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 flex justify-between items-center text-sm font-semibold text-slate-500 animate-fade-in delay-300">
+            <p>&copy; 2026 BOZ Network</p>
+            <div class="flex gap-8">
+                <a href="#" class="hover:text-cyan-400 transition-colors duration-300">Privacy Protocol</a>
+                <a href="#" class="hover:text-cyan-400 transition-colors duration-300">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full lg:w-1/2 relative bg-dark-900 flex flex-col h-full">
+        
+        <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-900/10 rounded-full blur-[120px] animate-float-slow"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-900/10 rounded-full blur-[100px] animate-float-slower"></div>
+        </div>
+
+        <div class="w-full h-full overflow-y-auto flex flex-col relative z-10">
+            
+            <div class="lg:hidden w-full px-4 pt-8 pb-2 flex flex-col items-center justify-center shrink-0 animate-fade-in z-20">
+                <div class="flex items-center space-x-3 mb-5">
+                    <div class="bg-gradient-to-tr from-cyan-500 to-blue-600 w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 border border-white/20">
+                        <i class="ph ph-bank text-2xl"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-2xl font-extrabold tracking-tight text-white leading-none">BOZ</span>
+                        <span class="text-[10px] font-semibold text-cyan-400 tracking-widest uppercase mt-1">Digital Reserve</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 sm:gap-4 bg-white/5 p-2 sm:p-2.5 pr-4 sm:pr-5 rounded-full border border-white/10 backdrop-blur-md">
+                    <div class="flex -space-x-2.5">
+                        <img class="w-8 h-8 rounded-full border-2 border-dark-900" src="https://i.pravatar.cc/100?img=33" alt="User">
+                        <img class="w-8 h-8 rounded-full border-2 border-dark-900" src="https://i.pravatar.cc/100?img=47" alt="User">
+                        <img class="w-8 h-8 rounded-full border-2 border-dark-900" src="https://i.pravatar.cc/100?img=12" alt="User">
+                        <div class="w-8 h-8 rounded-full border-2 border-dark-900 bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-[9px] font-bold text-white shadow-inner">+2M</div>
+                    </div>
+                    <div class="flex flex-col text-left">
+                        <span class="text-xs sm:text-sm font-bold text-slate-200 leading-tight">Trusted Nationwide</span>
+                        <span class="text-[10px] sm:text-xs text-slate-400 font-medium">Join the secure network.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col justify-center px-4 py-4 sm:py-8 shrink-0">
+                <div class="w-full max-w-[440px] mx-auto animate-slide-up">
+                    
+                    <div class="bg-dark-800 p-1.5 rounded-2xl flex relative mb-8 w-full border border-white/5 shadow-inner">
+                        <div id="tabIndicator" class="absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl shadow-[0_4px_20px_rgba(8,145,178,0.4)] transition-all duration-500 ease-in-out z-0"></div>
+                        
+                        <button id="btnCustomer" onclick="switchMode('customer')" class="relative z-10 flex-1 py-3.5 text-sm font-bold text-white transition-colors duration-500 interactive-press flex items-center justify-center gap-2.5 rounded-xl">
+                            <i class="ph-fill ph-user text-lg"></i> <span>Customer Login</span>
+                        </button>
+                        <button id="btnAdmin" onclick="switchMode('admin')" class="relative z-10 flex-1 py-3.5 text-sm font-bold text-slate-400 hover:text-slate-200 transition-colors duration-500 interactive-press flex items-center justify-center gap-2.5 rounded-xl">
+                            <i class="ph-fill ph-shield-check text-lg"></i> <span>Admin Access</span>
+                        </button>
+                    </div>
+
+                    <div class="glass-dark p-6 sm:p-10 rounded-3xl relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"></div>
+
+                        <div class="mb-8 sm:mb-10 animate-slide-down">
+                            <h2 id="formTitle" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">Access Portal</h2>
+                            <p id="formSubtitle" class="text-sm text-slate-400 font-medium mt-2">Authenticate to enter the secure network.</p>
+                        </div>
+
+                        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
+                            
+                            <div class="animate-slide-down delay-150">
+                                <label id="identifierLabel" class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Email or Phone</label>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i id="identifierIcon" class="ph ph-envelope-simple text-slate-500 text-xl transition-colors duration-300 group-focus-within:text-cyan-400"></i>
+                                    </div>
+                                    <input type="text" id="identifierInput" required class="block w-full pl-12 pr-4 py-3.5 sm:py-4 bg-dark-800/80 border border-slate-700/80 rounded-xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-dark-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all duration-300" placeholder="user@domain.com">
+                                    <span id="identifierError" class="hidden absolute -bottom-5 left-1 text-[11px] text-rose-400 font-bold flex items-center gap-1">
+                                        <i class="ph-fill ph-warning-circle"></i> <span id="identifierErrorText">Invalid credentials</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="animate-slide-down delay-300 pt-1">
+                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Security Key</label>
+                                <div class="relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i class="ph ph-lock-key text-slate-500 text-xl transition-colors duration-300 group-focus-within:text-cyan-400"></i>
+                                    </div>
+                                    <input type="password" id="passwordInput" required class="block w-full pl-12 pr-12 py-3.5 sm:py-4 bg-dark-800/80 border border-slate-700/80 rounded-xl text-sm font-semibold text-white placeholder:text-slate-600 focus:bg-dark-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all duration-300" placeholder="••••••••">
+                                    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-cyan-400 transition-colors focus:outline-none">
+                                        <i id="eyeIcon" class="ph ph-eye text-xl"></i>
+                                    </button>
+                                    <span id="passwordError" class="hidden absolute -bottom-5 left-1 text-[11px] text-rose-400 font-bold flex items-center gap-1">
+                                        <i class="ph-fill ph-warning-circle"></i> <span>Password required</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-3 animate-slide-down delay-300">
+                                <label class="flex items-center gap-3 cursor-pointer group">
+                                    <div class="relative flex items-center justify-center">
+                                        <input type="checkbox" class="peer appearance-none w-5 h-5 border-2 border-slate-600 bg-dark-800 rounded-md checked:bg-cyan-500 checked:border-cyan-500 transition-all cursor-pointer">
+                                        <i class="ph-bold ph-check text-dark-900 absolute text-xs opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"></i>
+                                    </div>
+                                    <span class="text-sm font-semibold text-slate-400 group-hover:text-slate-200 transition-colors">Remember device</span>
+                                </label>
+                                <button type="button" onclick="openForgotPasswordModal()" class="text-sm font-bold text-cyan-400 hover:text-cyan-300 hover:underline transition-all duration-300">Recover Access?</button>
+                            </div>
+
+                            <div class="pt-6 animate-slide-down delay-300">
+                                <button type="submit" id="submitBtn" class="relative w-full py-4 overflow-hidden rounded-xl group interactive-press focus:outline-none">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 transition-transform duration-500 group-hover:scale-105"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-r from-cyan-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                    
+                                    <div class="relative flex justify-center items-center gap-2 text-white font-bold text-sm sm:text-base tracking-wide shadow-[0_0_20px_rgba(8,145,178,0.3)]">
+                                        <span id="submitBtnText">Authenticate Now</span>
+                                        <i id="submitSpinner" class="ph ph-spinner-gap spinner hidden text-xl"></i>
+                                        <i id="submitArrow" class="ph-bold ph-arrow-right text-lg transition-transform duration-300 group-hover:translate-x-1"></i>
+                                    </div>
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="customerFooter" class="mt-8 text-center border-t border-white/10 pt-6 animate-fade-in delay-300">
+                            <p class="text-sm font-medium text-slate-400">New to the network? <a href="register.html" class="font-bold text-cyan-400 hover:text-cyan-300 transition-colors">Apply for an account</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="forgotPasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay animate-fade-in" onclick="closeForgotPasswordModal()" style="animation-duration: 0.3s"></div>
+        
+        <div class="relative bg-dark-800 border border-slate-700/50 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] max-w-md w-full p-8 animate-scale-in max-h-[90vh] overflow-y-auto">
+            <button onclick="closeForgotPasswordModal()" class="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-xl">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+
+            <div class="mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl mb-5 shadow-[0_0_20px_rgba(8,145,178,0.15)]">
+                    <i class="ph-fill ph-shield-warning text-3xl text-cyan-400"></i>
+                </div>
+                <h3 class="text-2xl font-extrabold text-white">Recover Access</h3>
+                <p class="text-sm text-slate-400 mt-2 leading-relaxed">Enter your registered email address. We will transmit a secure recovery link immediately.</p>
+            </div>
+
+            <form id="resetForm" onsubmit="handlePasswordReset(event)" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2.5 ml-1">Email Address</label>
+                    <div class="relative group">
+                        <i class="ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl transition-colors group-focus-within:text-cyan-400"></i>
+                        <input type="email" id="resetEmailInput" required class="w-full pl-12 pr-4 py-3.5 bg-dark-900 border border-slate-700 rounded-xl text-sm font-semibold text-white placeholder:text-slate-600 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50 focus:outline-none transition-all" placeholder="user@domain.com">
+                    </div>
+                    <span id="resetEmailError" class="hidden text-[11px] text-rose-400 font-bold mt-2 ml-1 flex items-center gap-1">
+                        <i class="ph-fill ph-warning-circle"></i> <span>Invalid email format</span>
+                    </span>
+                </div>
+
+                <div id="resetMessage" class="hidden p-4 bg-cyan-900/20 border border-cyan-500/30 rounded-xl flex items-start gap-3">
+                    <i class="ph-fill ph-check-circle text-cyan-400 text-xl mt-0.5"></i>
+                    <div>
+                        <p class="text-sm font-bold text-cyan-100">Transmission Sent</p>
+                        <p class="text-xs text-cyan-300/80 mt-1">Please check your inbox for the secure recovery link.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeForgotPasswordModal()" id="cancelResetBtn" class="flex-1 py-3.5 px-4 bg-dark-700 text-slate-300 font-bold rounded-xl hover:bg-slate-700 transition-all interactive-press border border-slate-600/50 text-sm">Cancel</button>
+                    <button type="submit" id="sendResetBtn" class="flex-1 py-3.5 px-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold rounded-xl hover:from-cyan-500 hover:to-blue-500 transition-all shadow-[0_0_15px_rgba(8,145,178,0.3)] interactive-press flex items-center justify-center gap-2 text-sm">
+                        <span id="sendResetBtnText">Send Link</span>
+                        <i id="resetSpinner" class="ph ph-spinner-gap spinner hidden text-lg"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-8 right-8 bg-dark-800 text-white px-6 py-4 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center space-x-4 transform transition-all duration-500 translate-y-12 opacity-0 z-[60] border border-slate-700/80">
+        <i id="toastIcon" class="ph-fill ph-check-circle text-cyan-400 text-2xl drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"></i>
+        <div>
+            <h4 id="toastTitle" class="font-bold tracking-wide text-sm text-slate-100">Success</h4>
+            <p id="toastMessage" class="text-slate-400 text-xs font-medium mt-0.5">Operation complete.</p>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'customer';
+
+        // Validation
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validateForm() {
+            const idInput = document.getElementById('identifierInput').value.trim();
+            const passInput = document.getElementById('passwordInput').value;
+            let isValid = true;
+
+            document.getElementById('identifierError').classList.add('hidden');
+            if (!idInput) {
+                document.getElementById('identifierErrorText').innerText = 'Required field';
+                document.getElementById('identifierError').classList.remove('hidden');
+                document.getElementById('identifierInput').classList.add('border-rose-500/50');
+                isValid = false;
+            } else if (!validateEmail(idInput) && !/^\+?[1-9]\d{1,14}$/.test(idInput.replace(/\D/g, ''))) {
+                document.getElementById('identifierErrorText').innerText = 'Invalid format';
+                document.getElementById('identifierError').classList.remove('hidden');
+                document.getElementById('identifierInput').classList.add('border-rose-500/50');
+                isValid = false;
+            }
+
+            document.getElementById('passwordError').classList.add('hidden');
+            if (!passInput || passInput.length < 6) {
+                document.getElementById('passwordError').classList.remove('hidden');
+                document.getElementById('passwordInput').classList.add('border-rose-500/50');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                document.querySelector('.glass-dark').classList.add('shake');
+                setTimeout(() => document.querySelector('.glass-dark').classList.remove('shake'), 500);
+            }
+
+            return isValid;
+        }
+
+        // Tab Switching Logic
+        function switchMode(mode) {
+            if (currentMode === mode) return;
+            currentMode = mode;
+
+            const indicator = document.getElementById('tabIndicator');
+            const btnCustomer = document.getElementById('btnCustomer');
+            const btnAdmin = document.getElementById('btnAdmin');
+            
+            const title = document.getElementById('formTitle');
+            const subtitle = document.getElementById('formSubtitle');
+            const idLabel = document.getElementById('identifierLabel');
+            const idIcon = document.getElementById('identifierIcon');
+            const idInput = document.getElementById('identifierInput');
+            const submitText = document.getElementById('submitBtnText');
+            const footer = document.getElementById('customerFooter');
+
+            if (mode === 'admin') {
+                indicator.style.left = 'calc(50% + 3px)'; 
+                btnAdmin.classList.replace('text-slate-400', 'text-white');
+                btnCustomer.classList.replace('text-white', 'text-slate-400');
+
+                title.innerText = "Admin Portal";
+                subtitle.innerText = "Authorized personnel only. Enter credentials.";
+                idLabel.innerText = "Staff Designation (ID)";
+                idInput.placeholder = "EMP-0001";
+                idIcon.className = "ph ph-identification-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl transition-colors duration-300 group-focus-within:text-cyan-400";
+                submitText.innerText = "Authorize Access";
+                footer.classList.add('hidden');
+                
+                // Form reset
+                idInput.value = ''; document.getElementById('passwordInput').value = '';
+
+            } else {
+                indicator.style.left = '6px';
+                btnCustomer.classList.replace('text-slate-400', 'text-white');
+                btnAdmin.classList.replace('text-white', 'text-slate-400');
+
+                title.innerText = "Access Portal";
+                subtitle.innerText = "Authenticate to enter the secure network.";
+                idLabel.innerText = "Email or Phone";
+                idInput.placeholder = "user@domain.com";
+                idIcon.className = "ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl transition-colors duration-300 group-focus-within:text-cyan-400";
+                submitText.innerText = "Authenticate Now";
+                footer.classList.remove('hidden');
+
+                idInput.value = ''; document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        // Utils
+        function togglePassword() {
+            const input = document.getElementById('passwordInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text'; icon.classList.replace('ph-eye', 'ph-eye-slash');
+            } else {
+                input.type = 'password'; icon.classList.replace('ph-eye-slash', 'ph-eye');
+            }
+        }
+
+        function showToast(title, msg, icon='ph-check-circle', color='text-cyan-400') {
+            const t = document.getElementById('toast'); 
+            document.getElementById('toastTitle').innerText = title; 
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-fill ${icon} ${color} text-2xl drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]`;
+            
+            t.classList.remove('hidden'); 
+            setTimeout(() => t.classList.remove('translate-y-12', 'opacity-0'), 10);
+            
+            setTimeout(() => { 
+                t.classList.add('translate-y-12', 'opacity-0'); 
+                setTimeout(() => t.classList.add('hidden'), 500); 
+            }, 4000);
+        }
+
+        // Login Submit
+        function handleLogin(e) {
+            e.preventDefault();
+            if (!validateForm()) return;
+
+            const btn = document.getElementById('submitBtn');
+            const text = document.getElementById('submitBtnText');
+            const spinner = document.getElementById('submitSpinner');
+            const arrow = document.getElementById('submitArrow');
+
+            text.innerText = "Verifying...";
+            spinner.classList.remove('hidden');
+            arrow.classList.add('hidden');
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            btn.disabled = true;
+
+            setTimeout(() => {
+                showToast('Authentication Granted', 'Establishing secure connection...', 'ph-shield-check', 'text-cyan-400');
+                
+                // SAVE MEMBER STATUS IN LOCAL STORAGE
+                localStorage.setItem('boz_member', 'true');
+                
+                setTimeout(() => window.location.href = currentMode === 'admin' ? 'admin-dashboard.html' : 'dashboard.html', 1500);
+            }, 1500);
+        }
+
+        // Modal Logic
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeForgotPasswordModal() {
+            const modal = document.getElementById('forgotPasswordModal');
+            document.getElementById('resetForm').classList.remove('hidden');
+            document.getElementById('resetMessage').classList.add('hidden');
+            document.getElementById('resetEmailInput').value = '';
+            document.getElementById('resetEmailError').classList.add('hidden');
+            document.getElementById('sendResetBtnText').innerText = 'Send Link';
+            document.getElementById('resetSpinner').classList.add('hidden');
+            document.getElementById('sendResetBtn').disabled = false;
+            
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function handlePasswordReset(e) {
+            e.preventDefault();
+            const email = document.getElementById('resetEmailInput').value.trim();
+            
+            if (!validateEmail(email)) {
+                document.getElementById('resetEmailError').classList.remove('hidden');
+                document.getElementById('resetEmailInput').classList.add('shake', 'border-rose-500/50');
+                setTimeout(() => document.getElementById('resetEmailInput').classList.remove('shake'), 400);
+                return;
+            }
+
+            document.getElementById('resetEmailError').classList.add('hidden');
+            document.getElementById('sendResetBtnText').innerText = 'Transmitting...';
+            document.getElementById('resetSpinner').classList.remove('hidden');
+            document.getElementById('sendResetBtn').disabled = true;
+
+            setTimeout(() => {
+                document.getElementById('resetForm').classList.add('hidden');
+                document.getElementById('resetMessage').classList.remove('hidden');
+                
+                setTimeout(() => {
+                    closeForgotPasswordModal();
+                    showToast('Transmission Sent', 'Recovery instructions delivered to inbox.', 'ph-paper-plane-tilt', 'text-cyan-400');
+                }, 2500);
+            }, 1200);
+        }
+
+        // Reset Input borders on type
+        window.addEventListener('load', () => {
+            ['identifierInput', 'passwordInput'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    this.classList.remove('border-rose-500/50');
+                    document.getElementById(id.replace('Input', 'Error')).classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

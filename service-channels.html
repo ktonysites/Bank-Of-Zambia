@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ | Service Channels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Custom Toggle Switch */
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: 0.4s; border-radius: 34px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .toggle-slider { background-color: #10b981; }
+        input:checked + .toggle-slider:before { transform: translateX(22px); }
+        input:disabled + .toggle-slider { background-color: #f1f5f9; cursor: not-allowed; opacity: 0.7; }
+        input:disabled + .toggle-slider:before { background-color: #cbd5e1; box-shadow: none; }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-500 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+                <i class="ph-bold ph-bank text-sm"></i>
+            </div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleMobileMenu()" class="hamburger-icon p-2 transition-transform duration-300 hover:bg-slate-100 rounded-lg">
+                <i class="ph-bold ph-list text-2xl text-slate-700"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0 bg-[#f8fafc]">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0">
+            <div>
+                <h2 class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Channel Control Matrix</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Manage up-time, routing, and maintenance for all banking interfaces.</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 lg:gap-4">
+                <button onclick="refreshChannels()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-indigo-600 transition interactive-press shrink-0">
+                    <i class="ph-bold ph-arrows-clockwise text-lg"></i>
+                </button>
+                <button onclick="showToast('Feature Locked', 'New channel integrations require board approval.', 'ph-lock-key', 'text-amber-500')" class="bg-indigo-600 text-white px-3 lg:px-5 py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center gap-2 interactive-press whitespace-nowrap">
+                    <i class="ph-bold ph-plus text-lg hidden sm:block"></i> Register Channel
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-10 max-w-[1600px] mx-auto w-full pb-24 lg:pb-10">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 mb-8">
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default relative overflow-hidden">
+                    <div class="relative z-10">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Interfaces</div>
+                        <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 mb-1" id="totalChannels">0</div>
+                    </div>
+                    <i class="ph-fill ph-sliders text-6xl absolute -right-4 -bottom-4 text-slate-100 opacity-50"></i>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default relative overflow-hidden border-emerald-200 bg-emerald-50/30">
+                    <div class="relative z-10">
+                        <div class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Operational</div>
+                        <div class="text-2xl lg:text-3xl font-extrabold text-emerald-700 mb-1" id="activeChannels">0</div>
+                    </div>
+                    <i class="ph-fill ph-check-circle text-6xl absolute -right-4 -bottom-4 text-emerald-100 opacity-50"></i>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default relative overflow-hidden border-amber-200 bg-amber-50/30">
+                    <div class="relative z-10">
+                        <div class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2">Under Maintenance</div>
+                        <div class="text-2xl lg:text-3xl font-extrabold text-amber-700 mb-1" id="maintenanceChannels">0</div>
+                    </div>
+                    <i class="ph-fill ph-wrench text-6xl absolute -right-4 -bottom-4 text-amber-100 opacity-50"></i>
+                </div>
+                
+                <div class="glass-card rounded-2xl p-5 hover:-translate-y-1 transition-transform cursor-default relative overflow-hidden border-rose-200 bg-rose-50/30">
+                    <div class="relative z-10">
+                        <div class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2">Disabled / Offline</div>
+                        <div class="text-2xl lg:text-3xl font-extrabold text-rose-700 mb-1" id="inactiveChannels">0</div>
+                    </div>
+                    <i class="ph-fill ph-x-circle text-6xl absolute -right-4 -bottom-4 text-rose-100 opacity-50"></i>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" id="channelsContainer">
+                </div>
+        </div>
+    </main>
+
+    <div id="maintenanceModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity duration-300" id="maintenanceOverlay" onclick="closeMaintenanceModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 lg:p-8 relative z-10 modal-animate border border-slate-100 scale-95 opacity-0 transition-all" id="maintenanceContent">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg lg:text-xl font-black text-slate-900">Schedule Downtime</h2>
+                <button onclick="closeMaintenanceModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <div class="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Interface</p>
+                <p class="text-sm font-bold text-indigo-600 flex items-center gap-2"><i class="ph-fill ph-plugs"></i> <span id="maintenanceChannelName"></span></p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Start Time</label>
+                        <input type="datetime-local" id="maintenanceStart" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 outline-none text-xs font-bold text-slate-700 cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">End Time</label>
+                        <input type="datetime-local" id="maintenanceEnd" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 outline-none text-xs font-bold text-slate-700 cursor-pointer">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Technical Justification</label>
+                    <textarea id="maintenanceReason" placeholder="e.g., Database migration, Security patching..." class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500/20 outline-none text-xs font-medium text-slate-700 resize-none" rows="3"></textarea>
+                </div>
+            </div>
+
+            <button onclick="confirmMaintenance()" class="w-full mt-6 py-3.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition interactive-press font-bold shadow-lg shadow-amber-200 text-sm">Confirm Maintenance Window</button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[70] pointer-events-none w-max max-w-[90vw]">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <button id="supportBtn" onclick="document.getElementById('chatWindow').classList.toggle('hidden')" class="fixed bottom-24 lg:bottom-6 right-6 w-14 h-14 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-2xl hover:bg-slate-800 transition z-40 interactive-press border border-slate-700">
+        <i class="ph-fill ph-sparkle text-xl text-indigo-400"></i>
+    </button>
+    
+    <div id="chatWindow" class="fixed bottom-40 lg:bottom-24 right-6 w-[calc(100vw-3rem)] sm:w-80 h-96 bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-2xl flex flex-col hidden z-[60] border border-slate-200/80 overflow-hidden modal-animate">
+        <div class="bg-slate-900 text-white p-5 flex justify-between items-center">
+            <div class="flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-400"></i><h3 class="font-bold text-sm">BOZ AI Assistant</h3></div>
+            <button onclick="document.getElementById('chatWindow').classList.add('hidden')" class="text-slate-400 hover:text-white transition"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50">
+            <div class="flex justify-start"><div class="bg-white border border-slate-200 text-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm text-xs font-medium shadow-sm">I can help you monitor channel uptime, configure routing, and schedule maintenance windows. How can I assist?</div></div>
+        </div>
+        <form id="chatForm" class="p-4 bg-white border-t border-slate-100 flex gap-2">
+            <input id="chatInput" type="text" placeholder="Query channel matrix..." class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-indigo-400 transition">
+            <button type="submit" class="w-9 h-9 flex items-center justify-center bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition"><i class="ph-fill ph-paper-plane-tilt"></i></button>
+        </form>
+    </div>
+
+    <nav id="mobileFooterNav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-20 z-40 flex items-center justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe"></nav>
+
+    <script>
+        // Self-contained Data Store
+        let channelsData = [
+            { id: 'CH-MOB-01', name: 'Mobile Banking App (iOS/Android)', type: 'Mobile', icon: 'ph-device-mobile', features: ['P2P Transfers', 'Bill Pay', 'Biometrics'], enabled: true, maintenance: null },
+            { id: 'CH-WEB-02', name: 'Retail Web Portal', type: 'Web', icon: 'ph-browser', features: ['Statements', 'Card Management', 'Wires'], enabled: true, maintenance: null },
+            { id: 'CH-CORP-03', name: 'Corporate Terminal', type: 'Web', icon: 'ph-buildings', features: ['Bulk Uploads', 'Payroll', 'Trade Finance'], enabled: true, maintenance: null },
+            { id: 'CH-API-04', name: 'B2B Open API Gateway', type: 'API', icon: 'ph-code', features: ['Direct Debit', 'Account Validation'], enabled: true, maintenance: null },
+            { id: 'CH-ATM-05', name: 'ATM Network Switch', type: 'Physical', icon: 'ph-atm', features: ['Cash Dispense', 'PIN Change', 'Mini-statements'], enabled: false, maintenance: { start: new Date().toISOString(), end: new Date(new Date().setHours(new Date().getHours() + 4)).toISOString(), reason: 'Switch software upgrade' } },
+            { id: 'CH-USD-06', name: 'USSD Banking (*845#)', type: 'Telecom', icon: 'ph-hash', features: ['Quick Balances', 'Airtime Purchase'], enabled: false, maintenance: null }
+        ];
+
+        let selectedChannelId = null;
+
+        function renderChannels() {
+            const container = document.getElementById('channelsContainer');
+            
+            let counts = { active: 0, inactive: 0, maintenance: 0 };
+
+            container.innerHTML = channelsData.map((ch, index) => {
+                // Determine Status
+                let status = 'inactive';
+                if (ch.maintenance) {
+                    status = 'maintenance';
+                    counts.maintenance++;
+                } else if (ch.enabled) {
+                    status = 'active';
+                    counts.active++;
+                } else {
+                    counts.inactive++;
+                }
+
+                // Styling configs
+                const statusTheme = {
+                    active: { bg: 'bg-emerald-50', text: 'text-emerald-600', icon: 'ph-check-circle', border: 'border-emerald-200' },
+                    inactive: { bg: 'bg-rose-50', text: 'text-rose-600', icon: 'ph-x-circle', border: 'border-rose-200' },
+                    maintenance: { bg: 'bg-amber-50', text: 'text-amber-600', icon: 'ph-wrench', border: 'border-amber-200' }
+                }[status];
+
+                // Build HTML
+                return `
+                    <div class="glass-card rounded-[1.5rem] p-5 lg:p-6 animate-row relative overflow-hidden flex flex-col h-full" style="animation-delay: ${index * 50}ms">
+                        ${status === 'maintenance' ? `<div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>` : ''}
+                        
+                        <div class="flex justify-between items-start mb-4 lg:mb-5">
+                            <div class="flex gap-3 lg:gap-4 items-center">
+                                <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                                    <i class="${ch.icon} text-xl lg:text-2xl text-indigo-600"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-900 leading-tight text-sm lg:text-base">${ch.name}</h3>
+                                    <p class="text-[10px] font-mono text-slate-400 mt-1">${ch.id} • ${ch.type}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 lg:mb-5 flex-1">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Capabilities</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${ch.features.map(f => `<span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold border border-slate-200">${f}</span>`).join('')}
+                            </div>
+                        </div>
+
+                        ${status === 'maintenance' ? `
+                            <div class="mb-4 lg:mb-5 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                                <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1 flex items-center gap-1"><i class="ph-fill ph-warning-circle"></i> Active Maintenance</p>
+                                <p class="text-xs text-amber-800 font-medium">${ch.maintenance.reason}</p>
+                            </div>
+                        ` : ''}
+
+                        <div class="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
+                            <div class="flex items-center gap-3">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" ${ch.enabled ? 'checked' : ''} ${status === 'maintenance' ? 'disabled' : ''} onchange="toggleChannel('${ch.id}', this.checked)">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-widest block leading-none ${statusTheme.text}">${status}</span>
+                                </div>
+                            </div>
+                            
+                            <button onclick="openMaintenanceModal('${ch.id}', '${ch.name}')" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition border border-slate-200 interactive-press" title="Schedule Maintenance">
+                                <i class="ph-bold ph-wrench"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update KPIs
+            document.getElementById('totalChannels').innerText = channelsData.length;
+            document.getElementById('activeChannels').innerText = counts.active;
+            document.getElementById('inactiveChannels').innerText = counts.inactive;
+            document.getElementById('maintenanceChannels').innerText = counts.maintenance;
+        }
+
+        // --- Core Functions ---
+        function toggleChannel(id, isEnabled) {
+            const channel = channelsData.find(c => c.id === id);
+            if(channel) {
+                channel.enabled = isEnabled;
+                renderChannels();
+                const icon = isEnabled ? 'ph-power' : 'ph-power';
+                const color = isEnabled ? 'text-emerald-400' : 'text-slate-400';
+                showToast(`Channel ${isEnabled ? 'Activated' : 'Deactivated'}`, `${channel.name} routing updated.`, icon, color);
+            }
+        }
+
+        function openMaintenanceModal(id, name) {
+            selectedChannelId = id;
+            document.getElementById('maintenanceChannelName').textContent = name;
+            
+            const now = new Date();
+            const later = new Date(now.getTime() + (2 * 60 * 60 * 1000));
+            
+            const formatForInput = (dateObj) => {
+                const tzOffset = dateObj.getTimezoneOffset() * 60000;
+                return (new Date(dateObj - tzOffset)).toISOString().slice(0, 16);
+            };
+
+            document.getElementById('maintenanceStart').value = formatForInput(now);
+            document.getElementById('maintenanceEnd').value = formatForInput(later);
+            document.getElementById('maintenanceReason').value = '';
+            
+            const modal = document.getElementById('maintenanceModal');
+            const overlay = document.getElementById('maintenanceOverlay');
+            const content = document.getElementById('maintenanceContent');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeMaintenanceModal() {
+            const modal = document.getElementById('maintenanceModal');
+            const overlay = document.getElementById('maintenanceOverlay');
+            const content = document.getElementById('maintenanceContent');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                selectedChannelId = null;
+            }, 300);
+        }
+
+        function confirmMaintenance() {
+            const start = document.getElementById('maintenanceStart').value;
+            const end = document.getElementById('maintenanceEnd').value;
+            const reason = document.getElementById('maintenanceReason').value;
+
+            if(!start || !end || !reason) {
+                showToast('Validation Error', 'All maintenance fields are required.', 'ph-warning', 'text-amber-500');
+                return;
+            }
+
+            const channel = channelsData.find(c => c.id === selectedChannelId);
+            if(channel) {
+                channel.enabled = false;
+                channel.maintenance = { start, end, reason };
+                closeMaintenanceModal();
+                renderChannels();
+                showToast('Maintenance Locked', `${channel.name} placed in maintenance mode.`, 'ph-wrench', 'text-amber-400');
+            }
+        }
+
+        function refreshChannels() {
+            showToast('Syncing Matrix', 'Polling interface gateways...', 'ph-arrows-clockwise', 'text-indigo-400');
+            setTimeout(() => {
+                renderChannels();
+                showToast('Synced', 'All channels up to date.', 'ph-check-circle', 'text-emerald-400');
+            }, 800);
+        }
+
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('translate-y-20', 'opacity-0'), 10);
+            
+            if(window.toastTimer) clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 3000);
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            
+            if (sidebar.style.transform === "translateX(0px)" || sidebar.style.transform === "translateX(0)") {
+                closeMobileMenu();
+            } else {
+                sidebar.style.transform = "translateX(0)";
+                backdrop.classList.remove("hidden");
+                setTimeout(() => backdrop.classList.remove("opacity-0"), 10);
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            
+            sidebar.style.transform = "translateX(-100%)";
+            backdrop.classList.add("opacity-0");
+            setTimeout(() => backdrop.classList.add("hidden"), 300);
+        }
+
+        // Chat Form
+        document.getElementById('chatForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if(!msg) return;
+            const chatLog = document.getElementById('chatMessages');
+            chatLog.insertAdjacentHTML('beforeend', `<div class="flex justify-end"><div class="bg-indigo-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm text-xs font-medium shadow-sm max-w-[80%]">${msg}</div></div>`);
+            input.value = '';
+            chatLog.scrollTop = chatLog.scrollHeight;
+            setTimeout(() => {
+                chatLog.insertAdjacentHTML('beforeend', `<div class="flex justify-start"><div class="bg-white border border-slate-200 text-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm text-xs font-medium shadow-sm max-w-[80%]">Diagnostic protocol initiated... Checking channel health.</div></div>`);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }, 600);
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'service-channels.html');
+            }
+            renderChannels();
+        });
+    </script>
+</body>
+</html>

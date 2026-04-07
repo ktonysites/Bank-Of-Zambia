@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ | Systems Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Calendar Specific Styles */
+        .calendar-day { 
+            aspect-ratio: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #334155;
+            position: relative;
+        }
+        .calendar-day:hover { background: #eef2ff; color: #4f46e5; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
+        .calendar-day.other-month { color: #cbd5e1; font-weight: 400; }
+        .calendar-day.today { background: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        .calendar-day.today:hover { background: #4338ca; color: white; }
+        
+        .event-dots-container { position: absolute; bottom: 8px; display: flex; gap: 3px; }
+        .event-dot { width: 5px; height: 5px; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Sync Spinner */
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+        .syncing .ph-arrows-clockwise { animation: spin-slow 1s linear infinite; }
+        
+        /* Hamburger Animation */
+        .hamburger .line { transition: all 0.3s ease-in-out; transform-origin: center; }
+        .hamburger.active .line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active .line:nth-child(2) { opacity: 0; }
+        .hamburger.active .line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-800" onclick="closeAllDropdowns(event)">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-green-600 to-emerald-500 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">
+                <i class="ph-bold ph-bank text-sm"></i>
+            </div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="notifBtnMobile" onclick="toggleDropdown('notifDropdownMobile', event)" class="text-slate-400 hover:text-indigo-600 transition relative p-2 bg-slate-50 rounded-full interactive-press">
+                <i class="ph-bold ph-bell text-lg"></i>
+                <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden" id="notifBadgeMobile"></span>
+            </button>
+            <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="p-2 interactive-press">
+                <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded"></span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <div id="notifDropdownMobile" class="lg:hidden hidden fixed top-16 right-4 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 transform transition-all opacity-0 scale-95 origin-top-right">
+        <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="font-bold text-sm text-slate-900">Upcoming Events</h3>
+            <button class="text-xs text-indigo-600 font-bold hover:underline">Mark all read</button>
+        </div>
+        <div id="notifListMobile" class="max-h-80 overflow-y-auto p-2"></div>
+    </div>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20">
+                    <i class="ph-bold ph-bank text-xl"></i>
+                </div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+        </div>
+
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0 bg-[#f8fafc]">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0">
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Systems Calendar</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Manage maintenance, holidays, and core schedules.</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="relative hidden sm:block">
+                    <button onclick="toggleDropdown('notifDropdown', event)" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-indigo-600 transition interactive-press relative">
+                        <i class="ph-fill ph-bell text-lg"></i>
+                        <span id="notifBadge" class="absolute top-0 right-0 w-3 h-3 bg-red-500 border-2 border-white rounded-full hidden"></span>
+                    </button>
+                    
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 transform transition-all opacity-0 scale-95 origin-top-right">
+                        <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-bold text-sm text-slate-900">Upcoming Events</h3>
+                            <button class="text-xs text-indigo-600 font-bold hover:underline">Mark all read</button>
+                        </div>
+                        <div id="notifList" class="max-h-80 overflow-y-auto p-2"></div>
+                    </div>
+                </div>
+
+                <button id="syncBtn" onclick="syncGoogleCalendar()" class="bg-white border border-slate-200 text-slate-700 px-3 lg:px-4 py-2 lg:py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-slate-50 transition shadow-sm flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-arrows-clockwise text-indigo-500 text-lg"></i> <span class="hidden sm:inline">Sync Google</span>
+                </button>
+
+                <button onclick="openEventModal()" class="bg-indigo-600 text-white px-4 lg:px-5 py-2 lg:py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-plus text-lg"></i> Add Event
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 lg:p-10">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 max-w-[1600px] mx-auto">
+                
+                <div class="xl:col-span-2 space-y-6 animate-row" style="animation-delay: 100ms">
+                    <div class="glass-card rounded-[2rem] p-6 lg:p-8">
+                        
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 lg:mb-8 gap-4">
+                            <h2 class="text-2xl font-black text-slate-900" id="monthYear"></h2>
+                            <div class="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto justify-between">
+                                <button onclick="previousMonth()" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition font-bold interactive-press"><i class="ph-bold ph-caret-left"></i></button>
+                                <button onclick="goToToday()" class="px-6 py-2 rounded-lg text-slate-600 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition font-bold text-sm interactive-press">Today</button>
+                                <button onclick="nextMonth()" class="px-4 py-2 rounded-lg text-slate-500 hover:bg-white hover:text-indigo-600 hover:shadow-sm transition font-bold interactive-press"><i class="ph-bold ph-caret-right"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-7 gap-2 lg:gap-4 mb-4">
+                            <div class="text-center font-black text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest">Sun</div>
+                            <div class="text-center font-black text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest">Mon</div>
+                            <div class="text-center font-black text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest">Tue</div>
+                            <div class="text-center font-black text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest">Wed</div>
+                            <div class="text-center font-black text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest">Thu</div>
+                            <div class="text-center font-black text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest">Fri</div>
+                            <div class="text-center font-black text-slate-400 text-[10px] sm:text-xs uppercase tracking-widest">Sat</div>
+                        </div>
+
+                        <div class="grid grid-cols-7 gap-2 lg:gap-4" id="calendarDays">
+                            </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-5 flex flex-wrap gap-4 sm:gap-6 items-center justify-center bg-slate-50/50 border-dashed">
+                        <span class="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest mr-2 w-full sm:w-auto text-center">Legend:</span>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-blue-500"></div><span class="text-[10px] sm:text-xs font-bold text-slate-600">Reminder</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-amber-500"></div><span class="text-[10px] sm:text-xs font-bold text-slate-600">Maintenance</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500"></div><span class="text-[10px] sm:text-xs font-bold text-slate-600">Holiday</span></div>
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-purple-500"></div><span class="text-[10px] sm:text-xs font-bold text-slate-600">Announcement</span></div>
+                    </div>
+                </div>
+
+                <div class="space-y-6 animate-row" style="animation-delay: 200ms">
+                    
+                    <div class="glass-card rounded-[2rem] p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-extrabold text-slate-900">Agenda</h3>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full">Next 30 Days</span>
+                        </div>
+                        <div id="upcomingEventsContainer" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 hide-scrollbar">
+                            </div>
+                    </div>
+
+                    <div class="glass-card rounded-[2rem] p-6 bg-gradient-to-br from-indigo-900 to-slate-900 text-white border-none shadow-xl">
+                        <h3 class="font-extrabold mb-4">Integrations</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-white/10 rounded-xl backdrop-blur-md border border-white/10">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center">
+                                        <i class="ph-fill ph-google-logo text-red-500"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sm">Google Workspace</p>
+                                        <p class="text-[10px] text-indigo-200" id="lastSyncTime">Last sync: 1 hr ago</p>
+                                    </div>
+                                </div>
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="eventDetailsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" onclick="closeEventDetailsModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-6 sm:p-8 relative z-10 modal-animate border border-slate-100 scale-95 opacity-0 transition-all">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-black text-slate-900">Event Details</h2>
+                <button onclick="closeEventDetailsModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition interactive-press">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            
+            <div id="eventDetailsContent" class="mb-8">
+                </div>
+
+            <div class="flex gap-3">
+                <button onclick="deleteSelectedEvent()" class="flex-1 px-4 py-3 sm:py-3.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition interactive-press font-bold text-sm">Delete</button>
+                <button onclick="closeEventDetailsModal()" class="flex-1 px-4 py-3 sm:py-3.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition interactive-press font-bold shadow-lg shadow-indigo-200 text-sm">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addEventModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" id="addEventOverlay" onclick="closeEventModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-6 sm:p-8 relative z-10 modal-animate border border-slate-100 scale-95 opacity-0 transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900">Create Event</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-1">Add a new operational directive.</p>
+                </div>
+                <button onclick="closeEventModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition interactive-press"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            
+            <form id="eventForm" onsubmit="handleAddEvent(event)" class="space-y-4 lg:space-y-5">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Event Title</label>
+                    <input type="text" id="eventTitle" required class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm text-slate-900" placeholder="e.g., Core System Update">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Date</label>
+                        <input type="date" id="eventDate" required class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 text-sm cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Classification</label>
+                        <select id="eventType" class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-700 cursor-pointer text-sm">
+                            <option value="reminder">Reminder</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="holiday">Holiday</option>
+                            <option value="announcement">Announcement</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Description / Notes</label>
+                    <textarea id="eventDescription" class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium resize-none text-sm text-slate-700" rows="3" placeholder="Additional details..."></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" class="w-full py-3.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition interactive-press font-bold shadow-lg shadow-indigo-200 text-sm flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-plus-circle"></i> Publish Event
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[70] pointer-events-none w-max max-w-[90vw]">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <nav id="mobileFooterNav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 h-20 z-40 flex items-center justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] pb-safe"></nav>
+
+    <script>
+        // Mock Calendar Data Store
+        const calendarData = {
+            events: [
+                { id: 1, title: "Q1 Financial Audit", date: new Date(new Date().setDate(new Date().getDate() + 2)).toISOString(), type: "maintenance", description: "System lockdown for external auditors.", color: "#f59e0b", source: "local" },
+                { id: 2, title: "Treasury Sync", date: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(), type: "reminder", description: "Reconcile gov accounts.", color: "#3b82f6", source: "local" },
+                { id: 3, title: "New API Rollout", date: new Date(new Date().setDate(new Date().getDate() + 10)).toISOString(), type: "announcement", description: "V2 endpoints going live.", color: "#8b5cf6", source: "local" }
+            ],
+            holidays: [
+                { id: 101, title: "Easter Monday", date: new Date(new Date().getFullYear(), 3, 6).toISOString(), type: "holiday", color: "#10b981", source: "system" }
+            ],
+            
+            getAllEvents() { return [...this.events, ...this.holidays]; },
+            
+            getEventsForDate(dateObj) {
+                const targetStr = dateObj.toISOString().split('T')[0];
+                return this.getAllEvents().filter(e => e.date.split('T')[0] === targetStr);
+            },
+            
+            getUpcoming(days = 30) {
+                const now = new Date();
+                now.setHours(0,0,0,0);
+                const limit = new Date(now.getTime() + (days * 86400000));
+                
+                return this.getAllEvents()
+                    .filter(e => {
+                        const ed = new Date(e.date);
+                        return ed >= now && ed <= limit;
+                    })
+                    .sort((a, b) => new Date(a.date) - new Date(b.date));
+            },
+            
+            addEvent(title, date, type, description, color, source = "local") {
+                this.events.push({ id: Date.now(), title, date: new Date(date).toISOString(), type, description, color, source });
+            },
+            
+            removeEvent(id) {
+                this.events = this.events.filter(e => e.id !== id);
+            }
+        };
+
+        const typeColors = { reminder: '#3b82f6', maintenance: '#f59e0b', holiday: '#10b981', announcement: '#8b5cf6' };
+        let currentDate = new Date();
+        let selectedEventId = null;
+
+        // UI Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'calendar.html');
+            }
+            renderCalendar();
+            updateNotifications();
+        });
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            const calendarDays = document.getElementById('calendarDays');
+            calendarDays.innerHTML = '';
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Prev Month
+            for (let i = firstDay - 1; i >= 0; i--) {
+                calendarDays.appendChild(createDayElement(daysInPrevMonth - i, true, new Date(year, month - 1, daysInPrevMonth - i)));
+            }
+
+            // Current Month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateObj = new Date(year, month, day);
+                dateObj.setHours(0, 0, 0, 0);
+                
+                const dayElement = createDayElement(day, false, dateObj);
+                
+                if (dateObj.getTime() === today.getTime()) dayElement.classList.add('today');
+                
+                const dayEvents = calendarData.getEventsForDate(dateObj);
+                if (dayEvents.length > 0) {
+                    const dotContainer = document.createElement('div');
+                    dotContainer.className = 'event-dots-container';
+                    dayEvents.slice(0, 3).forEach(e => { // Max 3 dots
+                        const dot = document.createElement('div');
+                        dot.className = 'event-dot';
+                        dot.style.backgroundColor = e.color;
+                        dotContainer.appendChild(dot);
+                    });
+                    dayElement.appendChild(dotContainer);
+                }
+
+                dayElement.onclick = () => showDayEvents(dateObj);
+                calendarDays.appendChild(dayElement);
+            }
+
+            // Next Month
+            const totalCells = calendarDays.children.length;
+            const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+            for (let day = 1; day <= remainingCells; day++) {
+                calendarDays.appendChild(createDayElement(day, true, new Date(year, month + 1, day)));
+            }
+
+            renderAgenda();
+        }
+
+        function createDayElement(day, isOtherMonth, dateObj) {
+            const el = document.createElement('div');
+            el.className = `calendar-day border border-slate-100 ${isOtherMonth ? 'other-month bg-slate-50/50' : 'bg-white'}`;
+            el.textContent = day;
+            return el;
+        }
+
+        function showDayEvents(date) {
+            const events = calendarData.getEventsForDate(date);
+            const html = `
+                <div class="mb-4 pb-4 border-b border-slate-100">
+                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">${date.toLocaleDateString('en-US', { weekday: 'long' })}</p>
+                    <h3 class="text-2xl font-black text-slate-900">${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</h3>
+                </div>
+                ${events.length > 0 ? `
+                    <div class="space-y-3">
+                        ${events.map(e => `
+                            <div class="p-4 rounded-xl border border-slate-100 relative overflow-hidden group hover:border-indigo-200 transition-colors cursor-pointer bg-slate-50" onclick="selectEvent(${e.id})">
+                                <div class="absolute left-0 top-0 bottom-0 w-1.5" style="background-color: ${e.color}"></div>
+                                <div class="flex justify-between items-start pl-2">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <p class="font-black text-slate-900 group-hover:text-indigo-600 transition-colors">${e.title}</p>
+                                            ${e.source === 'google' ? `<i class="ph-fill ph-google-logo text-xs text-slate-400"></i>` : ''}
+                                        </div>
+                                        <p class="text-xs font-medium text-slate-600">${e.description || 'No additional notes.'}</p>
+                                    </div>
+                                    <span class="px-2.5 py-1 text-[10px] rounded-full font-black uppercase tracking-widest border shrink-0 ml-2" style="color: ${e.color}; border-color: ${e.color}40; background: ${e.color}10;">${e.type}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : `
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="ph-fill ph-calendar-blank text-2xl text-slate-300"></i>
+                        </div>
+                        <p class="text-sm font-bold text-slate-500">No scheduled events</p>
+                    </div>
+                `}
+            `;
+            document.getElementById('eventDetailsContent').innerHTML = html;
+            
+            const modal = document.getElementById('eventDetailsModal');
+            const overlay = modal.querySelector('.modal-overlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function renderAgenda() {
+            const upcoming = calendarData.getUpcoming(30);
+            const container = document.getElementById('upcomingEventsContainer');
+            
+            if (upcoming.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-sm font-medium text-center py-4">Schedule is clear.</p>';
+                return;
+            }
+
+            container.innerHTML = upcoming.map(e => {
+                const date = new Date(e.date);
+                const isToday = date.toDateString() === new Date().toDateString();
+                const dayTag = isToday ? '<span class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded ml-2">TODAY</span>' : '';
+                
+                return `
+                <div class="p-4 rounded-xl border border-slate-100 bg-white hover:border-indigo-200 hover:shadow-md transition cursor-pointer flex gap-4 items-center group" onclick="showDayEvents(new Date('${e.date}'))">
+                    <div class="flex flex-col items-center justify-center w-12 h-12 rounded-lg shrink-0" style="background: ${e.color}15; color: ${e.color}">
+                        <span class="text-[10px] font-black uppercase tracking-widest">${date.toLocaleDateString('en-US', {month: 'short'})}</span>
+                        <span class="text-lg font-black leading-none mt-0.5">${date.getDate()}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-sm text-slate-900 truncate group-hover:text-indigo-600 transition-colors flex items-center">${e.title} ${dayTag}</p>
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 truncate">${e.type}</p>
+                    </div>
+                    ${e.source === 'google' ? '<i class="ph-fill ph-google-logo text-slate-300 text-lg"></i>' : ''}
+                </div>
+            `}).join('');
+        }
+
+        // Navigation Controls
+        function previousMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
+        function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
+        function goToToday() { currentDate = new Date(); renderCalendar(); }
+
+        // Modal Controls
+        function openEventModal() { 
+            const modal = document.getElementById('addEventModal');
+            const overlay = document.getElementById('addEventOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            // Close mobile menu if open
+            closeMobileMenu();
+        }
+
+        function closeEventModal() { 
+            const modal = document.getElementById('addEventModal');
+            const overlay = document.getElementById('addEventOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                document.getElementById('eventForm').reset(); 
+            }, 300);
+        }
+
+        function closeEventDetailsModal() { 
+            const modal = document.getElementById('eventDetailsModal');
+            const overlay = modal.querySelector('.modal-overlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                selectedEventId = null; 
+            }, 300);
+        }
+        
+        function selectEvent(id) {
+            selectedEventId = id;
+            showToast('Event Selected', 'You can now delete this event if needed.', 'ph-info', 'text-blue-400');
+        }
+
+        function handleAddEvent(e) {
+            e.preventDefault();
+            const title = document.getElementById('eventTitle').value;
+            const date = document.getElementById('eventDate').value;
+            const type = document.getElementById('eventType').value;
+            const description = document.getElementById('eventDescription').value;
+
+            calendarData.addEvent(title, date, type, description, typeColors[type]);
+            closeEventModal();
+            renderCalendar();
+            updateNotifications();
+            showToast('Event Created', `${title} has been added to the calendar.`, 'ph-check-circle', 'text-emerald-400');
+        }
+
+        function deleteSelectedEvent() {
+            if (selectedEventId) {
+                calendarData.removeEvent(selectedEventId);
+                closeEventDetailsModal();
+                renderCalendar();
+                updateNotifications();
+                showToast('Event Deleted', 'The mandate was removed from the ledger.', 'ph-trash', 'text-rose-400');
+            } else {
+                showToast('Action Failed', 'Please click on an event card above to select it first.', 'ph-warning-circle', 'text-amber-400');
+            }
+        }
+
+        // Google Sync Integration
+        function syncGoogleCalendar() {
+            const btn = document.getElementById('syncBtn');
+            btn.classList.add('syncing');
+            btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise text-indigo-500 text-lg"></i> <span class="hidden sm:inline">Syncing...</span>`;
+            
+            showToast('Syncing Workspace', 'Connecting to Google Calendar...', 'ph-cloud-arrow-down', 'text-indigo-400');
+
+            setTimeout(() => {
+                // Mock import events
+                calendarData.addEvent("Executive Offsite", new Date(new Date().setDate(new Date().getDate() + 14)).toISOString(), "reminder", "Imported from GCal", "#3b82f6", "google");
+                calendarData.addEvent("Server Patching", new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(), "maintenance", "AWS instance updates", "#f59e0b", "google");
+                
+                btn.classList.remove('syncing');
+                btn.innerHTML = `<i class="ph-bold ph-arrows-clockwise text-indigo-500 text-lg"></i> <span class="hidden sm:inline">Sync Google</span>`;
+                document.getElementById('lastSyncTime').innerText = "Last sync: Just now";
+                
+                renderCalendar();
+                updateNotifications();
+                showToast('Sync Complete', '2 new events imported from Workspace.', 'ph-check-circle', 'text-emerald-400');
+            }, 1500);
+        }
+
+        // Dropdown & Notification System
+        function toggleDropdown(id, e) {
+            if(e) e.stopPropagation();
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden')) {
+                closeAllDropdowns(null); // Close others
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.remove('opacity-0', 'scale-95'), 10);
+            } else {
+                el.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => el.classList.add('hidden'), 200);
+            }
+        }
+
+        function closeAllDropdowns(e) {
+            const notifDesk = document.getElementById('notifDropdown');
+            const notifMob = document.getElementById('notifDropdownMobile');
+            
+            if (notifDesk && !notifDesk.contains(e?.target) && !e?.target?.closest('button[onclick*="notifDropdown"]')) {
+                notifDesk.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => notifDesk.classList.add('hidden'), 200);
+            }
+            if (notifMob && !notifMob.contains(e?.target) && !e?.target?.closest('button[onclick*="notifDropdownMobile"]')) {
+                notifMob.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => notifMob.classList.add('hidden'), 200);
+            }
+        }
+
+        function updateNotifications() {
+            const upcoming = calendarData.getUpcoming(7); // Next 7 days
+            const badgeDesktop = document.getElementById('notifBadge');
+            const badgeMobile = document.getElementById('notifBadgeMobile');
+            const listDesktop = document.getElementById('notifList');
+            const listMobile = document.getElementById('notifListMobile');
+            
+            if (upcoming.length > 0) {
+                if(badgeDesktop) badgeDesktop.classList.remove('hidden');
+                if(badgeMobile) badgeMobile.classList.remove('hidden');
+                
+                const listHtml = upcoming.map(e => `
+                    <div class="p-3 hover:bg-slate-50 rounded-xl cursor-pointer transition flex gap-3 group border-b border-slate-50 last:border-0" onclick="showDayEvents(new Date('${e.date}'))">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5" style="background: ${e.color}20; color: ${e.color}">
+                            <i class="ph-fill ph-bell-ringing text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-sm text-slate-900 group-hover:text-indigo-600 transition">${e.title}</p>
+                            <p class="text-xs font-medium text-slate-500">${new Date(e.date).toLocaleDateString()} - ${e.type}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                if(listDesktop) listDesktop.innerHTML = listHtml;
+                if(listMobile) listMobile.innerHTML = listHtml;
+            } else {
+                if(badgeDesktop) badgeDesktop.classList.add('hidden');
+                if(badgeMobile) badgeMobile.classList.add('hidden');
+                
+                const emptyHtml = `<div class="p-6 text-center text-slate-500 text-sm font-medium">No alerts for the next 7 days.</div>`;
+                if(listDesktop) listDesktop.innerHTML = emptyHtml;
+                if(listMobile) listMobile.innerHTML = emptyHtml;
+            }
+        }
+
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.querySelector('.hamburger');
+            
+            if (sidebar.style.transform === 'translateX(0px)') {
+                sidebar.style.transform = 'translateX(-100%)';
+                backdrop.classList.add('opacity-0');
+                hamburger.classList.remove('active');
+                setTimeout(() => backdrop.classList.add('hidden'), 300);
+            } else {
+                sidebar.style.transform = 'translateX(0)';
+                backdrop.classList.remove('hidden');
+                hamburger.classList.add('active');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const backdrop = document.getElementById('mobileBackdrop');
+            const hamburger = document.querySelector('.hamburger');
+            
+            if(sidebar) sidebar.style.transform = 'translateX(-100%)';
+            if(backdrop) backdrop.classList.add('opacity-0');
+            if(hamburger) hamburger.classList.remove('active');
+            setTimeout(() => {
+                if(backdrop) backdrop.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOZ CORE | Cheque Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="navigation-config.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        /* Modern Glassmorphism & Depth */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #020617 100%); }
+        .interactive-press { transition: transform 0.1s; }
+        .interactive-press:active { transform: scale(0.97); }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-row { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); transition: opacity 0.3s; }
+
+        /* Slide Pane */
+        .slide-pane { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .slide-pane-open { transform: translateX(0%); }
+        .slide-pane-closed { transform: translateX(100%); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Cheque Mock Image */
+        .mock-cheque {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 10px 10px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        /* Hamburger Animation */
+        .hamburger .line { transition: all 0.3s ease-in-out; transform-origin: center; }
+        .hamburger.active .line:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active .line:nth-child(2) { opacity: 0; }
+        .hamburger.active .line:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900" onclick="closeAllDropdowns(event)">
+
+    <header class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 z-40 flex items-center justify-between px-4 shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-gradient-to-tr from-indigo-600 to-indigo-500 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-lg">Z</div>
+            <span class="text-sm font-bold text-slate-800">BOZ CORE</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleDropdown('notifDropdownMobile', event)" class="relative p-2 text-slate-600 hover:text-indigo-600 transition interactive-press">
+                <i class="ph-bold ph-bell text-xl"></i>
+                <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full hidden" id="notifBadgeMobile"></span>
+            </button>
+            <button onclick="toggleMobileMenu()" class="p-2 transition-transform duration-300 text-slate-600 hamburger-icon">
+                <div class="hamburger w-6 h-5 flex flex-col justify-between cursor-pointer">
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                    <span class="line h-[2px] w-6 bg-slate-800 rounded transition-all"></span>
+                </div>
+            </button>
+        </div>
+    </header>
+
+    <div id="mobileBackdrop" class="lg:hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden transition-opacity duration-300 opacity-0" onclick="closeMobileMenu()"></div>
+
+    <aside id="mobileSidebar" class="lg:hidden fixed left-0 top-0 w-72 h-screen bg-[#0B0F19] text-slate-300 flex flex-col z-50 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out" style="transform: translateX(-100%);">
+        <div class="p-6 flex items-center justify-between text-white border-b border-slate-800 bg-slate-900/50 shrink-0 pt-20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 w-9 h-9 rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30 text-white border border-white/20"><i class="ph-bold ph-bank text-xl"></i></div>
+                <div>
+                    <span class="text-lg font-extrabold tracking-wide block leading-none text-white">BOZ</span>
+                    <span class="text-[10px] text-indigo-400 font-mono tracking-widest uppercase font-semibold">Admin Portal</span>
+                </div>
+            </div>
+            <button onclick="closeMobileMenu()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg transition"><i class="ph-bold ph-x text-lg"></i></button>
+        </div>
+        <nav id="mobileNav" class="flex-1 overflow-y-auto py-6 px-4 space-y-2"></nav>
+        <div id="mobileFooter" class="p-4 mt-auto border-t border-slate-800 bg-slate-900/50 shrink-0"></div>
+    </aside>
+
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col hidden lg:flex border-r border-slate-800 shadow-2xl relative z-20">
+        <div class="p-8 flex items-center space-x-3 shrink-0">
+            <div class="bg-indigo-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white border border-white/10">
+                <i class="ph-bold ph-bank text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-extrabold tracking-tight text-xl leading-none">BOZ CORE</h1>
+                <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-[0.2em] mt-1">Admin Portal</p>
+            </div>
+        </div>
+        <div id="desktopNav" class="flex-1 overflow-y-auto px-4 pb-8 space-y-6 hide-scrollbar"></div>
+        <div id="desktopFooter" class="p-6 border-t border-slate-800 shrink-0"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 lg:pt-0 pb-20 lg:pb-0 bg-[#f8fafc]">
+        
+        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 lg:px-10 flex items-center justify-between z-30 sticky top-0 shadow-sm">
+            <div>
+                <h2 class="text-lg lg:text-xl font-extrabold text-slate-900 tracking-tight">Cheque Operations</h2>
+                <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-500 font-medium mt-0.5">
+                    <span>Manage inward/outward clearings, SWIFT, and book requests.</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="relative hidden sm:block">
+                    <button onclick="toggleDropdown('notifDropdown', event)" class="bg-white border border-slate-200 text-slate-500 w-10 h-10 rounded-full hover:bg-slate-50 transition shadow-sm flex items-center justify-center interactive-press relative">
+                        <i class="ph-bold ph-bell text-lg"></i>
+                        <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white hidden" id="notifBadgeDesktop"></span>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h3 class="font-bold text-slate-800 text-sm">Action Required</h3>
+                        </div>
+                        <div class="p-4 text-sm text-slate-600 font-medium text-center">No alerts.</div>
+                    </div>
+                </div>
+                
+                <button onclick="openSwiftModal()" class="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-slate-50 transition shadow-sm flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-globe text-lg text-indigo-600"></i> <span class="hidden sm:inline">Process SWIFT</span>
+                </button>
+
+                <button onclick="showToast('Feature Coming', 'Book issuance integration pending.', 'ph-info')" class="bg-indigo-600 text-white px-4 py-2.5 rounded-xl font-bold text-xs lg:text-sm hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center gap-2 interactive-press">
+                    <i class="ph-bold ph-book-bookmark text-lg"></i> <span class="hidden sm:inline">Issue Book</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-8 max-w-[1600px] mx-auto w-full">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100 shrink-0"><i class="ph-fill ph-clock text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Pending Clearings</p>
+                        <h3 id="statPending" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+                
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0"><i class="ph-fill ph-check-circle text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Cleared Vol (Today)</p>
+                        <h3 id="statClearedVol" class="text-2xl lg:text-3xl font-extrabold text-slate-900">ZMW 0</h3>
+                    </div>
+                </div>
+                
+                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0"><i class="ph-fill ph-globe-hemisphere-west text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Pending SWIFT</p>
+                        <h3 id="statSwift" class="text-2xl lg:text-3xl font-extrabold text-slate-900">0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-rose-50/30 border border-rose-200 rounded-2xl p-6 shadow-sm flex items-center gap-5 relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                    <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0"><i class="ph-fill ph-warning-octagon text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] text-rose-500 font-black uppercase tracking-widest mb-1">Stopped / Bounced</p>
+                        <h3 id="statBounced" class="text-2xl lg:text-3xl font-extrabold text-rose-700">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-2xl lg:rounded-[2rem] shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+                
+                <div class="px-4 lg:px-8 py-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-slate-50/50">
+                    <div class="flex bg-white p-1 rounded-xl overflow-x-auto hide-scrollbar w-full sm:w-auto border border-slate-200/80 shadow-sm">
+                        <button onclick="filterCheques('All')" id="tab-All" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap bg-indigo-50 text-indigo-700 transition">All Operations</button>
+                        <button onclick="filterCheques('Clearing')" id="tab-Clearing" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Local Clearing</button>
+                        <button onclick="filterCheques('International')" id="tab-International" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">International (SWIFT)</button>
+                        <button onclick="filterCheques('Requests')" id="tab-Requests" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition">Book Requests</button>
+                        <button onclick="filterCheques('Exceptions')" id="tab-Exceptions" class="filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition"><i class="ph-fill ph-warning text-rose-500 mr-1"></i> Exceptions</button>
+                    </div>
+
+                    <div class="relative w-full lg:w-72 shrink-0">
+                        <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search Cheque No, Account..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm">
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto flex-1 w-full">
+                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[1000px]">
+                        <thead class="bg-slate-50/80 text-slate-500 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px]">Reference / Chq No.</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px]">Drawer / Account</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px]">Type / Details</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px] text-right">Amount (ZMW)</th>
+                                <th class="px-6 lg:px-8 py-4 font-black tracking-widest uppercase text-[10px] text-center">Status</th>
+                                <th class="px-6 lg:px-8 py-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="chequeTableBody" class="divide-y divide-slate-50 bg-white">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="px-4 lg:px-8 py-4 border-t border-slate-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto">
+                    <span class="text-xs text-slate-500 font-bold tracking-wide" id="paginationText">Showing entries</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="swiftModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" id="swiftOverlay" onclick="closeSwiftModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-2xl w-full p-6 md:p-8 relative z-10 modal-animate border border-slate-100 scale-95 opacity-0 overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div>
+                    <h2 class="text-xl font-black text-slate-900 flex items-center gap-2"><i class="ph-bold ph-globe text-indigo-600"></i> Process SWIFT Cheque</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-1">Log an international inward clearing request.</p>
+                </div>
+                <button onclick="closeSwiftModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition interactive-press"><i class="ph-bold ph-x"></i></button>
+            </div>
+            
+            <form id="swiftForm" onsubmit="submitSwiftCheque(event)" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Instrument Number</label>
+                        <input type="text" id="swChqNo" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-mono font-bold text-sm text-slate-800" placeholder="e.g. 009812">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Drawer Name</label>
+                        <input type="text" id="swDrawer" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-sm text-slate-800" placeholder="Sender's Name">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Correspondent Bank</label>
+                        <input type="text" id="swBank" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-bold text-sm text-slate-800" placeholder="e.g. Barclays UK">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">SWIFT / BIC Code</label>
+                        <input type="text" id="swBic" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-mono font-bold text-sm text-slate-800 uppercase" placeholder="e.g. BARCGB22">
+                    </div>
+                    
+                    <div class="col-span-1 md:col-span-2 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                        <h4 class="text-xs font-black text-indigo-800 uppercase tracking-widest mb-3">Forex & Amount</h4>
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-indigo-600 block mb-1">Foreign Currency</label>
+                                <select id="swCcy" onchange="calculateZmwEquiv()" class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-lg outline-none font-bold text-sm text-slate-700 cursor-pointer">
+                                    <option value="USD">USD - US Dollar</option>
+                                    <option value="GBP">GBP - British Pound</option>
+                                    <option value="EUR">EUR - Euro</option>
+                                    <option value="ZAR">ZAR - South African Rand</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-indigo-600 block mb-1">Foreign Amount</label>
+                                <input type="number" id="swAmount" oninput="calculateZmwEquiv()" required class="w-full px-3 py-2 bg-white border border-indigo-200 rounded-lg outline-none font-black text-sm text-slate-900" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center bg-white p-3 rounded-lg border border-indigo-100">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400">Current Rate</p>
+                                <p class="text-xs font-mono font-bold text-indigo-600" id="swRateDisplay">1 USD = 23.80 ZMW</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Local Equivalent</p>
+                                <p class="text-lg font-black text-slate-900" id="swZmwDisplay">ZMW 0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeSwiftModal()" class="flex-1 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition interactive-press text-sm">Cancel</button>
+                    <button type="submit" id="swiftSubmitBtn" class="flex-[2] py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 interactive-press flex justify-center items-center gap-2 text-sm">
+                        <span>Log SWIFT Clearing</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="paneBackdrop" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm hidden z-40 opacity-0 transition-opacity" onclick="closeDetailsPane()"></div>
+    <div id="chequeDetailsPane" class="fixed inset-y-0 right-0 w-full md:w-[500px] lg:w-[600px] bg-slate-50 shadow-2xl slide-pane slide-pane-closed z-50 flex flex-col border-l border-slate-200">
+        
+        <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-white sticky top-0 z-10">
+            <div>
+                <h3 class="text-lg font-black text-slate-900 flex items-center gap-2" id="paneTitle">Cheque Details</h3>
+                <span id="paneRef" class="font-mono text-xs font-bold text-slate-500 uppercase tracking-wider mt-1 block"></span>
+            </div>
+            <button onclick="closeDetailsPane()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition interactive-press"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            
+            <div id="paneImageSection" class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hidden">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Scanned Instrument</p>
+                <div class="mock-cheque w-full h-48 rounded-xl flex flex-col items-center justify-center text-slate-400 relative overflow-hidden group">
+                    <i class="ph-fill ph-image text-4xl mb-2 opacity-50 group-hover:scale-110 transition-transform"></i>
+                    <span class="text-xs font-bold">Front.jpg</span>
+                </div>
+            </div>
+
+            <div id="paneSwiftSection" class="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 hidden">
+                <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3 flex items-center gap-1"><i class="ph-bold ph-globe"></i> SWIFT & FX Details</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><p class="text-[10px] text-slate-500 uppercase font-bold">SWIFT/BIC</p><p class="text-sm font-mono font-bold text-indigo-900" id="paneValSwiftCode"></p></div>
+                    <div><p class="text-[10px] text-slate-500 uppercase font-bold">Foreign Amount</p><p class="text-sm font-bold text-indigo-900" id="paneValForeignAmt"></p></div>
+                    <div><p class="text-[10px] text-slate-500 uppercase font-bold">Exchange Rate</p><p class="text-sm font-bold text-indigo-900" id="paneValRate"></p></div>
+                    <div><p class="text-[10px] text-slate-500 uppercase font-bold">Local Equivalent</p><p class="text-sm font-black text-slate-900" id="paneValLocalAmt"></p></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-indigo-500" id="paneTopBar"></div>
+                
+                <div id="paneAmountSection" class="text-center mb-6 pb-6 border-b border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount (ZMW)</p>
+                    <h2 id="paneAmount" class="text-3xl font-black text-slate-900 tracking-tight"></h2>
+                    <div class="mt-3 flex justify-center gap-2">
+                        <span id="paneStatusBadge"></span>
+                        <span id="paneTypeBadge" class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-black uppercase tracking-widest border border-slate-200"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1" id="lblEntity1">Drawer / Account</p>
+                        <p id="paneValEntity1Name" class="text-sm font-bold text-slate-900"></p>
+                        <p id="paneValEntity1Acc" class="text-xs font-mono text-slate-500 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1" id="lblEntity2">Payee / Details</p>
+                        <p id="paneValEntity2Name" class="text-sm font-bold text-slate-900"></p>
+                        <p id="paneValEntity2Acc" class="text-xs font-mono text-slate-500 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Date Logged</p>
+                        <p id="paneValDate" class="text-sm font-bold text-slate-900"></p>
+                    </div>
+                    <div id="paneRoutingSection">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Routing Bank</p>
+                        <p id="paneValBank" class="text-sm font-bold text-indigo-600"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <h4 class="font-black text-slate-900 text-xs uppercase tracking-widest bg-slate-50 border-b border-slate-100 px-5 py-3">Processing Timeline</h4>
+                <div class="p-5 relative" id="paneTimeline">
+                    </div>
+            </div>
+
+            <div class="pb-6" id="paneActionContainer">
+                </div>
+        </div>
+    </div>
+
+    <div id="actionModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 modal-overlay opacity-0 transition-opacity" id="actionOverlay" onclick="closeActionModal()"></div>
+        <div class="bg-white rounded-[2rem] shadow-2xl max-w-md w-full relative z-10 modal-animate border border-slate-100 scale-95 opacity-0">
+            <div class="p-6 md:p-8 bg-slate-50 border-b border-slate-100 rounded-t-[2rem]">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4" id="actionModalIcon">
+                    <i class="ph-bold ph-warning-octagon text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-black text-slate-900" id="actionModalTitle">Action</h2>
+                <p class="text-xs font-medium text-slate-500 mt-1" id="actionModalDesc">Please provide a justification.</p>
+            </div>
+            
+            <form id="actionForm" onsubmit="submitActionForm(event)" class="p-6 md:p-8 space-y-4">
+                <input type="hidden" id="actionTargetId">
+                <input type="hidden" id="actionType">
+                
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Reason / Remarks</label>
+                    <select id="actionReasonSelect" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm text-slate-700 cursor-pointer mb-3 hidden">
+                        <option value="Insufficient Funds">Insufficient Funds</option>
+                        <option value="Signature Mismatch">Signature Mismatch</option>
+                        <option value="Stale Cheque">Stale Cheque (>6 Months)</option>
+                        <option value="Post-dated">Post-dated Cheque</option>
+                        <option value="Other">Other (Specify below)</option>
+                    </select>
+                    <textarea id="actionRemarks" required rows="3" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-sm text-slate-800 resize-none" placeholder="Enter detailed reason..."></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeActionModal()" class="flex-1 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition interactive-press text-sm">Cancel</button>
+                    <button type="submit" id="actionConfirmBtn" class="flex-[2] py-3.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition shadow-lg shadow-rose-500/30 interactive-press flex justify-center items-center gap-2 text-sm">
+                        Confirm Action
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[100] pointer-events-none w-max max-w-[90vw]">
+        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
+        </div>
+        <div>
+            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
+            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. MOCK DATABASE ---
+        let chequeDb = [
+            { id: "CQ-INT-9081", type: "SWIFT Clearing", category: "International", accountName: "TechNova Solutions", accountNo: "107883", payee: "Silicon Valley Bank", amount: 249900.00, date: "Today, 11:45 AM", status: "Pending", bank: "SVB", swiftCode: "BOFAUS3N", foreignCcy: "USD", foreignAmount: 10500.00, exchangeRate: 23.80 },
+            { id: "CQ-INT-9080", type: "SWIFT Clearing", category: "International", accountName: "Ministry of Finance", accountNo: "BOZ-GOV-001", payee: "Euro Trade Partners", amount: 681500.00, date: "Yesterday", status: "Cleared", bank: "Deutsche Bank", swiftCode: "DEUTDEFF", foreignCcy: "EUR", foreignAmount: 25000.00, exchangeRate: 27.26 },
+            { id: "CQ-0019283", type: "Inward Clearing", category: "Clearing", accountName: "TechNova Solutions", accountNo: "107883", payee: "Office Supplies Ltd", amount: 45000.00, date: "Today, 10:15 AM", status: "Pending", bank: "ZANACO" },
+            { id: "CQ-0019284", type: "Outward Clearing", category: "Clearing", accountName: "Ministry of Health", accountNo: "BOZ-GOV-045", payee: "Medical Imports Inc", amount: 1250000.00, date: "Today, 09:30 AM", status: "Pending", bank: "Standard Chartered" },
+            { id: "CB-REQ-992", type: "Book Request (50 Leaves)", category: "Requests", accountName: "Alice Phiri", accountNo: "108992", payee: "Delivery: Ndola Branch", amount: 0, date: "Yesterday", status: "Pending", bank: "Internal" },
+            { id: "CQ-0019255", type: "Inward Clearing", category: "Clearing", accountName: "Daniel Banda", accountNo: "107665", payee: "Zesco Ltd", amount: 1500.00, date: "02 Apr 2026", status: "Cleared", bank: "Absa Bank" },
+            { id: "CQ-0019201", type: "Inward Clearing", category: "Exceptions", accountName: "Unknown Entity", accountNo: "999999", payee: "Cash", amount: 500000.00, date: "01 Apr 2026", status: "Bounced", bank: "Equity Bank", reason: "Signature Mismatch" },
+            { id: "CB-REQ-980", type: "Book Request (100 Leaves)", category: "Requests", accountName: "Copperbelt Mining", accountNo: "107689", payee: "Delivery: Kitwe Main", amount: 0, date: "28 Mar 2026", status: "Issued", bank: "Internal" },
+            { id: "CQ-0019188", type: "Stop Payment", category: "Exceptions", accountName: "Mercy Tembo", accountNo: "109887", payee: "Lost Cheque (Range: 100-110)", amount: null, date: "25 Mar 2026", status: "Stopped", bank: "Internal", reason: "Reported Stolen" }
+        ];
+
+        let currentFilter = 'All';
+        let currentOpenId = null;
+        
+        const mockFxRates = { USD: 23.80, GBP: 29.50, EUR: 27.26, ZAR: 1.25 };
+
+        // --- 2. FORMATTING & RENDER ---
+        function formatZMW(amount) {
+            if(amount === null || amount === 0) return "-";
+            return new Intl.NumberFormat('en-ZM', { style: 'currency', currency: 'ZMW' }).format(amount).replace('ZMW', '').trim();
+        }
+
+        function updateMetrics() {
+            const pendingClear = chequeDb.filter(c => (c.category === 'Clearing' || c.category === 'International') && c.status === 'Pending').length;
+            const pendingSwift = chequeDb.filter(c => c.category === 'International' && c.status === 'Pending').length;
+            const bookReqs = chequeDb.filter(c => c.category === 'Requests' && c.status === 'Pending').length;
+            const exceptions = chequeDb.filter(c => c.status === 'Bounced' || c.status === 'Stopped').length;
+            
+            const clearedVol = chequeDb.filter(c => c.status === 'Cleared' && c.amount > 0).reduce((sum, c) => sum + c.amount, 0);
+
+            document.getElementById('statPending').innerText = pendingClear;
+            document.getElementById('statSwift').innerText = pendingSwift;
+            document.getElementById('statRequests').innerText = bookReqs;
+            document.getElementById('statBounced').innerText = exceptions;
+            document.getElementById('statClearedVol').innerText = "ZMW " + (clearedVol > 1000000 ? (clearedVol/1000000).toFixed(1) + 'M' : formatZMW(clearedVol));
+
+            const totalPending = pendingClear + bookReqs;
+            const badge = document.getElementById('notifBadgeDesktop');
+            const badgeMobile = document.getElementById('notifBadgeMobile');
+            if(badge) {
+                if(totalPending > 0) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            }
+            if(badgeMobile) {
+                if(totalPending > 0) badgeMobile.classList.remove('hidden');
+                else badgeMobile.classList.add('hidden');
+            }
+        }
+
+        function renderTable(dataToRender = chequeDb) {
+            const tbody = document.getElementById('chequeTableBody');
+            tbody.innerHTML = '';
+
+            if (dataToRender.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 lg:px-8 py-12 text-center text-slate-500 font-bold"><i class="ph-bold ph-file-dashed text-3xl mb-2 text-slate-300 block"></i> No records found matching criteria.</td></tr>`;
+                document.getElementById('paginationText').innerText = "Showing 0 entries";
+                return;
+            }
+
+            dataToRender.forEach((item, index) => {
+                let statusBadge = '';
+                let iconColor = 'indigo';
+                let icon = 'ph-money';
+
+                if (item.status === 'Cleared' || item.status === 'Issued') {
+                    statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[10px] uppercase font-black tracking-widest border border-emerald-200"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> ${item.status}</span>`;
+                } else if (item.status === 'Pending') {
+                    statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-md text-[10px] uppercase font-black tracking-widest border border-amber-200"><div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> Pending</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-600 rounded-md text-[10px] uppercase font-black tracking-widest border border-rose-200"><i class="ph-bold ph-warning-octagon"></i> ${item.status}</span>`;
+                }
+
+                if (item.category === 'Requests') { icon = 'ph-book-open'; iconColor = 'blue'; }
+                else if (item.status === 'Bounced' || item.status === 'Stopped') { iconColor = 'rose'; }
+                else if (item.category === 'International') { icon = 'ph-globe'; iconColor = 'indigo'; }
+                else if (item.type.includes('Inward')) { icon = 'ph-arrow-down-left'; iconColor = 'emerald'; }
+                else if (item.type.includes('Outward')) { icon = 'ph-arrow-up-right'; iconColor = 'amber'; }
+
+                const row = `
+                    <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer animate-row border-b border-slate-50" style="animation-delay: ${index * 40}ms" onclick="openDetailsPane('${item.id}')">
+                        <td class="px-6 lg:px-8 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-${iconColor}-50 text-${iconColor}-600 flex items-center justify-center text-xl shrink-0"><i class="ph-fill ${icon}"></i></div>
+                                <div>
+                                    <div class="font-bold text-slate-900 font-mono text-xs group-hover:text-indigo-600 transition-colors">${item.id}</div>
+                                    <div class="text-[10px] font-medium text-slate-500 mt-0.5">${item.date}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4">
+                            <div class="font-bold text-slate-700 text-xs truncate max-w-[150px]">${item.accountName}</div>
+                            <div class="text-[10px] font-mono text-slate-500 mt-0.5">${item.accountNo}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4">
+                            <div class="font-bold text-slate-700 text-xs">${item.type}</div>
+                            <div class="text-[10px] font-medium text-slate-500 mt-0.5 truncate max-w-[150px]">${item.payee}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4 text-right">
+                            <div class="font-black text-slate-900">${formatZMW(item.amount)}</div>
+                            <div class="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-widest">${item.amount ? 'ZMW' : ''}</div>
+                        </td>
+                        <td class="px-6 lg:px-8 py-4 text-center">
+                            ${statusBadge}
+                        </td>
+                        <td class="px-6 lg:px-8 py-4 text-right">
+                            <button class="text-indigo-600 font-bold text-sm lg:opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end w-full gap-1">
+                                Action <i class="ph-bold ph-arrow-right"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+            document.getElementById('paginationText').innerText = `Showing 1 to ${dataToRender.length} of ${dataToRender.length} entries`;
+        }
+
+        // --- 3. FILTERING ---
+        function filterCheques(filterType) {
+            currentFilter = filterType;
+            const tabs = ['All', 'Clearing', 'International', 'Requests', 'Exceptions'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if(t === filterType) {
+                    el.className = "filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap bg-indigo-50 text-indigo-700 transition shadow-sm";
+                } else {
+                    el.className = "filter-tab px-5 py-2.5 text-xs font-bold rounded-lg whitespace-nowrap text-slate-500 hover:text-slate-800 transition";
+                }
+            });
+            executeSearchAndFilter();
+        }
+
+        function handleSearch() { executeSearchAndFilter(); }
+
+        function executeSearchAndFilter() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = chequeDb;
+
+            if (currentFilter !== 'All') {
+                filtered = filtered.filter(item => item.category === currentFilter);
+            }
+
+            if (query) {
+                filtered = filtered.filter(item => 
+                    item.id.toLowerCase().includes(query) || 
+                    item.accountName.toLowerCase().includes(query) || 
+                    item.accountNo.includes(query)
+                );
+            }
+            renderTable(filtered);
+        }
+
+        // --- 4. DETAILS SLIDE PANE ---
+        function openDetailsPane(id) {
+            const item = chequeDb.find(c => c.id === id);
+            if(!item) return;
+            currentOpenId = id;
+
+            document.getElementById('paneTitle').innerText = item.category === 'Requests' ? 'Book Request' : (item.category === 'International' ? 'SWIFT Clearing' : 'Cheque Transaction');
+            document.getElementById('paneRef').innerText = item.id;
+            
+            document.getElementById('paneAmountSection').classList.toggle('hidden', item.amount === null);
+            document.getElementById('paneAmount').innerText = item.amount ? `ZMW ${formatZMW(item.amount)}` : '';
+            document.getElementById('paneTypeBadge').innerText = item.type;
+            
+            const statusBadge = document.getElementById('paneStatusBadge');
+            if(item.status === 'Cleared' || item.status === 'Issued') {
+                statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-black uppercase tracking-widest border border-emerald-200">${item.status}</span>`;
+                document.getElementById('paneTopBar').className = "absolute top-0 left-0 w-full h-1 bg-emerald-500";
+            } else if (item.status === 'Pending') {
+                statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded text-[10px] font-black uppercase tracking-widest border border-amber-200">Pending</span>`;
+                document.getElementById('paneTopBar').className = "absolute top-0 left-0 w-full h-1 bg-amber-500";
+            } else {
+                statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-rose-100 text-rose-700 rounded text-[10px] font-black uppercase tracking-widest border border-rose-200">${item.status}</span>`;
+                document.getElementById('paneTopBar').className = "absolute top-0 left-0 w-full h-1 bg-rose-500";
+            }
+
+            // SWIFT Specific Section
+            const swiftSection = document.getElementById('paneSwiftSection');
+            if (item.category === 'International') {
+                swiftSection.classList.remove('hidden');
+                document.getElementById('paneValSwiftCode').innerText = item.swiftCode;
+                document.getElementById('paneValForeignAmt').innerText = `${item.foreignCcy} ${item.foreignAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                document.getElementById('paneValRate').innerText = item.exchangeRate;
+                document.getElementById('paneValLocalAmt').innerText = `ZMW ${formatZMW(item.amount)}`;
+            } else {
+                swiftSection.classList.add('hidden');
+            }
+
+            document.getElementById('paneImageSection').classList.toggle('hidden', item.category === 'Requests' || item.category === 'International');
+
+            document.getElementById('lblEntity1').innerText = item.category === 'Requests' ? 'Account Name' : 'Drawer / Account';
+            document.getElementById('lblEntity2').innerText = item.category === 'Requests' ? 'Delivery Details' : (item.category === 'International' ? 'Correspondent Bank' : 'Payee Details');
+            
+            document.getElementById('paneValEntity1Name').innerText = item.accountName;
+            document.getElementById('paneValEntity1Acc').innerText = item.accountNo;
+            document.getElementById('paneValEntity2Name').innerText = item.payee;
+            document.getElementById('paneValEntity2Acc').innerText = ''; 
+            document.getElementById('paneValDate').innerText = item.date;
+            
+            document.getElementById('paneRoutingSection').classList.toggle('hidden', item.category === 'Requests');
+            document.getElementById('paneValBank').innerText = item.bank || '-';
+
+            // Setup Timeline
+            const timeline = document.getElementById('paneTimeline');
+            let tlHtml = `<div class="absolute left-[27px] top-8 bottom-8 w-0.5 bg-slate-100"></div>`;
+            
+            tlHtml += `
+                <div class="flex items-start gap-4 mb-4 relative z-10">
+                    <div class="w-4 h-4 rounded-full bg-indigo-500 border-4 border-white shadow-sm mt-0.5 shrink-0"></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900">Request Logged</p>
+                        <p class="text-xs text-slate-500">${item.date} ${item.bank ? 'via ' + item.bank : ''}</p>
+                    </div>
+                </div>
+            `;
+
+            if(item.status === 'Pending') {
+                tlHtml += `
+                <div class="flex items-start gap-4 relative z-10">
+                    <div class="w-4 h-4 rounded-full bg-amber-500 border-4 border-white shadow-sm mt-0.5 shrink-0 animate-pulse"></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900">Awaiting Action</p>
+                        <p class="text-xs text-slate-500">Pending administrator verification.</p>
+                    </div>
+                </div>`;
+            } else if (item.status === 'Cleared' || item.status === 'Issued') {
+                tlHtml += `
+                <div class="flex items-start gap-4 relative z-10">
+                    <div class="w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-sm mt-0.5 shrink-0"></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900">${item.status}</p>
+                        <p class="text-xs text-slate-500">Action completed successfully.</p>
+                    </div>
+                </div>`;
+            } else {
+                tlHtml += `
+                <div class="flex items-start gap-4 relative z-10">
+                    <div class="w-4 h-4 rounded-full bg-rose-500 border-4 border-white shadow-sm mt-0.5 shrink-0"></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-900">${item.status}</p>
+                        <p class="text-xs text-rose-600 font-medium">Reason: ${item.reason}</p>
+                    </div>
+                </div>`;
+            }
+            timeline.innerHTML = tlHtml;
+
+            // Build Actions
+            const actionsContainer = document.getElementById('paneActionContainer');
+            let actionsHtml = '';
+
+            if (item.status === 'Pending') {
+                if (item.category === 'Requests') {
+                    actionsHtml = `
+                        <button onclick="processChequeAction('Issued')" class="w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition text-sm flex justify-center items-center gap-2 shadow-lg shadow-indigo-200 interactive-press mb-3"><i class="ph-bold ph-check-circle text-lg"></i> Approve & Issue Book</button>
+                        <button onclick="openActionModal('Reject Request')" class="w-full py-3.5 bg-white border border-slate-200 text-rose-600 font-bold rounded-xl hover:bg-rose-50 transition text-sm flex justify-center items-center gap-2 shadow-sm interactive-press">Reject Request</button>
+                    `;
+                } else if (item.category === 'International') {
+                    actionsHtml = `
+                        <button onclick="processChequeAction('Cleared')" class="w-full py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition text-sm flex justify-center items-center gap-2 shadow-lg shadow-indigo-200 interactive-press mb-3"><i class="ph-bold ph-check-circle text-lg"></i> Verify FX & Clear Funds</button>
+                        <button onclick="openActionModal('Reject SWIFT')" class="w-full py-3.5 bg-white border border-slate-200 text-rose-600 font-bold rounded-xl hover:bg-rose-50 transition text-sm flex justify-center items-center gap-2 shadow-sm interactive-press"><i class="ph-bold ph-x-circle text-lg"></i> Reject SWIFT</button>
+                    `;
+                } else if (item.category === 'Clearing') {
+                    actionsHtml = `
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <button onclick="processChequeAction('Cleared')" class="py-3.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition text-sm flex justify-center items-center gap-2 shadow-lg shadow-emerald-200 interactive-press"><i class="ph-bold ph-check-circle text-lg"></i> Clear Funds</button>
+                            <button onclick="openActionModal('Bounce Cheque')" class="py-3.5 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition text-sm flex justify-center items-center gap-2 shadow-lg shadow-rose-200 interactive-press"><i class="ph-bold ph-x-circle text-lg"></i> Bounce</button>
+                        </div>
+                        <button onclick="openActionModal('Stop Payment')" class="w-full py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition text-sm flex justify-center items-center gap-2 shadow-sm interactive-press"><i class="ph-bold ph-hand-palm text-lg"></i> Place Stop Payment</button>
+                    `;
+                }
+            } else {
+                actionsHtml = `<button class="w-full py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition text-sm flex justify-center items-center gap-2 shadow-lg interactive-press"><i class="ph-bold ph-printer text-lg"></i> Print Audit Record</button>`;
+            }
+            actionsContainer.innerHTML = actionsHtml;
+
+            document.getElementById('paneBackdrop').classList.remove('hidden');
+            setTimeout(() => document.getElementById('paneBackdrop').classList.remove('opacity-0'), 10);
+            
+            const pane = document.getElementById('chequeDetailsPane');
+            pane.classList.remove('slide-pane-closed');
+            pane.classList.add('slide-pane-open');
+        }
+
+        function closeDetailsPane() {
+            const backdrop = document.getElementById('paneBackdrop');
+            backdrop.classList.add('opacity-0');
+            const pane = document.getElementById('chequeDetailsPane');
+            pane.classList.remove('slide-pane-open');
+            pane.classList.add('slide-pane-closed');
+            setTimeout(() => backdrop.classList.add('hidden'), 300);
+        }
+
+        // --- 5. ACTION MODAL & PROCESSING ---
+        function openActionModal(actionType) {
+            closeDetailsPane(); 
+            
+            document.getElementById('actionType').value = actionType;
+            document.getElementById('actionModalTitle').innerText = actionType;
+            
+            const iconEl = document.getElementById('actionModalIcon');
+            const selectEl = document.getElementById('actionReasonSelect');
+            const confirmBtn = document.getElementById('actionConfirmBtn');
+
+            if(actionType === 'Bounce Cheque') {
+                iconEl.innerHTML = '<i class="ph-bold ph-x-circle text-2xl"></i>';
+                selectEl.classList.remove('hidden'); 
+                confirmBtn.innerText = "Confirm Bounce";
+            } else if(actionType === 'Stop Payment') {
+                iconEl.innerHTML = '<i class="ph-bold ph-hand-palm text-2xl"></i>';
+                selectEl.classList.add('hidden');
+                confirmBtn.innerText = "Apply Stop Payment";
+            } else {
+                iconEl.innerHTML = '<i class="ph-bold ph-x text-2xl"></i>';
+                selectEl.classList.add('hidden');
+                confirmBtn.innerText = `Confirm ${actionType}`;
+            }
+
+            const modal = document.getElementById('actionModal');
+            const overlay = document.getElementById('actionOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeActionModal() {
+            const modal = document.getElementById('actionModal');
+            const overlay = document.getElementById('actionOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('actionForm').reset();
+            }, 300);
+        }
+
+        function submitActionForm(e) {
+            e.preventDefault();
+            const actionType = document.getElementById('actionType').value;
+            const remarks = document.getElementById('actionRemarks').value;
+            
+            let newStatus = 'Stopped';
+            if(actionType === 'Bounce Cheque') newStatus = 'Bounced';
+            if(actionType === 'Reject Request' || actionType === 'Reject SWIFT') newStatus = 'Rejected';
+
+            const item = chequeDb.find(c => c.id === currentOpenId);
+            if(item) {
+                item.status = newStatus;
+                item.reason = remarks;
+                item.category = 'Exceptions'; 
+            }
+
+            closeActionModal();
+            executeSearchAndFilter();
+            updateMetrics();
+            showToast("Action Processed", `${item.id} status updated to ${newStatus}.`, "ph-check-circle", "text-emerald-400");
+        }
+
+        function processChequeAction(newStatus) {
+            const item = chequeDb.find(c => c.id === currentOpenId);
+            if(item) {
+                item.status = newStatus;
+                closeDetailsPane();
+                executeSearchAndFilter();
+                updateMetrics();
+                
+                const msg = newStatus === 'Cleared' ? "Funds transferred successfully." : "Action processed.";
+                showToast("Success", `${item.id} processed. ${msg}`, "ph-check-circle", "text-emerald-400");
+            }
+        }
+
+        // --- SWIFT PROCESSING MODAL ---
+        function openSwiftModal() {
+            const modal = document.getElementById('swiftModal');
+            const overlay = document.getElementById('swiftOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            calculateZmwEquiv();
+        }
+
+        function closeSwiftModal() {
+            const modal = document.getElementById('swiftModal');
+            const overlay = document.getElementById('swiftOverlay');
+            const content = modal.querySelector('.modal-animate');
+            
+            overlay.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.getElementById('swiftForm').reset();
+            }, 300);
+        }
+
+        function calculateZmwEquiv() {
+            const ccy = document.getElementById('swCcy').value;
+            const amtStr = document.getElementById('swAmount').value;
+            const amt = parseFloat(amtStr) || 0;
+            
+            const rate = mockFxRates[ccy] || 1;
+            const zmw = amt * rate;
+            
+            document.getElementById('swRateDisplay').innerText = `1 ${ccy} = ${rate.toFixed(2)} ZMW`;
+            document.getElementById('swZmwDisplay').innerText = `ZMW ${formatZMW(zmw)}`;
+        }
+
+        function submitSwiftCheque(e) {
+            e.preventDefault();
+            const btn = document.getElementById('swiftSubmitBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="ph-bold ph-spinner-gap animate-spin text-lg"></i> Processing...`;
+            btn.disabled = true;
+
+            setTimeout(() => {
+                const ccy = document.getElementById('swCcy').value;
+                const fAmt = parseFloat(document.getElementById('swAmount').value) || 0;
+                const rate = mockFxRates[ccy];
+                const zmwAmt = fAmt * rate;
+
+                const newItem = {
+                    id: "CQ-INT-" + Math.floor(Math.random() * 9000 + 1000),
+                    type: "SWIFT Clearing",
+                    category: "International",
+                    accountName: document.getElementById('swDrawer').value,
+                    accountNo: document.getElementById('swChqNo').value,
+                    payee: "Local Beneficiary", 
+                    amount: zmwAmt,
+                    date: "Just Now",
+                    status: "Pending",
+                    bank: document.getElementById('swBank').value,
+                    swiftCode: document.getElementById('swBic').value,
+                    foreignCcy: ccy,
+                    foreignAmount: fAmt,
+                    exchangeRate: rate
+                };
+
+                chequeDb.unshift(newItem);
+                
+                closeSwiftModal();
+                filterCheques('International');
+                updateMetrics();
+                
+                showToast("SWIFT Logged", `${newItem.id} queued for authorization.`, "ph-globe", "text-indigo-400");
+                
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1000);
+        }
+
+        // --- UTILS ---
+        function showToast(title, msg, icon='ph-check', color='text-indigo-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.remove('translate-y-20', 'opacity-0'), 10);
+            
+            if(window.toastTimer) clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 3000);
+        }
+
+        function toggleDropdown(id, e) {
+            e.stopPropagation();
+            const el = document.getElementById(id);
+            if(el.classList.contains('hidden')) {
+                closeAllDropdowns(e); 
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.remove('opacity-0', 'scale-95'), 10);
+            } else {
+                el.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => el.classList.add('hidden'), 200);
+            }
+        }
+
+        function closeAllDropdowns(e) {
+            const notifDesk = document.getElementById('notifDropdown');
+            const notifMob = document.getElementById('notifDropdownMobile');
+            if (notifDesk && !notifDesk.contains(e?.target) && !e?.target?.closest('button[onclick*="notifDropdown"]')) {
+                notifDesk.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => notifDesk.classList.add('hidden'), 200);
+            }
+            if (notifMob && !notifMob.contains(e?.target) && !e?.target?.closest('button[onclick*="notifDropdownMobile"]')) {
+                notifMob.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => notifMob.classList.add('hidden'), 200);
+            }
+        }
+
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            const hamburger = document.querySelector(".hamburger-icon .hamburger");
+            
+            if (sidebar.style.transform === "translateX(0px)") {
+                sidebar.style.transform = "translateX(-100%)";
+                backdrop.classList.add("opacity-0");
+                if(hamburger) hamburger.classList.remove("active");
+                setTimeout(() => backdrop.classList.add("hidden"), 300);
+            } else {
+                sidebar.style.transform = "translateX(0)";
+                backdrop.classList.remove("hidden");
+                if(hamburger) hamburger.classList.add("active");
+                setTimeout(() => backdrop.classList.remove("opacity-0"), 10);
+            }
+        }
+
+        function closeMobileMenu() {
+            const sidebar = document.getElementById("mobileSidebar");
+            const backdrop = document.getElementById("mobileBackdrop");
+            const hamburger = document.querySelector(".hamburger-icon .hamburger");
+            
+            if(sidebar) sidebar.style.transform = "translateX(-100%)";
+            if(backdrop) backdrop.classList.add("opacity-0");
+            if(hamburger) hamburger.classList.remove("active");
+            setTimeout(() => {
+                if(backdrop) backdrop.classList.add("hidden");
+            }, 300);
+        }
+
+        // INIT
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof renderNavigation === 'function') {
+                renderNavigation('admin', 'cheques.html');
+            }
+            filterCheques('All');
+            updateMetrics();
+        });
+    </script>
+</body>
+</html>

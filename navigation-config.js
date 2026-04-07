@@ -39,13 +39,14 @@ const NAVIGATION_CONFIG = {
                     { href: 'service-channels.html', icon: 'ph-sliders', label: 'Service Channels' },
                     { href: 'users.html', icon: 'ph-users', label: 'User Accounts', useFillIcon: true },
                     { href: 'loans.html', icon: 'ph-hand-coins', label: 'Loan Book' },
-                    { href: 'transactions.html', icon: 'ph-list-dashes', label: 'Ledger & Txns', useFillIcon: true }
+                    { href: 'transactions.html', icon: 'ph-list-dashes', label: 'Ledger & Txns', useFillIcon: true },
+                    { href: 'cheques.html', icon: 'ph-money', label: 'Cheque Operations' } // NEW
                 ]
             },
             {
                 title: 'Internal Operations',
                 items: [
-                    { href: 'payroll.html', icon: 'ph-money', label: 'Payroll Engine' },
+                    { href: 'payroll.html', icon: 'ph-briefcase', label: 'Payroll Engine' },
                     { href: 'calendar.html', icon: 'ph-calendar-blank', label: 'Systems Calendar' },
                     { href: 'staff.html', icon: 'ph-identification-badge', label: 'Staff Directory' }
                 ]
@@ -86,6 +87,7 @@ function renderNavigation(portalType = 'customer', currentPage = '') {
     const desktopNav = document.getElementById('desktopNav');
     const mobileFooter = document.getElementById('mobileFooter');
     const desktopFooter = document.getElementById('desktopFooter');
+    const mobileFooterNav = document.getElementById('mobileFooterNav'); // Bottom nav on mobile
 
     let navHtml = '';
 
@@ -108,7 +110,7 @@ function renderNavigation(portalType = 'customer', currentPage = '') {
                     ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-600/30 shadow-sm' 
                     : 'border border-transparent hover:bg-slate-800/50 hover:text-white text-slate-400';
                 
-                const iconStyle = (item.useFillIcon || isActive) ? 'ph-fill' : 'ph';
+                const iconStyle = (item.useFillIcon || isActive) ? 'ph-fill' : 'ph-bold';
                 const textWeight = isActive ? 'font-bold' : 'font-semibold';
 
                 navHtml += `
@@ -193,5 +195,75 @@ function renderNavigation(portalType = 'customer', currentPage = '') {
         } else {
             desktopFooter.innerHTML = footerHtml;
         }
+    }
+
+    // ==========================================
+    // 4. BUILD MOBILE BOTTOM NAV
+    // ==========================================
+    if (mobileFooterNav) {
+        let bottomNavHtml = '';
+        if (portalType === 'admin') {
+            const adminBottomItems = [
+                { href: 'admin-dashboard.html', icon: 'ph-squares-four', label: 'Dashboard' },
+                { href: 'users.html', icon: 'ph-users', label: 'Users' },
+                { href: 'transactions.html', icon: 'ph-list-dashes', label: 'Ledger' },
+                { href: 'cheques.html', icon: 'ph-money', label: 'Cheques' } // Added cheques to bottom nav
+            ];
+            
+            adminBottomItems.forEach(item => {
+                const isActive = currentPage === item.href;
+                const activeClasses = isActive 
+                    ? 'text-indigo-600 border-t-2 border-indigo-600 bg-indigo-50/50' 
+                    : 'text-slate-500 hover:text-indigo-600';
+                
+                const iconStyle = isActive ? 'ph-fill' : 'ph-bold';
+                
+                bottomNavHtml += `
+                    <a href="${item.href}" class="flex flex-col items-center justify-center w-full h-full transition-colors ${activeClasses}">
+                        <i class="${iconStyle} ${item.icon} text-2xl"></i>
+                        <span class="text-[10px] font-bold mt-1">${item.label}</span>
+                    </a>
+                `;
+            });
+            
+            // Add Menu Button
+            bottomNavHtml += `
+                <button onclick="toggleMobileMenu()" class="flex flex-col items-center justify-center w-full h-full text-slate-500 hover:text-indigo-600 transition-colors">
+                    <i class="ph-bold ph-list text-2xl"></i>
+                    <span class="text-[10px] font-bold mt-1">Menu</span>
+                </button>
+            `;
+        } else {
+            const customerBottomItems = [
+                { href: 'dashboard.html', icon: 'ph-squares-four', label: 'Home' },
+                { href: 'transfers.html', icon: 'ph-arrows-left-right', label: 'Send' },
+                { href: 'wallet.html', icon: 'ph-wallet', label: 'Wallet' },
+                { href: 'statements.html', icon: 'ph-file-text', label: 'History' }
+            ];
+            
+            customerBottomItems.forEach(item => {
+                const isActive = currentPage === item.href;
+                const activeClasses = isActive 
+                    ? 'text-blue-600' 
+                    : 'text-slate-500 hover:text-blue-600';
+                    
+                const wrapperActive = isActive
+                    ? 'bg-blue-50 text-blue-600 -translate-y-2 shadow-sm'
+                    : '';
+                
+                const iconStyle = isActive ? 'ph-fill' : 'ph';
+                
+                bottomNavHtml += `
+                    <a href="${item.href}" class="flex flex-col items-center justify-center w-full h-full transition-colors duration-300 ${activeClasses}">
+                        <div class="w-12 h-8 rounded-full flex items-center justify-center mb-1 transition-all duration-300 ${wrapperActive}">
+                            <i class="${iconStyle} ${item.icon} text-2xl"></i>
+                        </div>
+                        <span class="text-[10px] font-medium tracking-wide ${isActive ? 'font-bold' : ''}">${item.label}</span>
+                    </a>
+                `;
+            });
+        }
+        
+        mobileFooterNav.innerHTML = bottomNavHtml;
     }
 }

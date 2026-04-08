@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,6 +45,9 @@
             to { opacity: 1; transform: scale(1); }
         }
         .modal-animate { animation: fadeScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Custom Dark Form Inputs */
+        [color-scheme="dark"]::-webkit-calendar-picker-indicator { filter: invert(1); }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-slate-800 bg-[#f8fafc]" onclick="closeAllDropdowns(event)">
@@ -91,42 +94,47 @@
         <div id="desktopFooter" class="p-4 border-t border-slate-800/60 space-y-1.5"></div>
     </aside>
 
-    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 md:pt-0 pb-28 md:pb-0">
+    <main class="flex-1 flex flex-col overflow-y-auto relative pt-16 md:pt-0 pb-28 md:pb-0 bg-slate-900">
         
-        <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 md:px-8 py-5 flex flex-col md:flex-row justify-between md:items-center sticky top-0 z-30">
+        <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 md:px-8 py-5 flex flex-col md:flex-row justify-between md:items-center sticky top-0 z-30">
             <div class="animate-fade-in-up">
-                <h2 class="text-xl md:text-2xl font-extrabold text-slate-800 tracking-tight">Dashboard</h2>
-                <p class="text-xs md:text-sm text-slate-500 font-medium mt-0.5">Welcome back, John!</p>
+                <h2 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">Dashboard</h2>
+                <p class="text-xs md:text-sm text-slate-400 font-medium mt-0.5">Welcome back, Jane!</p>
             </div>
             
             <div class="hidden md:flex items-center space-x-6 animate-fade-in-up delay-100">
                 <div class="relative">
-                    <select id="currencySelector" onchange="changeDashboardCurrency(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-blue-400 transition cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/20">
-                        <option value="KES">KES - Kenyan Shilling</option>
-                        <option value="ZMW">ZMW - Zambian Kwacha</option>
+                    <select id="currencySelector" onchange="changeDashboardCurrency(this.value)" class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-blue-400 transition cursor-pointer outline-none focus:ring-2 focus:ring-blue-500/20">
+                        <option value="KES">ZMW - Zambian Kwacha</option>
                         <option value="USD">USD - US Dollar</option>
-                        <option value="GBP">GBP - British Pound</option>
                     </select>
                 </div>
 
-                <div class="relative border-l border-slate-200 pl-6">
-                    <div id="profileBtn" onclick="toggleDropdown('profileDropdown', event)" class="flex items-center space-x-3 cursor-pointer group interactive-press bg-white border border-slate-200 p-1 md:pl-2 md:pr-4 md:py-1.5 rounded-full shadow-sm hover:border-blue-300 transition">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-bold text-xs shadow-inner">JD</div>
-                        <div class="hidden md:block text-left">
-                            <p class="text-xs font-bold text-slate-700 leading-tight">John Doe</p>
-                            <p class="text-[10px] text-slate-500 font-medium">Premium</p>
+                <div class="relative border-l border-slate-800 pl-6">
+                    <div id="notifBtn" onclick="toggleDropdown('notifDropdown', event)" class="flex items-center space-x-3 cursor-pointer group interactive-press bg-slate-800 border border-slate-700 p-2 md:pl-2 md:pr-4 md:py-1.5 rounded-full shadow-sm hover:border-blue-500/50 transition">
+                        <div class="relative w-8 h-8 rounded-full bg-slate-700 text-slate-300 flex items-center justify-center">
+                            <i class="ph-bold ph-bell text-lg"></i>
+                            <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-slate-800"></span>
                         </div>
-                        <i class="ph-bold ph-caret-down text-slate-400 group-hover:text-blue-500 transition hidden md:block"></i>
+                        <span class="hidden md:block text-xs font-bold text-slate-300 group-hover:text-blue-400 transition">Alerts</span>
                     </div>
-                    <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
-                        <div class="px-4 py-4 border-b border-slate-50 bg-slate-50/50">
-                            <p class="text-sm font-bold text-slate-800">John Doe</p>
-                            <p class="text-xs text-slate-500">johndoe@example.com</p>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-3 w-80 bg-slate-800 rounded-2xl shadow-xl border border-slate-700 overflow-hidden transform transition-all opacity-0 scale-95 origin-top-right z-50">
+                        <div class="px-4 py-3 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                            <h3 class="font-bold text-white text-sm">System Alerts</h3>
+                            <button class="text-xs text-blue-400 font-bold hover:underline">Mark Read</button>
                         </div>
-                        <div class="py-2">
-                            <a href="index.html" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-semibold transition">
-                                <i class="ph-bold ph-sign-out text-lg"></i> Sign Out
-                            </a>
+                        <div class="max-h-64 overflow-y-auto">
+                            <div class="px-4 py-3 border-b border-slate-700/50 hover:bg-slate-700/50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-white mb-1"><i class="ph-fill ph-warning-circle text-amber-400 mr-1"></i> Standing Order Executed</p>
+                                <p class="text-[10px] text-slate-400 leading-snug">Your monthly rent payment (ZMW 5,000) was successfully processed.</p>
+                            </div>
+                            <div class="px-4 py-3 border-b border-slate-700/50 hover:bg-slate-700/50 transition cursor-pointer">
+                                <p class="text-xs font-bold text-white mb-1"><i class="ph-fill ph-info text-blue-400 mr-1"></i> Login Alert</p>
+                                <p class="text-[10px] text-slate-400 leading-snug">New login detected from Lusaka, ZM. If this wasn't you, contact support.</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-900 border-t border-slate-700 text-center">
+                            <button class="text-xs font-bold text-slate-400 hover:text-white transition">Manage Alert Preferences (SMS/Email)</button>
                         </div>
                     </div>
                 </div>
@@ -148,55 +156,53 @@
                             <i class="ph-fill ph-wallet text-xl text-white"></i>
                         </div>
                     </div>
-                    <h3 class="text-3xl md:text-4xl font-black mb-1 relative z-10 tracking-tight" id="checkingBalDisplay">KES 1,245,000</h3>
+                    <h3 class="text-3xl md:text-4xl font-black mb-1 relative z-10 tracking-tight" id="checkingBalDisplay">ZMW 124,500.00</h3>
                     <div class="flex items-center space-x-1.5 text-xs text-blue-100 relative z-10 font-semibold mt-4 bg-white/10 w-fit px-3 py-1.5 rounded-full">
                         <i class="ph-bold ph-trend-up text-emerald-400"></i>
                         <span>+2.4% this month</span>
                     </div>
                 </div>
 
-                <div class="w-[85vw] sm:w-[320px] md:w-auto shrink-0 snap-center bg-white border border-slate-100 rounded-[2rem] p-6 md:p-8 shadow-sm interactive-press relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                <div class="w-[85vw] sm:w-[320px] md:w-auto shrink-0 snap-center bg-slate-800 border border-slate-700 rounded-[2rem] p-6 md:p-8 shadow-sm interactive-press relative overflow-hidden">
                     <div class="flex justify-between items-start mb-6 relative z-10">
                         <div>
                             <p class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-1">High-Yield Savings</p>
                             <p class="text-sm text-slate-500 font-mono tracking-widest">**** 8821</p>
                         </div>
-                        <div class="w-10 h-10 bg-emerald-50 rounded-full border border-emerald-100 flex items-center justify-center">
-                            <i class="ph-fill ph-piggy-bank text-xl text-emerald-600"></i>
+                        <div class="w-10 h-10 bg-emerald-500/10 rounded-full border border-emerald-500/20 flex items-center justify-center">
+                            <i class="ph-fill ph-piggy-bank text-xl text-emerald-400"></i>
                         </div>
                     </div>
-                    <h3 class="text-3xl md:text-4xl font-black text-slate-800 mb-1 tracking-tight relative z-10" id="savingsBalDisplay">KES 4,520,050</h3>
-                    <p class="text-xs text-emerald-600 font-bold flex items-center space-x-1 mt-4 bg-emerald-50 w-fit px-3 py-1.5 rounded-full relative z-10">
+                    <h3 class="text-3xl md:text-4xl font-black text-white mb-1 tracking-tight relative z-10" id="savingsBalDisplay">ZMW 452,050.00</h3>
+                    <p class="text-xs text-emerald-400 font-bold flex items-center space-x-1 mt-4 bg-emerald-500/10 w-fit px-3 py-1.5 rounded-full relative z-10">
                         <i class="ph-bold ph-sparkle"></i> <span>4.5% APY Active</span>
                     </p>
                 </div>
 
-                <div class="w-[85vw] sm:w-[320px] md:w-auto shrink-0 snap-center bg-white border border-slate-100 rounded-[2rem] p-6 md:p-8 shadow-sm interactive-press relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+                <div class="w-[85vw] sm:w-[320px] md:w-auto shrink-0 snap-center bg-slate-800 border border-slate-700 rounded-[2rem] p-6 md:p-8 shadow-sm interactive-press relative overflow-hidden">
                     <div class="flex justify-between items-start mb-6 relative z-10">
                         <div>
-                            <p class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-1">Rewards Credit</p>
-                            <p class="text-sm text-slate-500 font-mono tracking-widest">**** 1102</p>
+                            <p class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-1">Foreign Currency</p>
+                            <p class="text-sm text-slate-500 font-mono tracking-widest">**** 4490</p>
                         </div>
-                        <div class="w-10 h-10 bg-purple-50 rounded-full border border-purple-100 flex items-center justify-center">
-                            <i class="ph-fill ph-credit-card text-xl text-purple-600"></i>
+                        <div class="w-10 h-10 bg-purple-500/10 rounded-full border border-purple-500/20 flex items-center justify-center">
+                            <i class="ph-bold ph-currency-dollar text-xl text-purple-400"></i>
                         </div>
                     </div>
-                    <h3 class="text-3xl md:text-4xl font-black text-slate-800 mb-1 tracking-tight relative z-10">KES 124,000</h3>
-                    <div class="w-full bg-slate-100 rounded-full h-2 mt-5 mb-2 overflow-hidden relative z-10">
-                        <div class="bg-gradient-to-r from-purple-500 to-indigo-500 h-2 rounded-full" style="width: 35%"></div>
+                    <h3 class="text-3xl md:text-4xl font-black text-white mb-1 tracking-tight relative z-10">USD 4,250.50</h3>
+                    <div class="w-full bg-slate-700 rounded-full h-2 mt-5 mb-2 overflow-hidden relative z-10">
+                        <div class="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style="width: 15%"></div>
                     </div>
-                    <p class="text-xs text-slate-400 font-bold relative z-10">Avail. Limit: KES 376,000</p>
+                    <p class="text-xs text-slate-400 font-bold relative z-10">Limit: USD 10,000</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 
-                <div class="lg:col-span-2 bg-white border border-slate-100 rounded-[2rem] shadow-sm p-6 md:p-8 animate-fade-in-up delay-200">
+                <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-[2rem] shadow-sm p-6 md:p-8 animate-fade-in-up delay-200">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-extrabold text-slate-800 text-lg md:text-xl">Cash Flow</h3>
-                        <select class="text-xs font-bold border border-slate-200 text-slate-600 bg-slate-50 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                        <h3 class="font-extrabold text-white text-lg md:text-xl">Cash Flow</h3>
+                        <select class="text-xs font-bold border border-slate-600 text-slate-300 bg-slate-700 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                             <option>Last 6 Months</option>
                             <option>This Year</option>
                         </select>
@@ -207,68 +213,68 @@
                 </div>
 
                 <div class="flex flex-col gap-6 animate-fade-in-up delay-300">
-                    <div class="bg-white border border-slate-100 rounded-[2rem] shadow-sm p-6 md:p-8 h-full flex flex-col">
-                        <h3 class="font-extrabold text-slate-800 text-lg md:text-xl mb-2">Quick Transfers</h3>
-                        <p class="text-xs text-slate-500 font-medium mb-6">Move funds instantly across accounts.</p>
+                    <div class="bg-slate-800 border border-slate-700 rounded-[2rem] shadow-sm p-6 md:p-8 h-full flex flex-col">
+                        <h3 class="font-extrabold text-white text-lg md:text-xl mb-2">Quick Actions</h3>
+                        <p class="text-xs text-slate-400 font-medium mb-6">Transfers and Service Requests</p>
                         
                         <div class="grid grid-cols-2 gap-3 md:gap-4 flex-1">
-                            <button onclick="openTransferModal('own')" class="flex flex-col items-center justify-center p-3 bg-blue-50/50 rounded-2xl hover:bg-blue-600 hover:text-white text-blue-600 transition-all duration-300 group border border-blue-100 shadow-sm interactive-press text-center">
-                                <i class="ph-bold ph-arrows-left-right text-2xl group-hover:text-white mb-2"></i>
-                                <span class="text-[11px] font-bold group-hover:text-white leading-tight">Own Account</span>
+                            <button onclick="openTransferModal('own')" class="flex flex-col items-center justify-center p-3 bg-slate-700/50 rounded-2xl hover:bg-blue-600 text-blue-400 hover:text-white transition-all duration-300 group border border-slate-600 shadow-sm interactive-press text-center">
+                                <i class="ph-bold ph-arrows-left-right text-2xl mb-2"></i>
+                                <span class="text-[11px] font-bold text-slate-300 group-hover:text-white leading-tight">Transfer Funds</span>
                             </button>
                             
-                            <button onclick="openTransferModal('internal')" class="flex flex-col items-center justify-center p-3 bg-indigo-50/50 rounded-2xl hover:bg-indigo-600 hover:text-white text-indigo-600 transition-all duration-300 group border border-indigo-100 shadow-sm interactive-press text-center">
-                                <i class="ph-bold ph-bank text-2xl group-hover:text-white mb-2"></i>
-                                <span class="text-[11px] font-bold group-hover:text-white leading-tight">Internal (BOZ)</span>
+                            <button onclick="openTransferModal('local')" class="flex flex-col items-center justify-center p-3 bg-slate-700/50 rounded-2xl hover:bg-emerald-600 text-emerald-400 hover:text-white transition-all duration-300 group border border-slate-600 shadow-sm interactive-press text-center">
+                                <i class="ph-bold ph-buildings text-2xl mb-2"></i>
+                                <span class="text-[11px] font-bold text-slate-300 group-hover:text-white leading-tight">Pay Beneficiary</span>
                             </button>
 
-                            <button onclick="openTransferModal('local')" class="flex flex-col items-center justify-center p-3 bg-emerald-50/50 rounded-2xl hover:bg-emerald-500 hover:text-white text-emerald-600 transition-all duration-300 group border border-emerald-100 shadow-sm interactive-press text-center">
-                                <i class="ph-bold ph-buildings text-2xl group-hover:text-white mb-2"></i>
-                                <span class="text-[11px] font-bold group-hover:text-white leading-tight">Local Bank</span>
+                            <button onclick="openServiceModal()" class="flex flex-col items-center justify-center p-3 bg-slate-700/50 rounded-2xl hover:bg-purple-600 text-purple-400 hover:text-white transition-all duration-300 group border border-slate-600 shadow-sm interactive-press text-center">
+                                <i class="ph-bold ph-book-open text-2xl mb-2"></i>
+                                <span class="text-[11px] font-bold text-slate-300 group-hover:text-white leading-tight">Cheque Services</span>
                             </button>
 
-                            <button onclick="openTransferModal('international')" class="flex flex-col items-center justify-center p-3 bg-purple-50/50 rounded-2xl hover:bg-purple-600 hover:text-white text-purple-600 transition-all duration-300 group border border-purple-100 shadow-sm interactive-press text-center">
-                                <i class="ph-bold ph-globe-hemisphere-west text-2xl group-hover:text-white mb-2"></i>
-                                <span class="text-[11px] font-bold group-hover:text-white leading-tight">International</span>
+                            <button onclick="showToast('Statements', 'Downloading last 30 days PDF...', 'ph-download-simple', 'text-blue-400')" class="flex flex-col items-center justify-center p-3 bg-slate-700/50 rounded-2xl hover:bg-amber-600 text-amber-400 hover:text-white transition-all duration-300 group border border-slate-600 shadow-sm interactive-press text-center">
+                                <i class="ph-bold ph-file-text text-2xl mb-2"></i>
+                                <span class="text-[11px] font-bold text-slate-300 group-hover:text-white leading-tight">e-Statements</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white border border-slate-100 rounded-[2rem] shadow-sm overflow-hidden animate-fade-in-up delay-300">
-                <div class="px-6 md:px-8 py-5 md:py-6 border-b border-slate-50 flex justify-between items-center bg-white">
-                    <h3 class="font-extrabold text-slate-800 text-lg md:text-xl">Recent Activity</h3>
-                    <a href="statements.html" class="text-xs md:text-sm text-blue-600 hover:text-blue-800 font-bold transition flex items-center gap-1 interactive-press bg-blue-50 px-3 py-1.5 rounded-full">View All <i class="ph-bold ph-arrow-right"></i></a>
+            <div class="bg-slate-800 border border-slate-700 rounded-[2rem] shadow-sm overflow-hidden animate-fade-in-up delay-300">
+                <div class="px-6 md:px-8 py-5 md:py-6 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-extrabold text-white text-lg md:text-xl">Recent Activity</h3>
+                    <button class="text-xs md:text-sm text-blue-400 hover:text-blue-300 font-bold transition flex items-center gap-1 interactive-press bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20">View All <i class="ph-bold ph-arrow-right"></i></button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm whitespace-nowrap">
-                        <tbody class="divide-y divide-slate-50" id="activityTableBody">
-                            <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer">
+                        <tbody class="divide-y divide-slate-700" id="activityTableBody">
+                            <tr class="hover:bg-slate-700/50 transition-colors group cursor-pointer">
                                 <td class="px-6 md:px-8 py-5">
                                     <div class="flex items-center space-x-4">
-                                        <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0"><i class="ph-fill ph-coffee text-xl"></i></div>
+                                        <div class="w-12 h-12 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0"><i class="ph-fill ph-coffee text-xl"></i></div>
                                         <div>
-                                            <p class="font-bold text-slate-800 text-base">Artcaffe Coffee</p>
+                                            <p class="font-bold text-white text-base">Artcaffe Lusaka</p>
                                             <p class="text-xs text-slate-400 font-medium mt-0.5">Today, 2:30 PM</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 md:px-8 py-5 hidden sm:table-cell"><span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] uppercase tracking-widest font-black">Completed</span></td>
-                                <td class="px-6 md:px-8 py-5 font-black text-slate-800 text-right text-base">- KES 540.00</td>
+                                <td class="px-6 md:px-8 py-5 hidden sm:table-cell"><span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] uppercase tracking-widest font-black">Completed</span></td>
+                                <td class="px-6 md:px-8 py-5 font-black text-white text-right text-base">- ZMW 540.00</td>
                             </tr>
-                            <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer">
+                            <tr class="hover:bg-slate-700/50 transition-colors group cursor-pointer">
                                 <td class="px-6 md:px-8 py-5">
                                     <div class="flex items-center space-x-4">
-                                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0"><i class="ph-fill ph-briefcase text-xl"></i></div>
+                                        <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0"><i class="ph-fill ph-briefcase text-xl"></i></div>
                                         <div>
-                                            <p class="font-bold text-slate-800 text-base">TechCorp Salary</p>
+                                            <p class="font-bold text-white text-base">TechCorp Salary</p>
                                             <p class="text-xs text-slate-400 font-medium mt-0.5">Yesterday</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 md:px-8 py-5 hidden sm:table-cell"><span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] uppercase tracking-widest font-black">Completed</span></td>
-                                <td class="px-6 md:px-8 py-5 font-black text-emerald-500 text-right text-base">+ KES 325,000.00</td>
+                                <td class="px-6 md:px-8 py-5 hidden sm:table-cell"><span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] uppercase tracking-widest font-black">Completed</span></td>
+                                <td class="px-6 md:px-8 py-5 font-black text-emerald-400 text-right text-base">+ ZMW 35,000.00</td>
                             </tr>
                         </tbody>
                     </table>
@@ -277,131 +283,180 @@
         </div>
     </main>
 
-    <div id="transferModal" class="hidden fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 px-4 overflow-y-auto">
-        <div class="absolute inset-0 modal-overlay" onclick="closeModal('transferModal')"></div>
-        <div class="bg-white rounded-[2rem] p-6 sm:p-8 max-w-lg w-full shadow-2xl transform transition-all scale-95 opacity-0 duration-300 relative z-10 my-8" id="transferModalContent">
+    <div id="transferModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div class="absolute inset-0 modal-overlay animate-fade-in" onclick="closeModal('transferModal')" style="animation-duration: 0.3s"></div>
+        
+        <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-lg overflow-hidden animate-slide-up flex flex-col max-h-full">
             
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center space-x-3">
-                    <div id="transferIconBox" class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i id="transferIcon" class="ph-bold ph-arrows-left-right text-xl"></i></div>
-                    <h3 class="text-xl font-black text-slate-800 tracking-tight" id="transferTitle">Transfer Funds</h3>
-                </div>
-                <button onclick="closeModal('transferModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 transition interactive-press"><i class="ph-bold ph-x text-sm"></i></button>
+            <div class="px-6 py-5 border-b border-slate-700 flex justify-between items-center bg-slate-800 shrink-0">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="ph-bold ph-paper-plane-right text-blue-400"></i> Send Funds</h3>
+                <button onclick="closeModal('transferModal')" class="text-slate-400 hover:text-white transition"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            
-            <form onsubmit="processTransferAction(event)" class="space-y-5">
-                <input type="hidden" id="currentTransferType" value="own">
+
+            <div class="p-6 overflow-y-auto hide-scrollbar" id="transferStep1">
                 
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Transfer From</label>
-                    <select id="transferFrom" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none bg-slate-50 font-bold text-slate-700 appearance-none cursor-pointer shadow-sm text-sm">
-                        <option value="checking">Main Checking (**** 4589)</option>
-                        <option value="savings">High-Yield Savings (**** 8821)</option>
-                    </select>
+                <div class="mb-6">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Transfer Channel</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="channel" value="internal" class="peer sr-only" checked onchange="toggleChannelUI()">
+                            <div class="p-3 text-center border border-slate-700 rounded-xl bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 transition">
+                                <i class="ph-fill ph-bank text-xl text-slate-400 peer-checked:text-blue-400 mb-1"></i>
+                                <div class="text-xs font-bold text-slate-300 peer-checked:text-white">Internal</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="channel" value="rtgs" class="peer sr-only" onchange="toggleChannelUI()">
+                            <div class="p-3 text-center border border-slate-700 rounded-xl bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 transition">
+                                <i class="ph-fill ph-globe text-xl text-slate-400 peer-checked:text-blue-400 mb-1"></i>
+                                <div class="text-xs font-bold text-slate-300 peer-checked:text-white">RTGS/ACH</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="channel" value="mobile" class="peer sr-only" onchange="toggleChannelUI()">
+                            <div class="p-3 text-center border border-slate-700 rounded-xl bg-slate-800 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 transition">
+                                <i class="ph-fill ph-device-mobile text-xl text-slate-400 peer-checked:text-blue-400 mb-1"></i>
+                                <div class="text-xs font-bold text-slate-300 peer-checked:text-white">Mobile</div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
-                <div id="dynamicToFields" class="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-4">
-                    
-                    <div id="fieldsOwn" class="hidden">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Transfer To</label>
-                        <select id="transferToOwn" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none bg-white font-bold text-slate-700 appearance-none cursor-pointer text-sm">
-                            <option value="savings">High-Yield Savings (**** 8821)</option>
-                            <option value="checking">Main Checking (**** 4589)</option>
+                <form onsubmit="proceedToOTP(event)" class="space-y-5">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">From Account</label>
+                        <select class="w-full px-4 py-3.5 bg-slate-800 border border-slate-600 rounded-xl text-sm font-semibold text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                            <option>ZMW •••• 8821 (Bal: 124,500.00)</option>
+                            <option>USD •••• 4490 (Bal: $4,250.50)</option>
                         </select>
                     </div>
 
-                    <div id="fieldsInternal" class="hidden">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">BOZ Account Number</label>
-                        <input type="text" id="transferToInternal" placeholder="e.g. 023940294" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 outline-none font-mono text-sm text-slate-800 bg-white">
+                    <div id="beneficiaryWrapper">
+                        <div class="flex justify-between mb-2">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Beneficiary</label>
+                            <a href="#" class="text-[10px] text-blue-400 font-bold hover:underline">+ Add New</a>
+                        </div>
+                        <select id="benSelect" class="w-full px-4 py-3.5 bg-slate-800 border border-slate-600 rounded-xl text-sm font-semibold text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                            <option>Daniel Banda (BOZ: 09923451)</option>
+                            <option>Landlord Rent (BOZ: 00129344)</option>
+                        </select>
+                        <input type="text" id="mobileInput" placeholder="+260 9X XXX XXXX" class="hidden w-full px-4 py-3.5 bg-slate-800 border border-slate-600 rounded-xl text-sm font-semibold text-white focus:border-blue-500 outline-none">
                     </div>
 
-                    <div id="fieldsLocal" class="hidden space-y-4">
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Select Bank</label>
-                            <select id="transferToBank" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none bg-white font-bold text-slate-700 appearance-none cursor-pointer text-sm">
-                                <option value="" disabled selected>Select destination bank...</option>
-                                <option value="equity">Equity Bank</option>
-                                <option value="kcb">KCB Bank</option>
-                                <option value="coop">Co-operative Bank</option>
-                                <option value="stanchart">Standard Chartered</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Account Number</label>
-                            <input type="text" id="transferToLocalAcc" placeholder="e.g. 1102930291" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none font-mono text-sm text-slate-800 bg-white">
-                        </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Amount</label>
+                        <input type="number" required class="w-full px-4 py-3.5 bg-slate-800 border border-slate-600 rounded-xl text-lg font-bold text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-500" placeholder="0.00">
                     </div>
 
-                    <div id="fieldsIntl" class="hidden space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
+                    <div class="pt-2 bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" id="scheduleCheck" class="appearance-none w-4 h-4 border-2 border-slate-500 bg-slate-800 rounded checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer" onchange="document.getElementById('scheduleOptions').classList.toggle('hidden')">
+                            <span class="text-sm font-semibold text-slate-300">Schedule / Standing Instruction</span>
+                        </label>
+                        
+                        <div id="scheduleOptions" class="hidden mt-4 space-y-3">
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Currency</label>
-                                <select id="transferIntlCcy" class="w-full px-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 outline-none bg-white font-bold text-slate-700 appearance-none cursor-pointer text-sm">
-                                    <option value="USD">USD</option>
-                                    <option value="GBP">GBP</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="ZAR">ZAR</option>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Frequency</label>
+                                <select class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-200 outline-none cursor-pointer">
+                                    <option>One-Time (Future Date)</option>
+                                    <option>Weekly</option>
+                                    <option>Monthly (e.g., Rent/Bills)</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">SWIFT / BIC</label>
-                                <input type="text" id="transferIntlSwift" placeholder="e.g. BOFAUS3N" class="w-full px-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 outline-none font-mono text-sm text-slate-800 bg-white uppercase">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Start Date</label>
+                                <input type="date" class="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-sm text-slate-200 outline-none [color-scheme:dark]">
                             </div>
                         </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-700 mt-6">
+                        <button type="submit" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-500 transition-all shadow-[0_0_15px_rgba(59,130,246,0.3)] interactive-press">Continue to Authorization</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="hidden p-8 text-center" id="transferStep2">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-500/10 border border-blue-500/20 rounded-full mb-4">
+                    <i class="ph-fill ph-device-mobile text-3xl text-blue-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Security Verification</h3>
+                <p class="text-sm text-slate-400 mb-8">Enter the 4-digit One Time Password (OTP) sent to your registered device to authorize this instruction.</p>
+                
+                <div class="flex justify-center gap-3 mb-8">
+                    <input type="text" maxlength="1" class="otp-box focus:border-blue-500" onkeyup="focusNext(this, 'otp2')">
+                    <input type="text" maxlength="1" class="otp-box focus:border-blue-500" id="otp2" onkeyup="focusNext(this, 'otp3')">
+                    <input type="text" maxlength="1" class="otp-box focus:border-blue-500" id="otp3" onkeyup="focusNext(this, 'otp4')">
+                    <input type="text" maxlength="1" class="otp-box focus:border-blue-500" id="otp4" onkeyup="verifyOTP()">
+                </div>
+
+                <button onclick="document.getElementById('transferStep2').classList.add('hidden'); document.getElementById('transferStep1').classList.remove('hidden');" class="text-sm font-bold text-slate-500 hover:text-white transition">Cancel</button>
+            </div>
+
+            <div class="hidden p-8 text-center" id="transferStep3">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-4">
+                    <i class="ph-bold ph-check text-4xl text-emerald-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">Instruction Recorded</h3>
+                <p class="text-sm text-slate-400 mb-8">Your transaction has been securely verified and logged on the BOZ Core system.</p>
+                <button onclick="closeModal('transferModal')" class="w-full py-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 border border-slate-600 transition interactive-press">Return to Dashboard</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="serviceModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div class="absolute inset-0 modal-overlay animate-fade-in" onclick="closeModal('serviceModal')" style="animation-duration: 0.3s"></div>
+        
+        <div class="relative bg-slate-900 border border-slate-700 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-full max-w-md overflow-hidden animate-slide-up flex flex-col">
+            <div class="px-6 py-5 border-b border-slate-700 flex justify-between items-center bg-slate-800 shrink-0">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="ph-bold ph-briefcase text-purple-400"></i> Service Center</h3>
+                <button onclick="closeModal('serviceModal')" class="text-slate-400 hover:text-white transition"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+
+            <div class="p-6">
+                <p class="text-sm text-slate-400 mb-6">Select a self-service action for your accounts. All requests are logged and processed automatically.</p>
+                
+                <div class="space-y-3">
+                    <button onclick="simulateServiceReq('Chequebook Ordered')" class="w-full flex items-center p-4 bg-slate-800 border border-slate-700 hover:border-purple-500/50 rounded-xl group transition text-left interactive-press">
+                        <div class="w-10 h-10 bg-purple-500/10 text-purple-400 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition"><i class="ph-bold ph-book-open text-xl"></i></div>
                         <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">IBAN / Account Number</label>
-                            <input type="text" id="transferIntlIban" placeholder="International Bank Account No." class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 outline-none font-mono text-sm text-slate-800 bg-white">
+                            <p class="font-bold text-white text-sm">Order Chequebook</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Request a 50-leaf standard book.</p>
                         </div>
-                    </div>
-                </div>
+                    </button>
 
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Amount</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-3.5 text-slate-400 font-bold" id="amountCcyLabel">KES</span>
-                        <input type="number" id="transferAmount" required min="1" class="w-full pl-14 pr-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-black text-xl text-slate-800 bg-white placeholder:text-slate-300 placeholder:font-medium shadow-sm transition" placeholder="0.00">
-                    </div>
+                    <button onclick="simulateServiceReq('Cheque Stopped')" class="w-full flex items-center p-4 bg-slate-800 border border-slate-700 hover:border-rose-500/50 rounded-xl group transition text-left interactive-press">
+                        <div class="w-10 h-10 bg-rose-500/10 text-rose-400 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition"><i class="ph-bold ph-stop-circle text-xl"></i></div>
+                        <div>
+                            <p class="font-bold text-white text-sm">Stop Cheque Payment</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Halt processing of an issued cheque.</p>
+                        </div>
+                    </button>
+                    
+                    <button onclick="simulateServiceReq('Card Blocked')" class="w-full flex items-center p-4 bg-slate-800 border border-slate-700 hover:border-amber-500/50 rounded-xl group transition text-left interactive-press">
+                        <div class="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition"><i class="ph-bold ph-credit-card text-xl"></i></div>
+                        <div>
+                            <p class="font-bold text-white text-sm">Block/Freeze Card</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Report lost or stolen debit card.</p>
+                        </div>
+                    </button>
                 </div>
-
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Note (Optional)</label>
-                    <input type="text" id="transferNote" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-white" placeholder="What's this for?">
-                </div>
-
-                <button type="submit" id="transferSubmitBtn" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-300 shadow-lg shadow-blue-500/30 flex justify-center items-center interactive-press mt-2 text-sm">
-                    <span id="transferBtnText">Confirm Transfer</span>
-                    <i id="transferSpinner" class="ph-bold ph-spinner-gap animate-spin hidden ml-2 text-lg"></i>
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 
-    <div id="toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 translate-y-20 opacity-0 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-500 flex items-center gap-4 z-[100] pointer-events-none w-max max-w-[90vw]">
-        <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-            <i id="toastIcon" class="ph-bold ph-check text-xl"></i>
-        </div>
+    <div id="toast" class="hidden fixed bottom-8 right-8 bg-slate-800 text-white px-6 py-4 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center space-x-4 transform transition-all duration-500 translate-y-12 opacity-0 z-[70] border border-slate-700/80">
+        <i id="toastIcon" class="ph-fill ph-check-circle text-emerald-400 text-2xl"></i>
         <div>
-            <h4 id="toastTitle" class="text-sm font-bold tracking-wide">Success</h4>
-            <p id="toastMessage" class="text-xs text-slate-300 font-medium mt-0.5">Action completed.</p>
+            <h4 id="toastTitle" class="font-bold tracking-wide text-sm text-slate-100">Success</h4>
+            <p id="toastMessage" class="text-slate-400 text-xs font-medium mt-0.5">Action completed.</p>
         </div>
     </div>
 
-    <nav id="mobileFooterNav" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200/50 z-40 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"></nav>
+    <nav id="mobileFooterNav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200/50 z-40 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]"></nav>
 
     <script>
-        // --- 1. Global State & Mocks ---
-        let currentChartCurrency = 'KES';
-        let balances = {
-            checking: 1245000,
-            savings: 4520050
-        };
-
-        const chartBaseData = {
-            income: [420000, 410000, 580000, 420000, 430000, 450000],
-            expenses: [280000, 310000, 420000, 290000, 270000, 320000]
-        };
-
-        // --- 2. Chart Initialization (Kept from original) ---
+        // Chart Setup
         document.addEventListener("DOMContentLoaded", function() {
             Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
             const ctx = document.getElementById('cashFlowChart').getContext('2d');
@@ -414,204 +469,109 @@
             expenseGradient.addColorStop(0, 'rgba(239, 68, 68, 0.25)'); 
             expenseGradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
 
-            window.myCashFlowChart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
                     datasets: [
-                        { label: 'Income', data: [...chartBaseData.income], borderColor: '#10b981', backgroundColor: incomeGradient, borderWidth: 3, pointBackgroundColor: '#ffffff', pointBorderColor: '#10b981', pointBorderWidth: 2, pointRadius: 4, fill: true, tension: 0.4 },
-                        { label: 'Expenses', data: [...chartBaseData.expenses], borderColor: '#ef4444', backgroundColor: expenseGradient, borderWidth: 3, pointBackgroundColor: '#ffffff', pointBorderColor: '#ef4444', pointBorderWidth: 2, pointRadius: 4, fill: true, tension: 0.4 }
+                        { label: 'Income', data: [42000, 41000, 58000, 42000, 43000, 45000], borderColor: '#10b981', backgroundColor: incomeGradient, borderWidth: 3, pointBackgroundColor: '#1e293b', pointBorderColor: '#10b981', pointBorderWidth: 2, pointRadius: 4, fill: true, tension: 0.4 },
+                        { label: 'Expenses', data: [28000, 31000, 42000, 29000, 27000, 32000], borderColor: '#ef4444', backgroundColor: expenseGradient, borderWidth: 3, pointBackgroundColor: '#1e293b', pointBorderColor: '#ef4444', pointBorderWidth: 2, pointRadius: 4, fill: true, tension: 0.4 }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, font: { size: 13, weight: '700' } } },
-                        tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(4px)', padding: 12, titleFont: { size: 14, weight: '700' }, bodyFont: { size: 14, weight: '500' } }
+                        legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, font: { size: 12, weight: '700' }, color: '#cbd5e1' } },
+                        tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(15, 23, 42, 0.9)', backdropFilter: 'blur(4px)', padding: 12, titleFont: { size: 14, weight: '700' } }
                     },
                     scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#f1f5f9', drawBorder: false }, ticks: { font: { size: 12, weight: '600' }, color: '#94a3b8', callback: function(value) { return value >= 1000 ? (value / 1000) + 'k' : value; } } },
-                        x: { grid: { display: false, drawBorder: false }, ticks: { font: { size: 12, weight: '600' }, color: '#94a3b8' } }
+                        y: { beginAtZero: true, grid: { borderDash: [4, 4], color: 'rgba(255,255,255,0.05)', drawBorder: false }, ticks: { font: { size: 11, weight: '600' }, color: '#64748b', callback: function(value) { return value >= 1000 ? (value / 1000) + 'k' : value; } } },
+                        x: { grid: { display: false, drawBorder: false }, ticks: { font: { size: 11, weight: '600' }, color: '#64748b' } }
                     },
                     interaction: { mode: 'nearest', axis: 'x', intersect: false }
                 }
             });
         });
 
-        // --- 3. Unified Transfer Modal Logic ---
-        const transferConfigs = {
-            own: { title: "Own Account Transfer", icon: "ph-arrows-left-right", color: "blue" },
-            internal: { title: "Internal Transfer (BOZ)", icon: "ph-bank", color: "indigo" },
-            local: { title: "Local Bank Transfer", icon: "ph-buildings", color: "emerald" },
-            international: { title: "International SWIFT", icon: "ph-globe-hemisphere-west", color: "purple" }
-        };
-
-        function openTransferModal(type) {
-            document.getElementById('currentTransferType').value = type;
-            const config = transferConfigs[type];
-
-            // Setup Header
-            document.getElementById('transferTitle').innerText = config.title;
-            const iconBox = document.getElementById('transferIconBox');
-            iconBox.className = `w-10 h-10 rounded-xl flex items-center justify-center bg-${config.color}-50 text-${config.color}-600`;
-            document.getElementById('transferIcon').className = `ph-bold ${config.icon} text-xl`;
-            
-            // Theme Submit Button
-            const submitBtn = document.getElementById('transferSubmitBtn');
-            submitBtn.className = `w-full py-4 text-white font-bold rounded-xl transition duration-300 shadow-lg flex justify-center items-center interactive-press mt-2 text-sm bg-${config.color}-600 hover:bg-${config.color}-700 shadow-${config.color}-500/30`;
-
-            // Reset visibility of all dynamic fields
-            ['fieldsOwn', 'fieldsInternal', 'fieldsLocal', 'fieldsIntl'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-                // Remove required attributes from hidden fields
-                const inputs = document.getElementById(id).querySelectorAll('input, select');
-                inputs.forEach(input => input.removeAttribute('required'));
-            });
-
-            // Show specific fields and enforce required
-            let activeFieldId = '';
-            if (type === 'own') activeFieldId = 'fieldsOwn';
-            if (type === 'internal') activeFieldId = 'fieldsInternal';
-            if (type === 'local') activeFieldId = 'fieldsLocal';
-            if (type === 'international') activeFieldId = 'fieldsIntl';
-
-            const activeContainer = document.getElementById(activeFieldId);
-            activeContainer.classList.remove('hidden');
-            const activeInputs = activeContainer.querySelectorAll('input, select');
-            activeInputs.forEach(input => input.setAttribute('required', 'true'));
-
-            // Reset form
-            document.getElementById('transferAmount').value = '';
-            document.getElementById('transferNote').value = '';
-
-            // Handle Currency Label
-            const ccyLabel = document.getElementById('amountCcyLabel');
-            if (type === 'international') {
-                ccyLabel.innerText = document.getElementById('transferIntlCcy').value;
-                // Add event listener to update currency label when select changes
-                document.getElementById('transferIntlCcy').onchange = (e) => ccyLabel.innerText = e.target.value;
-            } else {
-                ccyLabel.innerText = 'KES'; // Defaulting to KES for local/own
-            }
-
-            openModal('transferModal');
+        // Modal Controls
+        function openTransferModal() {
+            document.getElementById('transferModal').classList.remove('hidden');
+            document.getElementById('transferStep1').classList.remove('hidden');
+            document.getElementById('transferStep2').classList.add('hidden');
+            document.getElementById('transferStep3').classList.add('hidden');
+            document.body.style.overflow = 'hidden';
         }
 
-        function processTransferAction(e) {
-            e.preventDefault();
-            const type = document.getElementById('currentTransferType').value;
-            const btnText = document.getElementById('transferBtnText');
-            const spinner = document.getElementById('transferSpinner');
-            const amount = parseFloat(document.getElementById('transferAmount').value);
-            const fromAcc = document.getElementById('transferFrom').value;
-            const note = document.getElementById('transferNote').value || 'Transfer';
-
-            if (isNaN(amount) || amount <= 0) {
-                showToast('Error', 'Please enter a valid amount.', 'ph-warning-circle', 'text-amber-500');
-                return;
-            }
-
-            if (amount > balances[fromAcc]) {
-                showToast('Declined', 'Insufficient funds for this transfer.', 'ph-x-circle', 'text-rose-500');
-                return;
-            }
-
-            // Determine target name for Activity log
-            let targetName = 'Own Account';
-            if (type === 'internal') targetName = `BOZ Account (${document.getElementById('transferToInternal').value})`;
-            if (type === 'local') targetName = `Local Bank (${document.getElementById('transferToBank').value.toUpperCase()})`;
-            if (type === 'international') targetName = `SWIFT to ${document.getElementById('transferIntlSwift').value}`;
-
-            // Simulate Network Request
-            btnText.innerText = "Processing...";
-            spinner.classList.remove('hidden');
-            const submitBtn = document.getElementById('transferSubmitBtn');
-            submitBtn.disabled = true;
-
-            setTimeout(() => {
-                // Deduct Balance
-                balances[fromAcc] -= amount;
-
-                // Update UI Balances
-                document.getElementById('checkingBalDisplay').innerText = `KES ${balances.checking.toLocaleString()}`;
-                document.getElementById('savingsBalDisplay').innerText = `KES ${balances.savings.toLocaleString()}`;
-
-                // Log Activity
-                const ccy = type === 'international' ? document.getElementById('transferIntlCcy').value : 'KES';
-                addRecentActivity(targetName, amount, ccy, note);
-
-                // Reset and Close
-                btnText.innerText = "Confirm Transfer";
-                spinner.classList.add('hidden');
-                submitBtn.disabled = false;
-                
-                closeModal('transferModal');
-                showToast('Transfer Successful', 'Your funds have been dispatched securely.', 'ph-check-circle', 'text-emerald-400');
-            }, 1500);
-        }
-
-        function addRecentActivity(target, amount, ccy, note) {
-            const tbody = document.getElementById('activityTableBody');
-            const html = `
-                <tr class="hover:bg-slate-50/80 transition-colors group cursor-pointer bg-blue-50/20">
-                    <td class="px-6 md:px-8 py-5">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0"><i class="ph-fill ph-paper-plane-tilt text-xl"></i></div>
-                            <div>
-                                <p class="font-bold text-slate-800 text-base">${target}</p>
-                                <p class="text-xs text-slate-400 font-medium mt-0.5">Just now • ${note}</p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 md:px-8 py-5 hidden sm:table-cell"><span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] uppercase tracking-widest font-black">Completed</span></td>
-                    <td class="px-6 md:px-8 py-5 font-black text-slate-800 text-right text-base">- ${ccy} ${amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('afterbegin', html);
-            
-            // remove last row to keep table clean if it gets too long
-            if(tbody.children.length > 5) tbody.removeChild(tbody.lastElementChild);
-        }
-
-        // --- 4. Core UI Utils ---
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            const content = document.getElementById(modalId + 'Content');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                content.classList.remove('scale-95', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
-            }, 10);
+        function openServiceModal() {
+            document.getElementById('serviceModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
 
         function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            const content = document.getElementById(modalId + 'Content');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = '';
-            }, 300);
+            document.getElementById(modalId).classList.add('hidden');
+            document.body.style.overflow = '';
         }
 
-        function showToast(title, msg, icon='ph-check', color='text-emerald-400') {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastTitle').innerText = title;
-            document.getElementById('toastMessage').innerText = msg;
-            document.getElementById('toastIcon').className = `ph-bold ${icon} text-xl ${color}`;
-            
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.remove('translate-y-20', 'opacity-0'), 10);
-            
-            if(window.toastTimer) clearTimeout(window.toastTimer);
-            window.toastTimer = setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-                setTimeout(() => toast.classList.add('hidden'), 500);
-            }, 3000);
+        // Transfer Channel UI Toggle
+        function toggleChannelUI() {
+            const channel = document.querySelector('input[name="channel"]:checked').value;
+            const benSelect = document.getElementById('benSelect');
+            const mobileInput = document.getElementById('mobileInput');
+
+            if(channel === 'mobile') {
+                benSelect.classList.add('hidden');
+                mobileInput.classList.remove('hidden');
+                mobileInput.required = true;
+            } else if (channel === 'rtgs') {
+                benSelect.classList.remove('hidden');
+                mobileInput.classList.add('hidden');
+                mobileInput.required = false;
+                benSelect.innerHTML = `<option>Barclays Bank (Acc: 928374)</option><option>Stanbic Bank (Acc: 110029)</option>`;
+            } else {
+                benSelect.classList.remove('hidden');
+                mobileInput.classList.add('hidden');
+                mobileInput.required = false;
+                benSelect.innerHTML = `<option>Daniel Banda (BOZ: 09923451)</option><option>Landlord Rent (BOZ: 00129344)</option>`;
+            }
         }
 
+        // Transfer OTP Flow
+        function proceedToOTP(e) {
+            e.preventDefault();
+            document.getElementById('transferStep1').classList.add('hidden');
+            document.getElementById('transferStep2').classList.remove('hidden');
+            document.querySelector('.otp-box').focus();
+        }
+
+        function focusNext(current, nextId) {
+            if (current.value.length === 1 && nextId) {
+                document.getElementById(nextId).focus();
+            }
+        }
+
+        function verifyOTP() {
+            const inputs = document.querySelectorAll('.otp-box');
+            let val = '';
+            inputs.forEach(i => val += i.value);
+            
+            if(val.length === 4) {
+                inputs.forEach(i => { i.disabled = true; i.classList.add('opacity-50'); });
+                setTimeout(() => {
+                    document.getElementById('transferStep2').classList.add('hidden');
+                    document.getElementById('transferStep3').classList.remove('hidden');
+                    // Reset inputs for next time
+                    inputs.forEach(i => { i.value = ''; i.disabled = false; i.classList.remove('opacity-50'); });
+                }, 800);
+            }
+        }
+
+        // Services
+        function simulateServiceReq(type) {
+            closeModal('serviceModal');
+            showToast('Request Logged', `${type} request has been submitted to BOZ Core.`, 'ph-check-circle', 'text-emerald-400');
+        }
+
+        // Utils
         function toggleDropdown(id, e) {
             e.stopPropagation();
             const el = document.getElementById(id);
@@ -627,20 +587,27 @@
 
         function closeAllDropdowns(e) {
             const notifDesk = document.getElementById('notifDropdown');
-            const notifMob = document.getElementById('notifDropdownMobile');
-            const profile = document.getElementById('profileDropdown');
-            
-            if (notifDesk && !notifDesk.contains(e?.target) && !e?.target?.closest('button[onclick*="notifDropdown"]')) {
+            if (notifDesk && !notifDesk.contains(e?.target) && !e?.target?.closest('#notifBtn')) {
                 notifDesk.classList.add('opacity-0', 'scale-95'); setTimeout(() => notifDesk.classList.add('hidden'), 200);
-            }
-            if (notifMob && !notifMob.contains(e?.target) && !e?.target?.closest('button[onclick*="notifDropdownMobile"]')) {
-                notifMob.classList.add('opacity-0', 'scale-95'); setTimeout(() => notifMob.classList.add('hidden'), 200);
-            }
-            if (profile && !profile.contains(e?.target) && !e?.target?.closest('#profileBtn')) {
-                profile.classList.add('opacity-0', 'scale-95'); setTimeout(() => profile.classList.add('hidden'), 200);
             }
         }
 
+        function showToast(title, msg, icon='ph-check-circle', color='text-emerald-400') {
+            const t = document.getElementById('toast'); 
+            document.getElementById('toastTitle').innerText = title; 
+            document.getElementById('toastMessage').innerText = msg;
+            document.getElementById('toastIcon').className = `ph-fill ${icon} ${color} text-2xl`;
+            t.classList.remove('hidden'); 
+            setTimeout(() => t.classList.remove('translate-y-12', 'opacity-0'), 10);
+            setTimeout(() => { t.classList.add('translate-y-12', 'opacity-0'); setTimeout(() => t.classList.add('hidden'), 500); }, 4000);
+        }
+
+        function logout() {
+            localStorage.removeItem('boz_member');
+            window.location.href = 'customer-login.html';
+        }
+
+        // Mobile Menu Functionality
         function toggleMobileMenu() {
             const sidebar = document.getElementById("mobileSidebar");
             const backdrop = document.getElementById("mobileBackdrop");

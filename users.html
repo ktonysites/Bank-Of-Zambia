@@ -44,6 +44,10 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Toggle Switch Custom CSS */
+        .toggle-checkbox:checked { right: 0; border-color: #4f46e5; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden bg-[#f8fafc] text-slate-900">
@@ -207,7 +211,7 @@
 
     <div id="userProfileModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
         <div class="absolute inset-0 modal-overlay" onclick="closeUserProfile()"></div>
-        <div class="bg-slate-50 rounded-[2rem] p-0 max-w-4xl w-full max-h-[95vh] overflow-y-auto shadow-2xl relative z-10 modal-animate border border-slate-200 hide-scrollbar" id="userProfileContent">
+        <div class="bg-slate-50 rounded-[2rem] p-0 max-w-5xl w-full max-h-[95vh] overflow-y-auto shadow-2xl relative z-10 modal-animate border border-slate-200 hide-scrollbar" id="userProfileContent">
             
             <div class="bg-gradient-to-br from-slate-900 to-[#0B0F19] p-6 lg:p-8 relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 border-b border-slate-800">
                 <button onclick="closeUserProfile()" class="absolute top-4 right-4 sm:top-6 sm:right-6 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition interactive-press z-20">
@@ -229,7 +233,7 @@
                 </div>
             </div>
 
-            <div class="p-4 lg:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+            <div class="p-4 lg:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                 
                 <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
                     <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="ph-fill ph-address-book text-indigo-500"></i> Contact & Location</h4>
@@ -285,7 +289,43 @@
                     </div>
                 </div>
 
-                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 md:col-span-2">
+                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="ph-fill ph-shield-check text-rose-500"></i> Security & Channels</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">Web Banking Access</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Allow login via browser portal</p>
+                            </div>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="toggle" id="toggleWeb" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-200 transition-all duration-300 z-10 top-0.5 left-0.5" checked/>
+                                <label for="toggleWeb" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-200 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">Mobile App Access</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Allow login via iOS/Android</p>
+                            </div>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="toggle" id="toggleMobile" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-200 transition-all duration-300 z-10 top-0.5 left-0.5" checked/>
+                                <label for="toggleMobile" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-200 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-slate-800">MFA Required</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Enforce OTP/Biometric auth</p>
+                            </div>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" name="toggle" id="toggleMFA" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-200 transition-all duration-300 z-10 top-0.5 left-0.5" checked/>
+                                <label for="toggleMFA" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-200 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 lg:col-span-2">
                     <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 flex items-center gap-2"><i class="ph-fill ph-cube text-amber-500"></i> Account Classification (T24 Data)</h4>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
@@ -303,29 +343,43 @@
                     </div>
                 </div>
 
-                <div class="space-y-4 lg:space-y-6 md:col-span-2">
-                    <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
-                            <span>Tier <span id="modalUserTier"></span> Velocity Limits</span>
-                            <span class="text-xs text-slate-400 font-medium tracking-normal">Joined: <span id="modalUserJoinDate" class="font-bold text-slate-600"></span></span>
-                        </h4>
+                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
+                        <span>Tier <span id="modalUserTier"></span> Velocity Limits</span>
+                        <button onclick="toggleEditLimits()" id="editLimitsBtn" class="text-xs text-indigo-600 font-bold hover:underline">Edit Limits</button>
+                    </h4>
+                    <div class="space-y-4">
                         <div>
-                            <div class="flex justify-between text-xs font-bold mb-2">
-                                <span class="text-slate-500">Daily Transfer Capacity</span>
-                                <span class="text-slate-900">ZMW <span id="modalLimitUsed"></span> / <span id="modalLimitTotal"></span></span>
-                            </div>
-                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                <div class="bg-indigo-500 h-2 rounded-full" style="width: 35%"></div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Daily Transfer Limit (ZMW)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="inputDailyLimit" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition disabled:bg-transparent disabled:border-transparent disabled:px-0" disabled>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 mb-4">Command Interface</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="modalActionButtons">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Daily Deposit Limit (ZMW)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="inputDepositLimit" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition disabled:bg-transparent disabled:border-transparent disabled:px-0" disabled>
+                            </div>
                         </div>
+                        <button id="saveLimitsBtn" onclick="saveLimits()" class="hidden w-full py-2 bg-indigo-50 text-indigo-700 font-bold rounded-lg text-xs hover:bg-indigo-100 transition">Save Limits</button>
                     </div>
                 </div>
+
+                <div id="corporateWorkflowSection" class="hidden bg-slate-900 p-5 lg:p-6 rounded-2xl border border-slate-800 shadow-sm space-y-5 lg:col-span-3">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h4 class="font-black text-white text-sm flex items-center gap-2"><i class="ph-fill ph-briefcase text-indigo-400"></i> Corporate Authorization Workflow</h4>
+                        <button class="text-xs font-bold text-indigo-400 hover:text-indigo-300">Manage Roles</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="corporateRolesContainer">
+                        </div>
+                </div>
+
+                <div class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-3">
+                    <h4 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3 mb-4">Command Interface (Maker/Checker)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3" id="modalActionButtons">
+                        </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -420,37 +474,36 @@
     </div>
 
     <script>
-        // --- EXPANDED MOCK DATABASE ---
+        // --- EXPANDED MOCK DATABASE (Added Security & Limits fields) ---
         let userDb = [
             { 
                 id: "USR-88201", name: "Daniel Banda", email: "daniel.b@zambia.co.zm", phone: "+260 97 123 4567", 
                 location: "15 Independence Ave, Lusaka", status: "Active", kyc: "Pending KYC", tier: 1, balance: 14500.00, joinDate: "12 Feb 2026", color: "indigo",
-                dob: "1992-05-14", idType: "National ID (NRC)", idNumber: "123456/78/1", language: "1 - English", segment: "4 - Ret.Client std", industry: "1000 - Private Person", productCode: "1001"
+                dob: "1992-05-14", idType: "National ID (NRC)", idNumber: "123456/78/1", language: "1 - English", segment: "4 - Ret.Client std", industry: "1000 - Private Person", productCode: "1001",
+                webAccess: true, mobileAccess: true, mfaEnabled: false, dailyLimit: 50000, depositLimit: 100000
             },
             { 
                 id: "USR-88190", name: "Alice Phiri", email: "alice.phiri@mail.zm", phone: "+260 96 987 6543", 
                 location: "Plot 42, Ndola", status: "Active", kyc: "Verified", tier: 3, balance: 450000.50, joinDate: "05 Nov 2025", color: "emerald",
-                dob: "1988-11-23", idType: "Passport", idNumber: "ZA987654", language: "1 - English", segment: "2 - Priv High Net", industry: "1000 - Private Person", productCode: "1001"
+                dob: "1988-11-23", idType: "Passport", idNumber: "ZA987654", language: "1 - English", segment: "2 - Priv High Net", industry: "1000 - Private Person", productCode: "1001",
+                webAccess: true, mobileAccess: true, mfaEnabled: true, dailyLimit: 1000000, depositLimit: 5000000
             },
             { 
                 id: "USR-88102", name: "Copperbelt Mining Co.", email: "finance@copperbelt.co.zm", phone: "+260 95 555 1111", 
                 location: "Industrial Area, Kitwe", status: "Frozen", kyc: "Verified", tier: 3, balance: 1250000.00, joinDate: "18 Aug 2024", color: "slate",
-                dob: "N/A", idType: "Company Reg", idNumber: "CO-992211", language: "1 - English", segment: "7 - Corporate", industry: "2100 - Mining & Quarries", productCode: "1001"
+                dob: "N/A", idType: "Company Reg", idNumber: "CO-992211", language: "1 - English", segment: "7 - Corporate", industry: "2100 - Mining & Quarries", productCode: "1001",
+                webAccess: true, mobileAccess: false, mfaEnabled: true, dailyLimit: 5000000, depositLimit: 20000000,
+                corporateRoles: [
+                    { name: "John Musonda", title: "Finance Director", role: "Approver", status: "Active" },
+                    { name: "Sarah Tembo", title: "Senior Accountant", role: "Initiator", status: "Active" },
+                    { name: "Peter Zulu", title: "Compliance Officer", role: "Reviewer", status: "Inactive" }
+                ]
             },
             { 
                 id: "USR-88055", name: "Kevin Mwewa", email: "kevin.m@domain.com", phone: "+260 97 222 3333", 
                 location: "Mosi-oa-Tunya Rd, Livingstone", status: "Active", kyc: "Verified", tier: 2, balance: 8520.00, joinDate: "02 Mar 2026", color: "amber",
-                dob: "1995-02-10", idType: "Driving License", idNumber: "DL-45678", language: "1 - English", segment: "15 - Bus Banking", industry: "2300 - Trader", productCode: "1001"
-            },
-            { 
-                id: "USR-87999", name: "Mercy Tembo", email: "mercy.t@webmail.com", phone: "+260 96 666 7777", 
-                location: "Boma St, Kabwe", status: "Active", kyc: "Verified", tier: 2, balance: 64100.25, joinDate: "20 Jan 2026", color: "purple",
-                dob: "1990-09-05", idType: "National ID (NRC)", idNumber: "654321/11/2", language: "2 - French", segment: "4 - Ret.Client std", industry: "1800 - Health Care", productCode: "1001"
-            },
-            { 
-                id: "USR-87950", name: "Brian Mulenga", email: "brian.m@example.com", phone: "+260 95 111 2222", 
-                location: "Chilenje, Lusaka", status: "Active", kyc: "Pending KYC", tier: 1, balance: 500.00, joinDate: "23 Mar 2026", color: "blue",
-                dob: "1999-12-01", idType: "National ID (NRC)", idNumber: "987123/55/1", language: "1 - English", segment: "4 - Ret.Client std", industry: "1400 - Student", productCode: "1001"
+                dob: "1995-02-10", idType: "Driving License", idNumber: "DL-45678", language: "1 - English", segment: "15 - Bus Banking", industry: "2300 - Trader", productCode: "1001",
+                webAccess: true, mobileAccess: true, mfaEnabled: true, dailyLimit: 250000, depositLimit: 500000
             }
         ];
 
@@ -588,10 +641,47 @@
             document.getElementById('modalUserIndustry').innerText = user.industry;
             document.getElementById('modalUserProduct').innerText = user.productCode;
 
-            // Tier Limits
+            // Toggles (Req 6 & 53)
+            document.getElementById('toggleWeb').checked = user.webAccess;
+            document.getElementById('toggleMobile').checked = user.mobileAccess;
+            document.getElementById('toggleMFA').checked = user.mfaEnabled;
+
+            // Tier Limits (Req 32 & 33)
             document.getElementById('modalUserJoinDate').innerText = user.joinDate;
             document.getElementById('modalUserTier').innerText = user.tier;
+            document.getElementById('inputDailyLimit').value = user.dailyLimit || (user.tier === 1 ? 50000 : 250000);
+            document.getElementById('inputDepositLimit').value = user.depositLimit || (user.tier === 1 ? 100000 : 500000);
+            
+            // Ensure inputs are disabled on open
+            document.getElementById('inputDailyLimit').disabled = true;
+            document.getElementById('inputDepositLimit').disabled = true;
+            document.getElementById('saveLimitsBtn').classList.add('hidden');
+            document.getElementById('editLimitsBtn').innerText = "Edit Limits";
 
+            // Corporate Auth Workflows (Req 7, 45, 57)
+            const corpSection = document.getElementById('corporateWorkflowSection');
+            if(user.segment.includes('Corporate') && user.corporateRoles) {
+                corpSection.classList.remove('hidden');
+                let rolesHtml = '';
+                user.corporateRoles.forEach(role => {
+                    let badgeColor = role.role === 'Approver' ? 'emerald' : (role.role === 'Initiator' ? 'indigo' : 'amber');
+                    rolesHtml += `
+                        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="px-2 py-0.5 bg-${badgeColor}-500/20 text-${badgeColor}-400 rounded text-[10px] font-black uppercase tracking-widest">${role.role}</span>
+                                <i class="ph-fill ph-user-circle text-slate-500 text-lg"></i>
+                            </div>
+                            <p class="text-sm font-bold text-white">${role.name}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${role.title}</p>
+                        </div>
+                    `;
+                });
+                document.getElementById('corporateRolesContainer').innerHTML = rolesHtml;
+            } else {
+                corpSection.classList.add('hidden');
+            }
+
+            // Avatar & Badges
             const initials = user.name.split(' ').slice(0,2).map(n => n[0]).join('');
             const avatar = document.getElementById('modalUserAvatar');
             avatar.innerText = initials;
@@ -606,22 +696,24 @@
             
             document.getElementById('modalUserBadges').innerHTML = badgesHtml;
 
-            let maxLimit = user.tier === 1 ? '50,000' : (user.tier === 2 ? '250,000' : '1,000,000');
-            document.getElementById('modalLimitTotal').innerText = maxLimit;
-            let used = Math.floor(Math.random() * 20000);
-            document.getElementById('modalLimitUsed').innerText = used.toLocaleString();
-
-            // Build Actions
+            // Updated Actions (4-Eye Principle)
             const actionContainer = document.getElementById('modalActionButtons');
             let actionsHtml = '';
 
-            if(user.kyc === 'Pending KYC') actionsHtml += `<button onclick="approveKyc('${user.id}')" class="w-full py-3.5 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-check-circle text-lg"></i> Approve KYC</button>`;
-            else actionsHtml += `<button onclick="showToast('View Docs', 'Opening verification documents...')" class="w-full py-3.5 bg-slate-50 text-slate-700 border border-slate-200 font-bold rounded-xl hover:bg-slate-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-file-text text-lg"></i> View KYC Docs</button>`;
+            if(user.kyc === 'Pending KYC') {
+                actionsHtml += `<button onclick="requestApproval('KYC Verification', '${user.id}')" class="w-full py-3.5 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-shield-check text-lg"></i> Send for KYC Approval</button>`;
+            } else {
+                actionsHtml += `<button onclick="showToast('View Docs', 'Opening verification documents...')" class="w-full py-3.5 bg-slate-50 text-slate-700 border border-slate-200 font-bold rounded-xl hover:bg-slate-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-file-text text-lg"></i> View KYC Docs</button>`;
+            }
 
-            if(user.status === 'Active') actionsHtml += `<button onclick="freezeAccount('${user.id}')" class="w-full py-3.5 bg-rose-50 text-rose-700 font-bold rounded-xl hover:bg-rose-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-lock-key text-lg"></i> Freeze Account</button>`;
-            else actionsHtml += `<button onclick="unfreezeAccount('${user.id}')" class="w-full py-3.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl hover:bg-emerald-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-lock-key-open text-lg"></i> Unfreeze Account</button>`;
+            if(user.status === 'Active') {
+                actionsHtml += `<button onclick="requestApproval('Account Freeze', '${user.id}')" class="w-full py-3.5 bg-rose-50 text-rose-700 font-bold rounded-xl hover:bg-rose-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-lock-key text-lg"></i> Request Account Freeze</button>`;
+            } else {
+                actionsHtml += `<button onclick="requestApproval('Account Unfreeze', '${user.id}')" class="w-full py-3.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl hover:bg-emerald-100 transition text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-lock-key-open text-lg"></i> Request Unfreeze</button>`;
+            }
             
-            actionsHtml += `<button onclick="showToast('Ledger', 'Opening transaction history...')" class="col-span-1 sm:col-span-2 md:col-span-1 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-list-dashes text-lg"></i> View Ledger</button>`;
+            actionsHtml += `<button onclick="showToast('Ledger', 'Opening transaction history...')" class="w-full py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-list-dashes text-lg"></i> View Ledger</button>`;
+            actionsHtml += `<button onclick="showToast('Audit Trail', 'Opening activity logs...')" class="w-full py-3.5 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition shadow-sm text-xs flex items-center justify-center gap-2 interactive-press"><i class="ph-bold ph-clock-counter-clockwise text-lg"></i> Audit Log</button>`;
             
             actionContainer.innerHTML = actionsHtml;
 
@@ -639,6 +731,52 @@
                 document.getElementById('userProfileModal').classList.add('hidden');
             }, 200);
             currentOpenUserId = null;
+        }
+
+        // --- CUSTOM LIMITS LOGIC ---
+        function toggleEditLimits() {
+            const dailyInput = document.getElementById('inputDailyLimit');
+            const depositInput = document.getElementById('inputDepositLimit');
+            const saveBtn = document.getElementById('saveLimitsBtn');
+            const editBtn = document.getElementById('editLimitsBtn');
+
+            if(dailyInput.disabled) {
+                dailyInput.disabled = false;
+                depositInput.disabled = false;
+                dailyInput.classList.add('px-3', 'bg-white');
+                depositInput.classList.add('px-3', 'bg-white');
+                saveBtn.classList.remove('hidden');
+                editBtn.innerText = "Cancel";
+            } else {
+                dailyInput.disabled = true;
+                depositInput.disabled = true;
+                saveBtn.classList.add('hidden');
+                editBtn.innerText = "Edit Limits";
+                
+                // Revert to original values
+                const user = userDb.find(u => u.id === currentOpenUserId);
+                dailyInput.value = user.dailyLimit;
+                depositInput.value = user.depositLimit;
+            }
+        }
+
+        function saveLimits() {
+            const user = userDb.find(u => u.id === currentOpenUserId);
+            if(user) {
+                user.dailyLimit = document.getElementById('inputDailyLimit').value;
+                user.depositLimit = document.getElementById('inputDepositLimit').value;
+                showToast('Limits Updated', `Custom limits saved for ${user.name}.`, 'ph-check-circle', 'text-emerald-400');
+                toggleEditLimits(); // Disable inputs again
+            }
+        }
+
+        // --- 4-EYE PRINCIPLE LOGIC ---
+        function requestApproval(actionType, userId) {
+            const user = userDb.find(u => u.id === userId);
+            if(user) {
+                showToast('Approval Requested', `${actionType} request sent to Checker queue for ${user.id}.`, 'ph-shield-check', 'text-amber-400');
+                closeUserProfile();
+            }
         }
 
         // --- CREATE USER LOGIC ---
@@ -662,16 +800,13 @@
         function handleCreateUser(event) {
             event.preventDefault();
             
-            // Generate Random ID & Data
             const newIdNum = Math.floor(10000 + Math.random() * 90000);
             const newId = `USR-${newIdNum}`;
             const colors = ['indigo', 'emerald', 'amber', 'rose', 'blue', 'purple', 'cyan'];
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
-
             const dateOpts = { day: '2-digit', month: 'short', year: 'numeric' };
             const today = new Date().toLocaleDateString('en-GB', dateOpts);
 
-            // Build user object from form
             const newUser = {
                 id: newId,
                 name: document.getElementById('newUserName').value,
@@ -689,50 +824,21 @@
                 idNumber: document.getElementById('newUserIdNumber').value, 
                 language: "1 - English", 
                 segment: document.getElementById('newUserSegment').value, 
-                industry: "1000 - Private Person", // Defaulting for simplicity
-                productCode: "1001"
+                industry: "1000 - Private Person", 
+                productCode: "1001",
+                webAccess: true, 
+                mobileAccess: true, 
+                mfaEnabled: false, 
+                dailyLimit: 50000, 
+                depositLimit: 100000
             };
 
-            // Add to top of Mock DB
             userDb.unshift(newUser);
-
             closeCreateUserModal();
-            
-            // Trigger Success Toast
             showToast('Account Created', `Successfully created account for ${newUser.name}.`, 'ph-check-circle', 'text-emerald-400');
-            
-            // Refresh table and stats
-            document.getElementById('searchInput').value = ''; // clear search
-            filterUsers('All'); // resets to 'All' tab and re-renders
-            updateSummaryMetrics(); // Updates the total count at the top
-        }
-
-        // --- ACTION FUNCTIONS ---
-        function approveKyc(userId) {
-            const user = userDb.find(u => u.id === userId);
-            if(user) {
-                user.kyc = 'Verified'; user.tier = 2;
-                showToast('KYC Approved', `${user.name} upgraded to Tier 2.`, 'ph-check-circle', 'text-emerald-400');
-                openUserProfile(userId); executeSearchAndFilter(); updateSummaryMetrics();
-            }
-        }
-
-        function freezeAccount(userId) {
-            const user = userDb.find(u => u.id === userId);
-            if(user) {
-                user.status = 'Frozen';
-                showToast('Account Frozen', `${user.name}'s account suspended.`, 'ph-shield-warning', 'text-rose-400');
-                openUserProfile(userId); executeSearchAndFilter(); updateSummaryMetrics();
-            }
-        }
-
-        function unfreezeAccount(userId) {
-            const user = userDb.find(u => u.id === userId);
-            if(user) {
-                user.status = 'Active';
-                showToast('Account Restored', `${user.name}'s account reactivated.`, 'ph-check-circle', 'text-emerald-400');
-                openUserProfile(userId); executeSearchAndFilter(); updateSummaryMetrics();
-            }
+            document.getElementById('searchInput').value = ''; 
+            filterUsers('All');
+            updateSummaryMetrics(); 
         }
 
         // --- UTILS ---
@@ -765,8 +871,18 @@
             setTimeout(() => backdrop.classList.add("hidden"), 300);
         }
 
+        // Toggle Listeners for Mock Data Updates
+        document.addEventListener('change', function(e) {
+            if(e.target.classList.contains('toggle-checkbox') && currentOpenUserId) {
+                const user = userDb.find(u => u.id === currentOpenUserId);
+                if(e.target.id === 'toggleWeb') user.webAccess = e.target.checked;
+                if(e.target.id === 'toggleMobile') user.mobileAccess = e.target.checked;
+                if(e.target.id === 'toggleMFA') user.mfaEnabled = e.target.checked;
+                showToast('Security Updated', 'Channel access settings saved.', 'ph-shield-check', 'text-emerald-400');
+            }
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
-            // Setup navigation using config
             if (typeof renderNavigation === 'function') {
                 renderNavigation('admin', 'users.html');
             }
